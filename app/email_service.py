@@ -350,7 +350,7 @@ def create_staff_invite(email, venue_id, role, invited_by_user_id):
     
     if existing_user:
         cursor.execute('''
-            SELECT id FROM user_venue_roles_v2 
+            SELECT id FROM venue_staff 
             WHERE user_id = ? AND venue_id = ?
         ''', (existing_user['id'], venue_id))
         if cursor.fetchone():

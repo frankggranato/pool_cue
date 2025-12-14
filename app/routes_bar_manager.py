@@ -17,14 +17,11 @@ bar_manager_bp = Blueprint('bar_manager', __name__, url_prefix='/bar-manager')
 
 
 def bar_manager_required(f):
-    """Decorator to require bar manager login (supports old and new auth)."""
+    """Decorator to require bar manager login (unified auth only)."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # New unified auth - check user_id + venue role
+        # Check unified auth with venue selected
         if session.get('user_id') and session.get('current_venue_id'):
-            return f(*args, **kwargs)
-        # Old auth - check bar_manager_id
-        if session.get('bar_manager_id'):
             return f(*args, **kwargs)
         # Redirect to unified login
         return redirect(url_for('unified_auth.unified_login'))
@@ -32,89 +29,33 @@ def bar_manager_required(f):
 
 
 def get_manager_bar():
-    """Get the bar associated with the logged-in manager (supports old and new auth)."""
-    # Try new auth first
+    """Get the bar associated with the logged-in manager."""
     venue_id = session.get('current_venue_id')
-    if venue_id:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('SELECT id as bar_id, name as bar_name FROM bars WHERE id = ?', (venue_id,))
-        result = cursor.fetchone()
-        conn.close()
-        return dict(result) if result else None
-    
-    # Fall back to old auth
-    manager_id = session.get('bar_manager_id')
-    if not manager_id:
+    if not venue_id:
         return None
     
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('''
-        SELECT bm.*, b.name as bar_name, b.id as bar_id
-        FROM bar_managers bm
-        JOIN bars b ON bm.bar_id = b.id
-        WHERE bm.id = ?
-    ''', (manager_id,))
+    cursor.execute('SELECT id as bar_id, name as bar_name FROM bars WHERE id = ?', (venue_id,))
     result = cursor.fetchone()
     conn.close()
     return dict(result) if result else None
 
 
 # ============================================================================
-# AUTH ROUTES
+# AUTH ROUTES (Redirects to Unified Auth)
 # ============================================================================
 
 @bar_manager_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    """Bar manager login page."""
-    if session.get('bar_manager_id'):
-        return redirect(url_for('bar_manager.dashboard'))
-    
-    if request.method == 'POST':
-        email = request.form.get('email', '').strip().lower()
-        password = request.form.get('password', '')
-        
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('''
-            SELECT bm.*, b.name as bar_name 
-            FROM bar_managers bm
-            JOIN bars b ON bm.bar_id = b.id
-            WHERE bm.email = ? AND bm.is_active = 1
-        ''', (email,))
-        manager = cursor.fetchone()
-        
-        if manager and check_password_hash(manager['password_hash'], password):
-            # Update last login
-            cursor.execute('UPDATE bar_managers SET last_login_at = datetime("now") WHERE id = ?', 
-                          (manager['id'],))
-            conn.commit()
-            conn.close()
-            
-            session['bar_manager_id'] = manager['id']
-            session['bar_manager_name'] = manager['name'] or email
-            session['bar_manager_bar_id'] = manager['bar_id']
-            session['bar_manager_bar_name'] = manager['bar_name']
-            session.permanent = True  # Session lasts 30 days
-            
-            return redirect(url_for('bar_manager.dashboard'))
-        
-        conn.close()
-        return render_template('bar_manager/login.html', error='Invalid email or password')
-    
-    return render_template('bar_manager/login.html')
+    """Redirect to unified login."""
+    return redirect(url_for('unified_auth.unified_login'))
 
 
 @bar_manager_bp.route('/logout')
 def logout():
-    """Log out bar manager."""
-    session.pop('bar_manager_id', None)
-    session.pop('bar_manager_name', None)
-    session.pop('bar_manager_bar_id', None)
-    session.pop('bar_manager_bar_name', None)
-    flash('Logged out successfully', 'success')
-    return redirect(url_for('bar_manager.login'))
+    """Redirect to unified logout."""
+    return redirect(url_for('unified_auth.logout'))
 
 
 # ============================================================================
@@ -278,7 +219,7 @@ def venue_permission_required(permission):
             
             # Check venue role
             cursor.execute('''
-                SELECT role FROM user_venue_roles_v2 
+                SELECT role FROM venue_staff 
                 WHERE user_id = ? AND venue_id = ?
             ''', (user_id, venue_id))
             role = cursor.fetchone()
@@ -323,7 +264,7 @@ def staff_list():
     # Get staff members
     cursor.execute('''
         SELECT u.id, u.name, u.email, u.status, u.last_login, uvr.role, uvr.created_at as assigned_at
-        FROM user_venue_roles_v2 uvr
+        FROM venue_staff uvr
         JOIN users u ON uvr.user_id = u.id
         WHERE uvr.venue_id = ?
         ORDER BY 
@@ -346,7 +287,7 @@ def staff_list():
     invites = [dict(row) for row in cursor.fetchall()]
     
     # Check current user's role (for permissions)
-    cursor.execute('SELECT role FROM user_venue_roles_v2 WHERE user_id = ? AND venue_id = ?', (user_id, venue_id))
+    cursor.execute('SELECT role FROM venue_staff WHERE user_id = ? AND venue_id = ?', (user_id, venue_id))
     my_role = cursor.fetchone()
     can_manage = my_role and my_role['role'] in ['owner', 'manager']
     
@@ -413,14 +354,14 @@ def change_staff_role(target_user_id):
     cursor = conn.cursor()
     
     # Get current role
-    cursor.execute('SELECT role FROM user_venue_roles_v2 WHERE user_id = ? AND venue_id = ?', 
+    cursor.execute('SELECT role FROM venue_staff WHERE user_id = ? AND venue_id = ?', 
                    (target_user_id, venue_id))
     current = cursor.fetchone()
     old_role = current['role'] if current else None
     
     # Update role
     cursor.execute('''
-        UPDATE user_venue_roles_v2 SET role = ? WHERE user_id = ? AND venue_id = ?
+        UPDATE venue_staff SET role = ? WHERE user_id = ? AND venue_id = ?
     ''', (new_role, target_user_id, venue_id))
     conn.commit()
     conn.close()
@@ -457,7 +398,7 @@ def remove_staff(target_user_id):
     target_email = target['email'] if target else 'unknown'
     
     # Delete venue role
-    cursor.execute('DELETE FROM user_venue_roles_v2 WHERE user_id = ? AND venue_id = ?', 
+    cursor.execute('DELETE FROM venue_staff WHERE user_id = ? AND venue_id = ?', 
                    (target_user_id, venue_id))
     conn.commit()
     conn.close()

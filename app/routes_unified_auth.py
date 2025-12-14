@@ -291,7 +291,7 @@ def portal():
     # Get venues with roles
     cursor.execute('''
         SELECT b.id, b.name, uvr.role
-        FROM user_venue_roles_v2 uvr
+        FROM venue_staff uvr
         JOIN bars b ON uvr.venue_id = b.id
         WHERE uvr.user_id = ?
         ORDER BY b.name
@@ -338,7 +338,7 @@ def select_venue(venue_id):
     # Verify user has access
     cursor.execute('''
         SELECT b.name, uvr.role
-        FROM user_venue_roles_v2 uvr
+        FROM venue_staff uvr
         JOIN bars b ON uvr.venue_id = b.id
         WHERE uvr.user_id = ? AND uvr.venue_id = ?
     ''', (session['user_id'], venue_id))
@@ -440,7 +440,7 @@ def accept_invite():
         
         # Add venue role
         cursor.execute('''
-            INSERT OR REPLACE INTO user_venue_roles_v2 (user_id, venue_id, role, assigned_by)
+            INSERT OR REPLACE INTO venue_staff (user_id, venue_id, role, assigned_by)
             VALUES (?, ?, ?, ?)
         ''', (user_id, invite['venue_id'], invite['role'], invite['invited_by']))
         

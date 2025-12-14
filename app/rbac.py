@@ -76,7 +76,7 @@ def get_user_permissions(user_id, venue_id=None):
     
     # Get role for this venue
     cursor.execute('''
-        SELECT role FROM user_venue_roles_v2
+        SELECT role FROM venue_staff
         WHERE user_id = ? AND venue_id = ?
     ''', (user_id, venue_id))
     row = cursor.fetchone()
@@ -99,7 +99,7 @@ def get_user_role(user_id, venue_id):
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT role FROM user_venue_roles_v2
+        SELECT role FROM venue_staff
         WHERE user_id = ? AND venue_id = ?
     ''', (user_id, venue_id))
     row = cursor.fetchone()
@@ -113,7 +113,7 @@ def get_user_venues(user_id):
     cursor = conn.cursor()
     cursor.execute('''
         SELECT b.id, b.name, uvr.role
-        FROM user_venue_roles_v2 uvr
+        FROM venue_staff uvr
         JOIN bars b ON uvr.venue_id = b.id
         WHERE uvr.user_id = ?
         ORDER BY b.name
@@ -236,7 +236,7 @@ def assign_role(user_id, role, venue_id, assigned_by):
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT OR REPLACE INTO user_venue_roles_v2 (user_id, venue_id, role, assigned_by)
+        INSERT OR REPLACE INTO venue_staff (user_id, venue_id, role, assigned_by)
         VALUES (?, ?, ?, ?)
     ''', (user_id, venue_id, role, assigned_by))
     conn.commit()
@@ -253,12 +253,12 @@ def remove_role(user_id, venue_id, removed_by):
     cursor = conn.cursor()
     
     # Get current role for audit
-    cursor.execute('SELECT role FROM user_venue_roles_v2 WHERE user_id = ? AND venue_id = ?', 
+    cursor.execute('SELECT role FROM venue_staff WHERE user_id = ? AND venue_id = ?', 
                    (user_id, venue_id))
     current = cursor.fetchone()
     old_role = current['role'] if current else None
     
-    cursor.execute('DELETE FROM user_venue_roles_v2 WHERE user_id = ? AND venue_id = ?', 
+    cursor.execute('DELETE FROM venue_staff WHERE user_id = ? AND venue_id = ?', 
                    (user_id, venue_id))
     conn.commit()
     conn.close()
@@ -277,12 +277,12 @@ def change_role(user_id, new_role, venue_id, changed_by):
     cursor = conn.cursor()
     
     # Get current role for audit
-    cursor.execute('SELECT role FROM user_venue_roles_v2 WHERE user_id = ? AND venue_id = ?', 
+    cursor.execute('SELECT role FROM venue_staff WHERE user_id = ? AND venue_id = ?', 
                    (user_id, venue_id))
     current = cursor.fetchone()
     old_role = current['role'] if current else None
     
-    cursor.execute('UPDATE user_venue_roles_v2 SET role = ? WHERE user_id = ? AND venue_id = ?', 
+    cursor.execute('UPDATE venue_staff SET role = ? WHERE user_id = ? AND venue_id = ?', 
                    (new_role, user_id, venue_id))
     conn.commit()
     conn.close()

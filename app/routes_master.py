@@ -1233,142 +1233,37 @@ def edit_bar(bar_id):
 @master_bp.route('/managers')
 @admin_required
 def all_managers():
-    """View all bar managers across all bars."""
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    cursor.execute('''
-        SELECT bm.*, b.name as bar_name 
-        FROM bar_managers bm
-        LEFT JOIN bars b ON bm.bar_id = b.id
-        ORDER BY b.name, bm.name
-    ''')
-    managers = [dict(row) for row in cursor.fetchall()]
-    
-    cursor.execute('SELECT id, name FROM bars ORDER BY name')
-    bars = [dict(row) for row in cursor.fetchall()]
-    
-    conn.close()
-    
-    return render_template('master/managers.html', managers=managers, bars=bars)
+    """Redirect to new Users page."""
+    return redirect(url_for('master.all_users'))
 
 
 @master_bp.route('/managers/add', methods=['POST'])
 @admin_required
 def add_manager():
-    """Add a new bar manager."""
-    from werkzeug.security import generate_password_hash
-    
-    bar_id = request.form.get('bar_id')
-    name = request.form.get('name', '').strip()
-    email = request.form.get('email', '').strip().lower()
-    password = request.form.get('password', '').strip()
-    
-    if not all([bar_id, name, email, password]):
-        flash('All fields are required', 'error')
-        return redirect(url_for('master.all_managers'))
-    
-    if len(password) < 6:
-        flash('Password must be at least 6 characters', 'error')
-        return redirect(url_for('master.all_managers'))
-    
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    # Check if email already exists
-    cursor.execute('SELECT id FROM bar_managers WHERE email = ?', (email,))
-    if cursor.fetchone():
-        conn.close()
-        flash('Email already registered as a manager', 'error')
-        return redirect(url_for('master.all_managers'))
-    
-    password_hash = generate_password_hash(password, method='scrypt')
-    cursor.execute('''
-        INSERT INTO bar_managers (bar_id, email, password_hash, name, role, is_active)
-        VALUES (?, ?, ?, ?, 'manager', 1)
-    ''', (bar_id, email, password_hash, name))
-    conn.commit()
-    conn.close()
-    
-    flash(f'Manager {name} added successfully', 'success')
-    return redirect(url_for('master.all_managers'))
+    """Deprecated - use Users page."""
+    flash('Please use the Users page to manage staff', 'info')
+    return redirect(url_for('master.all_users'))
 
 
 @master_bp.route('/managers/<int:manager_id>/reset-password', methods=['POST'])
 @admin_required
 def manager_reset_password(manager_id):
-    """Reset a manager's password."""
-    from werkzeug.security import generate_password_hash
-    
-    new_password = request.form.get('new_password', '').strip()
-    
-    if len(new_password) < 6:
-        flash('Password must be at least 6 characters', 'error')
-        return redirect(url_for('master.all_managers'))
-    
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    cursor.execute('SELECT name FROM bar_managers WHERE id = ?', (manager_id,))
-    manager = cursor.fetchone()
-    
-    if not manager:
-        conn.close()
-        flash('Manager not found', 'error')
-        return redirect(url_for('master.all_managers'))
-    
-    password_hash = generate_password_hash(new_password, method='scrypt')
-    cursor.execute('UPDATE bar_managers SET password_hash = ? WHERE id = ?', (password_hash, manager_id))
-    conn.commit()
-    conn.close()
-    
-    flash(f'Password reset for {manager["name"]}', 'success')
-    return redirect(url_for('master.all_managers'))
+    """Deprecated - use Users page."""
+    return redirect(url_for('master.all_users'))
 
 
 @master_bp.route('/managers/<int:manager_id>/toggle', methods=['POST'])
 @admin_required
 def toggle_manager(manager_id):
-    """Toggle manager active status."""
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    cursor.execute('SELECT is_active, name FROM bar_managers WHERE id = ?', (manager_id,))
-    manager = cursor.fetchone()
-    
-    if not manager:
-        conn.close()
-        flash('Manager not found', 'error')
-        return redirect(url_for('master.all_managers'))
-    
-    new_status = 0 if manager['is_active'] else 1
-    cursor.execute('UPDATE bar_managers SET is_active = ? WHERE id = ?', (new_status, manager_id))
-    conn.commit()
-    conn.close()
-    
-    status_text = 'activated' if new_status else 'deactivated'
-    flash(f'{manager["name"]} {status_text}', 'success')
-    return redirect(url_for('master.all_managers'))
+    """Deprecated - use Users page."""
+    return redirect(url_for('master.all_users'))
 
 
 @master_bp.route('/managers/<int:manager_id>/delete', methods=['POST'])
 @admin_required
 def delete_manager(manager_id):
-    """Delete a bar manager."""
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    cursor.execute('SELECT name FROM bar_managers WHERE id = ?', (manager_id,))
-    manager = cursor.fetchone()
-    
-    if not manager:
-        conn.close()
-        flash('Manager not found', 'error')
-        return redirect(url_for('master.all_managers'))
-    
-    cursor.execute('DELETE FROM bar_managers WHERE id = ?', (manager_id,))
-    conn.commit()
-    conn.close()
+    """Deprecated - use Users page."""
+    return redirect(url_for('master.all_users'))
     
     flash(f'Manager {manager["name"]} deleted', 'success')
     return redirect(url_for('master.all_managers'))
@@ -1401,7 +1296,7 @@ def all_users():
             GROUP_CONCAT(DISTINCT uvr.role) as roles,
             GROUP_CONCAT(DISTINCT b.name) as venue_names
         FROM users u
-        LEFT JOIN user_venue_roles_v2 uvr ON u.id = uvr.user_id
+        LEFT JOIN venue_staff uvr ON u.id = uvr.user_id
         LEFT JOIN bars b ON uvr.venue_id = b.id
         GROUP BY u.id
         ORDER BY u.created_at DESC
@@ -1411,12 +1306,12 @@ def all_users():
     # Apply filters
     if venue_filter:
         venue_filter = int(venue_filter)
-        cursor.execute('SELECT user_id FROM user_venue_roles_v2 WHERE venue_id = ?', (venue_filter,))
+        cursor.execute('SELECT user_id FROM venue_staff WHERE venue_id = ?', (venue_filter,))
         venue_user_ids = {row['user_id'] for row in cursor.fetchall()}
         users = [u for u in users if u['id'] in venue_user_ids]
     
     if role_filter:
-        cursor.execute('SELECT user_id FROM user_venue_roles_v2 WHERE role = ?', (role_filter,))
+        cursor.execute('SELECT user_id FROM venue_staff WHERE role = ?', (role_filter,))
         role_user_ids = {row['user_id'] for row in cursor.fetchall()}
         users = [u for u in users if u['id'] in role_user_ids]
     
@@ -1458,7 +1353,7 @@ def user_detail(user_id):
     # Get venue roles
     cursor.execute('''
         SELECT uvr.*, b.name as venue_name
-        FROM user_venue_roles_v2 uvr
+        FROM venue_staff uvr
         JOIN bars b ON uvr.venue_id = b.id
         WHERE uvr.user_id = ?
         ORDER BY b.name
@@ -1558,14 +1453,14 @@ def add_user_role(user_id):
     cursor = conn.cursor()
     
     # Check if already has role at this venue
-    cursor.execute('SELECT id FROM user_venue_roles_v2 WHERE user_id = ? AND venue_id = ?', (user_id, venue_id))
+    cursor.execute('SELECT id FROM venue_staff WHERE user_id = ? AND venue_id = ?', (user_id, venue_id))
     if cursor.fetchone():
         flash('User already has a role at this venue', 'error')
         conn.close()
         return redirect(url_for('master.user_detail', user_id=user_id))
     
     cursor.execute('''
-        INSERT INTO user_venue_roles_v2 (user_id, venue_id, role, assigned_by)
+        INSERT INTO venue_staff (user_id, venue_id, role, assigned_by)
         VALUES (?, ?, ?, ?)
     ''', (user_id, venue_id, role, session.get('user_id')))
     conn.commit()
@@ -1592,11 +1487,11 @@ def change_user_role(user_id, venue_id):
     cursor = conn.cursor()
     
     # Get old role for audit
-    cursor.execute('SELECT role FROM user_venue_roles_v2 WHERE user_id = ? AND venue_id = ?', (user_id, venue_id))
+    cursor.execute('SELECT role FROM venue_staff WHERE user_id = ? AND venue_id = ?', (user_id, venue_id))
     old = cursor.fetchone()
     old_role = old['role'] if old else None
     
-    cursor.execute('UPDATE user_venue_roles_v2 SET role = ? WHERE user_id = ? AND venue_id = ?', 
+    cursor.execute('UPDATE venue_staff SET role = ? WHERE user_id = ? AND venue_id = ?', 
                    (new_role, user_id, venue_id))
     conn.commit()
     conn.close()
@@ -1617,10 +1512,10 @@ def remove_user_role(user_id, venue_id):
     cursor = conn.cursor()
     
     # Get role for audit
-    cursor.execute('SELECT role FROM user_venue_roles_v2 WHERE user_id = ? AND venue_id = ?', (user_id, venue_id))
+    cursor.execute('SELECT role FROM venue_staff WHERE user_id = ? AND venue_id = ?', (user_id, venue_id))
     old = cursor.fetchone()
     
-    cursor.execute('DELETE FROM user_venue_roles_v2 WHERE user_id = ? AND venue_id = ?', (user_id, venue_id))
+    cursor.execute('DELETE FROM venue_staff WHERE user_id = ? AND venue_id = ?', (user_id, venue_id))
     conn.commit()
     conn.close()
     
@@ -1707,130 +1602,37 @@ def delete_bar_permanent(bar_id):
 @master_bp.route('/bar/<int:bar_id>/managers')
 @admin_required
 def bar_managers(bar_id):
-    """Manage bar manager accounts for a specific bar."""
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    cursor.execute('SELECT * FROM bars WHERE id = ?', (bar_id,))
-    bar = cursor.fetchone()
-    if not bar:
-        flash('Bar not found', 'error')
-        return redirect(url_for('master.bars'))
-    
-    cursor.execute('SELECT * FROM bar_managers WHERE bar_id = ? ORDER BY created_at DESC', (bar_id,))
-    managers = [dict(row) for row in cursor.fetchall()]
-    conn.close()
-    
-    return render_template('master/bar_managers.html', bar=dict(bar), managers=managers)
+    """Redirect to Users page filtered by venue."""
+    return redirect(url_for('master.all_users', venue=bar_id))
 
 
 @master_bp.route('/bar/<int:bar_id>/managers/add', methods=['POST'])
 @admin_required
 def add_bar_manager(bar_id):
-    """Create a new bar manager account."""
-    from werkzeug.security import generate_password_hash
-    
-    email = request.form.get('email', '').strip().lower()
-    name = request.form.get('name', '').strip()
-    password = request.form.get('password', '')
-    role = request.form.get('role', 'manager')
-    
-    if not email or not password:
-        flash('Email and password required', 'error')
-        return redirect(url_for('master.bar_managers', bar_id=bar_id))
-    
-    if len(password) < 8:
-        flash('Password must be at least 8 characters', 'error')
-        return redirect(url_for('master.bar_managers', bar_id=bar_id))
-    
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    # Check if email already exists
-    cursor.execute('SELECT id FROM bar_managers WHERE email = ?', (email,))
-    if cursor.fetchone():
-        conn.close()
-        flash('Email already in use', 'error')
-        return redirect(url_for('master.bar_managers', bar_id=bar_id))
-    
-    cursor.execute('''
-        INSERT INTO bar_managers (bar_id, email, password_hash, name, role)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (bar_id, email, generate_password_hash(password), name, role))
-    conn.commit()
-    conn.close()
-    
-    flash(f'Bar manager account created for {email}', 'success')
-    return redirect(url_for('master.bar_managers', bar_id=bar_id))
+    """Deprecated - use Users page."""
+    flash('Please use the Users page to manage staff', 'info')
+    return redirect(url_for('master.all_users'))
 
 
 @master_bp.route('/bar-manager/<int:manager_id>/delete', methods=['POST'])
 @admin_required
 def delete_bar_manager(manager_id):
-    """Delete a bar manager account."""
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    cursor.execute('SELECT bar_id, email FROM bar_managers WHERE id = ?', (manager_id,))
-    manager = cursor.fetchone()
-    if not manager:
-        flash('Manager not found', 'error')
-        return redirect(url_for('master.bars'))
-    
-    bar_id = manager['bar_id']
-    cursor.execute('DELETE FROM bar_managers WHERE id = ?', (manager_id,))
-    conn.commit()
-    conn.close()
-    
-    flash(f'Deleted manager: {manager["email"]}', 'success')
-    return redirect(url_for('master.bar_managers', bar_id=bar_id))
+    """Deprecated - use Users page."""
+    return redirect(url_for('master.all_users'))
 
 
 @master_bp.route('/bar/<int:bar_id>/managers/<int:manager_id>/toggle', methods=['POST'])
 @admin_required
 def toggle_bar_manager(bar_id, manager_id):
-    """Activate or deactivate a bar manager."""
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    cursor.execute('SELECT is_active FROM bar_managers WHERE id = ? AND bar_id = ?', (manager_id, bar_id))
-    manager = cursor.fetchone()
-    
-    if not manager:
-        conn.close()
-        flash('Manager not found', 'error')
-        return redirect(url_for('master.bar_managers', bar_id=bar_id))
-    
-    new_status = 0 if manager['is_active'] else 1
-    cursor.execute('UPDATE bar_managers SET is_active = ? WHERE id = ?', (new_status, manager_id))
-    conn.commit()
-    conn.close()
-    
-    flash(f'Manager {"activated" if new_status else "deactivated"}', 'success')
-    return redirect(url_for('master.bar_managers', bar_id=bar_id))
+    """Deprecated - use Users page."""
+    return redirect(url_for('master.all_users'))
 
 
 @master_bp.route('/bar/<int:bar_id>/managers/<int:manager_id>/reset-password', methods=['POST'])
 @admin_required
 def reset_bar_manager_password(bar_id, manager_id):
-    """Reset a bar manager's password."""
-    new_password = request.form.get('password', '')
-    
-    if len(new_password) < 8:
-        flash('Password must be at least 8 characters', 'error')
-        return redirect(url_for('master.bar_managers', bar_id=bar_id))
-    
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    password_hash = generate_password_hash(new_password, method='scrypt')
-    cursor.execute('UPDATE bar_managers SET password_hash = ? WHERE id = ? AND bar_id = ?', 
-                   (password_hash, manager_id, bar_id))
-    conn.commit()
-    conn.close()
-    
-    flash('Password reset successfully', 'success')
-    return redirect(url_for('master.bar_managers', bar_id=bar_id))
+    """Deprecated - use Users page."""
+    return redirect(url_for('master.all_users'))
 
 
 @master_bp.route('/ads')
@@ -5390,9 +5192,8 @@ def wipe_all_players():
     DANGER: Wipe all player accounts.
     
     This preserves:
-    - Superadmin accounts (admin_accounts with is_superadmin = 1)
-    - Admin accounts (admin_accounts table)
-    - Bar manager accounts (bar_managers table)
+    - Superadmin accounts (users with is_superadmin = 1)
+    - Staff/manager accounts (users + venue_staff tables)
     - Marketer accounts (marketer_accounts table)
     - Bars and their configuration
     - Advertisers and campaigns
