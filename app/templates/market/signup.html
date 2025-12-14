@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Advertiser Account - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.08);--t1:#f4f4f5;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+        .container{width:100%;max-width:450px}
+        .logo{text-align:center;margin-bottom:24px}
+        .logo-icon{font-size:2.5rem;margin-bottom:8px}
+        .logo-text{font-size:1.25rem;font-weight:700}
+        .logo-sub{font-size:0.75rem;color:var(--t2);margin-top:4px}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:24px}
+        .card h2{font-size:1rem;font-weight:600;margin-bottom:16px}
+        .form-group{margin-bottom:14px}
+        .form-group label{display:block;font-size:0.7rem;color:var(--t2);margin-bottom:6px;font-weight:500}
+        .form-group input,.form-group select{width:100%;padding:10px 12px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:var(--t1);font-size:0.85rem;font-family:inherit}
+        .form-group input:focus,.form-group select:focus{outline:none;border-color:var(--gold)}
+        .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .btn{width:100%;padding:12px;background:var(--gold);border:none;border-radius:6px;color:#000;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px}
+        .btn:hover{background:#d4a90a}
+        .error{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:10px;border-radius:6px;font-size:0.75rem;margin-bottom:16px}
+        .links{text-align:center;margin-top:16px;font-size:0.75rem;color:var(--t3)}
+        .links a{color:var(--gold);text-decoration:none}
+        .links a:hover{text-decoration:underline}
+        .benefits{margin-top:24px;padding:16px;background:rgba(234,179,8,0.05);border:1px solid rgba(234,179,8,0.2);border-radius:6px}
+        .benefits h3{font-size:0.75rem;color:var(--gold);margin-bottom:10px}
+        .benefits ul{list-style:none;font-size:0.7rem;color:var(--t2)}
+        .benefits li{padding:4px 0;padding-left:18px;position:relative}
+        .benefits li::before{content:'✓';position:absolute;left:0;color:var(--green)}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <div class="logo-icon">🎱</div>
+            <div class="logo-text">Pool Cue</div>
+            <div class="logo-sub">Advertiser Portal</div>
+        </div>
+        
+        <div class="card">
+            <h2>Create Advertiser Account</h2>
+            
+            {% if error %}
+            <div class="error">{{ error }}</div>
+            {% endif %}
+            
+            <form method="POST">
+                <div class="form-group">
+                    <label>Business Name *</label>
+                    <input type="text" name="business_name" required placeholder="Your Company">
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Your Name *</label>
+                        <input type="text" name="contact_name" required placeholder="John Smith">
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select name="category">
+                            <option value="">Select...</option>
+                            <option value="Beer">Beer</option>
+                            <option value="Spirits">Spirits</option>
+                            <option value="Wine">Wine</option>
+                            <option value="RTD">RTD / Seltzer</option>
+                            <option value="Food">Food & Restaurant</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Local">Local Business</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" name="email" required placeholder="you@company.com">
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" name="phone" placeholder="(555) 123-4567">
+                    </div>
+                    <div class="form-group">
+                        <label>Website</label>
+                        <input type="url" name="website" placeholder="https://...">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Password *</label>
+                    <input type="password" name="password" required placeholder="Min 8 characters" minlength="8">
+                </div>
+                <button type="submit" class="btn">Create Account</button>
+            </form>
+            
+            <div class="links">
+                Already have an account? <a href="/market/login">Sign in</a>
+            </div>
+        </div>
+        
+        <div class="benefits">
+            <h3>Why advertise with Pool Cue?</h3>
+            <ul>
+                <li>Reach engaged bar patrons during peak hours</li>
+                <li>Target specific bars or the entire NYC network</li>
+                <li>Real-time analytics and performance tracking</li>
+                <li>Flexible pricing: CPM or flat packages</li>
+                <li>Self-serve portal - launch campaigns in minutes</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

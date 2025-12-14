@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advertising Pricing - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.08);--t1:#f4f4f5;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--blue:#3b82f6}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);font-size:13px}
+        .hero{text-align:center;padding:60px 20px;background:linear-gradient(180deg,#0f0f12 0%,#09090b 100%)}
+        .hero h1{font-size:2rem;font-weight:700;margin-bottom:12px}
+        .hero p{color:var(--t2);font-size:1rem;max-width:500px;margin:0 auto}
+        .container{max-width:1000px;margin:0 auto;padding:40px 20px}
+        h2{font-size:1.1rem;font-weight:600;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+        .section{margin-bottom:48px}
+        .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px}
+        .card-title{font-size:0.9rem;font-weight:600;margin-bottom:4px}
+        .card-desc{font-size:0.75rem;color:var(--t3);margin-bottom:12px}
+        .card-price{font-size:1.5rem;font-weight:700;color:var(--gold)}
+        .card-price span{font-size:0.75rem;color:var(--t3);font-weight:400}
+        .card-meta{display:flex;gap:12px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:0.7rem;color:var(--t2)}
+        .card-meta div{display:flex;align-items:center;gap:4px}
+        .badge{padding:3px 8px;border-radius:4px;font-size:0.6rem;font-weight:600;text-transform:uppercase}
+        .badge-board{background:rgba(234,179,8,0.15);color:var(--gold)}
+        .badge-app{background:rgba(59,130,246,0.15);color:var(--blue)}
+        .badge-web{background:rgba(34,197,94,0.15);color:var(--green)}
+        .packages{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+        .package{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:24px;text-align:center}
+        .package.featured{border-color:var(--gold);position:relative}
+        .package.featured::before{content:'POPULAR';position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;padding:4px 12px;border-radius:4px;font-size:0.6rem;font-weight:700}
+        .package-name{font-size:0.9rem;font-weight:600;margin-bottom:4px}
+        .package-desc{font-size:0.7rem;color:var(--t3);margin-bottom:16px}
+        .package-price{font-size:2rem;font-weight:700;color:var(--gold)}
+        .package-price span{font-size:0.8rem;color:var(--t2);font-weight:400}
+        .package ul{list-style:none;margin:16px 0;text-align:left;font-size:0.75rem;color:var(--t2)}
+        .package li{padding:6px 0;padding-left:20px;position:relative}
+        .package li::before{content:'✓';position:absolute;left:0;color:var(--green)}
+        .btn{padding:12px 24px;border-radius:6px;font-size:0.8rem;font-weight:600;cursor:pointer;border:none;text-decoration:none;display:inline-block}
+        .btn-primary{background:var(--gold);color:#000}
+        .btn-primary:hover{background:#d4a90a}
+        .btn-outline{background:transparent;border:1px solid var(--border);color:var(--t2)}
+        .btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+        .cta{text-align:center;padding:48px;background:var(--card);border-radius:12px;margin-top:48px}
+        .cta h3{font-size:1.25rem;margin-bottom:8px}
+        .cta p{color:var(--t2);margin-bottom:20px}
+        .nav{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid var(--border)}
+        .nav-logo{font-weight:600;font-size:1rem;display:flex;align-items:center;gap:8px}
+        .nav-links a{color:var(--t2);text-decoration:none;margin-left:20px;font-size:0.8rem}
+        .nav-links a:hover{color:var(--gold)}
+        .note{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);border-radius:6px;padding:12px;font-size:0.75rem;color:var(--blue);margin-top:8px}
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-logo"><span style="font-size:1.25rem">🎱</span> Pool Cue</div>
+        <div class="nav-links">
+            <a href="/market/login">Sign In</a>
+            <a href="/market/signup" class="btn btn-primary" style="padding:8px 16px;margin-left:12px">Get Started</a>
+        </div>
+    </nav>
+    
+    <div class="hero">
+        <h1>Reach Players Where They Play</h1>
+        <p>Advertise across 24 bars in NYC. Target engaged patrons during peak hours with board displays, in-app banners, and more.</p>
+    </div>
+    
+    <div class="container">
+        <!-- CPM Pricing -->
+        <div class="section">
+            <h2>📊 Pay-Per-Impression Pricing</h2>
+            <p style="color:var(--t2);margin-bottom:20px;font-size:0.85rem">CPM (cost per 1,000 impressions) varies by placement type. Board ads include estimated viewer multiplier.</p>
+            
+            <div class="grid">
+                {% for p in placements %}
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+                        <div class="card-title">{{ p.display_name }}</div>
+                        {% if not p.is_clickable %}
+                        <span class="badge badge-board">Board</span>
+                        {% else %}
+                        <span class="badge badge-app">Clickable</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-desc">{{ p.description }}</div>
+                    <div class="card-price">${{ '%.2f'|format(p.cpm) }} <span>/ 1K impressions</span></div>
+                    <div class="card-meta">
+                        <div>👥 ~{{ p.estimated_viewers }}x viewers</div>
+                        {% if not p.is_clickable %}
+                        <div>📺 Non-clickable</div>
+                        {% else %}
+                        <div>👆 Tap to click</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="note" style="margin-top:20px">
+                <strong>Board Ad Note:</strong> Board displays (TV/projector) are not clickable. Pricing is based on impressions × estimated viewers per impression. For example, 1,000 impressions on Board Main at ~3x viewers = ~3,000 estimated eyeballs.
+            </div>
+        </div>
+        
+        <!-- Flat Packages -->
+        <div class="section">
+            <h2>📦 Flat-Rate Packages</h2>
+            <p style="color:var(--t2);margin-bottom:20px;font-size:0.85rem">Prefer predictable pricing? Choose a flat-rate package for all placements.</p>
+            
+            <div class="packages">
+                <div class="package">
+                    <div class="package-name">Single Bar - Daily</div>
+                    <div class="package-desc">Test the waters at one location</div>
+                    <div class="package-price">$50 <span>/day</span></div>
+                    <ul>
+                        <li>All placements at 1 bar</li>
+                        <li>~500-1,000 impressions</li>
+                        <li>Full analytics</li>
+                    </ul>
+                    <a href="/market/signup" class="btn btn-outline">Get Started</a>
+                </div>
+                
+                <div class="package featured">
+                    <div class="package-name">Single Bar - Weekly</div>
+                    <div class="package-desc">Perfect for promotions</div>
+                    <div class="package-price">$250 <span>/week</span></div>
+                    <ul>
+                        <li>All placements at 1 bar</li>
+                        <li>~3,500-7,000 impressions</li>
+                        <li>Priority support</li>
+                        <li>A/B creative testing</li>
+                    </ul>
+                    <a href="/market/signup" class="btn btn-primary">Get Started</a>
+                </div>
+                
+                <div class="package">
+                    <div class="package-name">Full Network - Weekly</div>
+                    <div class="package-desc">Maximum reach across NYC</div>
+                    <div class="package-price">$1,000 <span>/week</span></div>
+                    <ul>
+                        <li>All 24 bars in network</li>
+                        <li>~80,000+ impressions</li>
+                        <li>Dedicated account manager</li>
+                        <li>Custom reporting</li>
+                    </ul>
+                    <a href="/market/signup" class="btn btn-outline">Contact Us</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- CTA -->
+        <div class="cta">
+            <h3>Ready to reach bar patrons?</h3>
+            <p>Create your account in minutes. No minimum spend required.</p>
+            <a href="/market/signup" class="btn btn-primary" style="font-size:1rem;padding:14px 32px">Create Free Account</a>
+        </div>
+        
+        <!-- FAQ -->
+        <div class="section" style="margin-top:48px">
+            <h2>❓ Common Questions</h2>
+            <div style="display:grid;gap:16px">
+                <div class="card">
+                    <div class="card-title">Why can't board ads be clicked?</div>
+                    <div class="card-desc" style="margin-bottom:0">Board displays are TVs/projectors at the pool table - there's no touchscreen. We value them based on impressions and estimated viewers (typically 2-4 people watching per impression).</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">How do you track impressions?</div>
+                    <div class="card-desc" style="margin-bottom:0">Every time your ad rotates into view on a board or loads in the player app, we log an impression with bar ID, time, and context. You get full transparency in your dashboard.</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">What creative formats do you accept?</div>
+                    <div class="card-desc" style="margin-bottom:0">Board ads: 1920×1080 images (PNG, JPG). In-app banners: 320×100. We recommend high-contrast designs that read well in bar lighting.</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Is there an approval process?</div>
+                    <div class="card-desc" style="margin-bottom:0">Yes, all campaigns are reviewed before going live. We typically approve within 24 hours. We don't allow competitor ads at bars with exclusivity deals.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer style="text-align:center;padding:32px;color:var(--t3);font-size:0.75rem;border-top:1px solid var(--border)">
+        <p>Pool Cue Advertising · <a href="mailto:ads@poolcue.app" style="color:var(--gold)">ads@poolcue.app</a></p>
+    </footer>
+</body>
+</html>

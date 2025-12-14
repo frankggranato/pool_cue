@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pool Cue - Player Status</title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Caveat', cursive;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            color: #ffd700;
+        }
+        
+        .status-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .position-badge {
+            display: inline-block;
+            background: rgba(255,215,0,0.2);
+            color: #ffd700;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .player-name {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .partner-name {
+            font-size: 22px;
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .info-label {
+            color: rgba(255,255,255,0.5);
+            font-size: 16px;
+        }
+        
+        .info-value {
+            font-size: 18px;
+        }
+        
+        .action-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Caveat', cursive;
+            font-size: 20px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+        
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4dabf7, #228be6);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: rgba(255,100,100,0.2);
+            color: #ff6b6b;
+            border: 1px solid rgba(255,100,100,0.3);
+        }
+        
+        .wait-estimate {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255,215,0,0.1);
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .wait-time {
+            font-size: 36px;
+            color: #ffd700;
+        }
+        
+        .wait-label {
+            color: rgba(255,255,255,0.5);
+            font-size: 14px;
+        }
+        
+        .current-game {
+            background: rgba(100,200,100,0.1);
+            border: 1px solid rgba(100,200,100,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .current-game-label {
+            color: rgba(100,200,100,0.8);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .current-game-players {
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎱 Pool Cue</h1>
+        </div>
+        
+        <div class="status-card">
+            <div class="position-badge">📍 #5 in line</div>
+            <div class="player-name">Demo Player</div>
+            <div class="partner-name">& Partner Name</div>
+        </div>
+        
+        <div class="wait-estimate">
+            <div class="wait-time">~10 min</div>
+            <div class="wait-label">estimated wait</div>
+        </div>
+        
+        <div class="current-game">
+            <div class="current-game-label">🎱 NOW PLAYING</div>
+            <div class="current-game-players">
+                <strong>Mike & Dave</strong> vs <strong>Steve & Tommy</strong>
+            </div>
+        </div>
+        
+        <div class="status-card">
+            <div class="info-row">
+                <span class="info-label">Game Type</span>
+                <span class="info-value">Doubles</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Rules</span>
+                <span class="info-value">Bar Rules</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">People Ahead</span>
+                <span class="info-value">3</span>
+            </div>
+        </div>
+        
+        <button class="action-btn btn-danger">Leave Queue</button>
+    </div>
+</body>
+</html>

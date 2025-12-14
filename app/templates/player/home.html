@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Pool Cue">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+    <title>Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555;
+            --accent: #f5c518; --accent-dim: rgba(245, 197, 24, 0.15);
+            --success: #22c55e; --warning: #f97316; --danger: #ef4444;
+            --border: rgba(255,255,255,0.08); --border-hover: rgba(255,255,255,0.15);
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding-bottom: 80px; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg-primary); z-index: 100; }
+        .logo { font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit; }
+        .logo-mark { width: 32px; height: 32px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: #111; }
+        .header-actions { display: flex; gap: 8px; }
+        .header-btn { padding: 10px 14px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); font-size: 0.8rem; font-weight: 500; text-decoration: none; }
+        .header-btn.accent { border-color: rgba(245,197,24,0.3); color: var(--accent); }
+        
+        .content { padding: 16px 20px; }
+        
+        /* Queue Status Card */
+        .queue-card { padding: 18px; background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(245,197,24,0.08)); border: 2px solid rgba(34,197,94,0.35); border-radius: 14px; margin-bottom: 16px; text-decoration: none; display: block; }
+        .queue-card-inactive { background: linear-gradient(135deg, rgba(245,197,24,0.12), rgba(245,197,24,0.04)); border-color: rgba(245,197,24,0.25); }
+        .queue-header { display: flex; align-items: center; gap: 14px; }
+        .queue-icon { width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
+        .queue-icon.active { background: var(--success); }
+        .queue-icon.inactive { background: var(--bg-tertiary); border: 2px dashed rgba(245,197,24,0.4); }
+        .queue-info { flex: 1; }
+        .queue-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 2px; }
+        .queue-label.active { color: var(--success); }
+        .queue-label.inactive { color: var(--accent); }
+        .queue-title { font-size: 1.15rem; font-weight: 700; color: var(--text-primary); }
+        .queue-sub { font-size: 0.8rem; color: var(--text-secondary); margin-top: 3px; }
+        .queue-arrow { color: var(--text-muted); font-size: 1.2rem; }
+        .queue-actions { display: flex; gap: 10px; margin-top: 14px; }
+        .queue-actions .btn { flex: 1; padding: 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-align: center; cursor: pointer; font-family: inherit; text-decoration: none; }
+        .btn-primary { background: var(--accent); border: none; color: #111; }
+        .btn-secondary { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-secondary); }
+        .btn-danger { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; }
+        
+        /* Promo Cards */
+        .promo-row { display: flex; gap: 10px; margin-bottom: 16px; }
+        .promo-card { flex: 1; padding: 14px; border-radius: 10px; text-decoration: none; }
+        .promo-card.friends { background: rgba(74,158,255,0.1); border: 1px solid rgba(74,158,255,0.25); }
+        .promo-card.nights { background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.25); }
+        .promo-icon { font-size: 1.5rem; margin-bottom: 6px; }
+        .promo-title { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+        .promo-sub { font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px; }
+        
+        /* Friend Activity */
+        .friend-activity { background: rgba(74,158,255,0.08); border: 1px solid rgba(74,158,255,0.2); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; }
+        .friend-activity-header { font-size: 0.65rem; color: #4a9eff; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 8px; }
+        .friend-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; padding: 4px 0; }
+        .friend-badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+        .friend-badge.king { background: #f5c518; color: #111; }
+        .friend-badge.challenger { background: #ef4444; color: #fff; }
+        .friend-badge.default { background: var(--bg-tertiary); color: var(--text-secondary); }
+        
+        /* Bar List */
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .section-title { font-size: 0.95rem; font-weight: 700; }
+        .filters { display: flex; gap: 6px; }
+        .filter-btn { padding: 6px 12px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-size: 0.75rem; font-weight: 500; cursor: pointer; font-family: inherit; }
+        .filter-btn.active { background: var(--text-primary); border-color: var(--text-primary); color: var(--bg-primary); }
+        
+        .bar-list { display: flex; flex-direction: column; gap: 10px; }
+        .bar-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; cursor: pointer; }
+        .bar-card:hover { border-color: var(--border-hover); }
+        .bar-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .bar-name { font-size: 1rem; font-weight: 600; }
+        .bar-address { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+        .bar-status { padding: 3px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; }
+        .status-hot { background: rgba(239,68,68,0.12); color: #ef4444; }
+        .status-active { background: rgba(34,197,94,0.12); color: #22c55e; }
+        .status-quiet { background: rgba(255,255,255,0.06); color: var(--text-muted); }
+        .bar-stats { display: flex; gap: 16px; }
+        .bar-stat { text-align: center; }
+        .bar-stat-value { font-size: 1rem; font-weight: 700; }
+        .bar-stat-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; }
+        .bar-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+        .meta-tag { padding: 4px 8px; background: rgba(255,255,255,0.04); border-radius: 4px; font-size: 0.7rem; color: var(--text-secondary); }
+        .meta-tag.friends { background: rgba(74,158,255,0.1); color: #4a9eff; }
+        
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-primary); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 6px 0 22px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 14px; color: var(--text-muted); text-decoration: none; font-size: 0.6rem; font-weight: 500; position: relative; }
+        .nav-item .icon { font-size: 1.25rem; }
+        .nav-item.active { color: var(--text-primary); }
+        .nav-badge { position: absolute; top: 2px; right: 8px; min-width: 16px; height: 16px; background: #ef4444; border-radius: 50%; font-size: 0.6rem; font-weight: 700; color: white; display: flex; align-items: center; justify-content: center; }
+        .nav-dot { position: absolute; top: 4px; right: 12px; width: 8px; height: 8px; background: var(--success); border-radius: 50%; }
+        
+        /* Ad slot */
+        .ad-slot { margin: 16px 0; padding: 14px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; text-align: center; }
+        .ad-slot img { max-width: 100%; border-radius: 6px; }
+        .ad-label { font-size: 0.6rem; color: var(--text-muted); margin-top: 6px; }
+        
+        .empty-state { text-align: center; padding: 30px; color: var(--text-muted); }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    {% if demo_mode %}
+    <div style="position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#a855f7,#8b5cf6);color:white;text-align:center;padding:8px 16px;font-size:0.8rem;font-weight:600;z-index:2000;display:flex;justify-content:space-between;align-items:center;">
+        <span>🎮 DEMO MODE</span>
+        <a href="/player/demo/exit" style="color:white;text-decoration:none;background:rgba(0,0,0,0.2);padding:4px 10px;border-radius:4px;font-size:0.7rem;">Exit</a>
+    </div>
+    <div style="height:36px;"></div>
+    {% endif %}
+    
+    <div class="header">
+        <a href="/player/home" class="logo"><div class="logo-mark">🎱</div><span>Pool Cue</span></a>
+        <div class="header-actions">
+            <a href="/player/tokens" class="header-btn accent">🪙 {{ player_data.tokens_balance or 0 if player_data else 0 }}</a>
+        </div>
+    </div>
+    
+    <div id="toast-container" style="position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:9999;"></div>
+    
+    {% if daily_bonus_awarded %}
+    <script>document.addEventListener('DOMContentLoaded', () => showToast('+10 🪙 Daily Bonus!', 'success'));</script>
+    {% endif %}
+    
+    <div class="content">
+        <!-- QUEUE STATUS - Always at top -->
+        {% if my_queue_info %}
+        <a href="{{ url_for('public.my_status') }}" class="queue-card">
+            <div class="queue-header">
+                <div class="queue-icon active">
+                    {% if my_queue_info.position == 1 %}👑{% elif my_queue_info.position == 2 %}⚔️{% elif my_queue_info.position == 3 %}🎯{% else %}🎱{% endif %}
+                </div>
+                <div class="queue-info">
+                    <div class="queue-label active">
+                        {% if my_queue_info.position == 1 %}Shot Caller{% elif my_queue_info.position == 2 %}Challenger{% elif my_queue_info.position == 3 %}Next Up{% else %}In Queue{% endif %}
+                    </div>
+                    <div class="queue-title">
+                        {% if my_queue_info.position == 1 %}You're on the table!
+                        {% elif my_queue_info.position == 2 %}Playing now!
+                        {% elif my_queue_info.position == 3 %}You're up next
+                        {% else %}#{{ my_queue_info.position }} of {{ my_queue_info.total_in_queue }}{% endif %}
+                    </div>
+                    <div class="queue-sub">{{ my_queue_info.bar_name }}{% if my_queue_info.position > 2 %} · ~{{ (my_queue_info.position - 2) * 8 }}min wait{% endif %}</div>
+                </div>
+                <div class="queue-arrow">→</div>
+            </div>
+        </a>
+        {% else %}
+        <div class="queue-card queue-card-inactive">
+            <div class="queue-header">
+                <div class="queue-icon inactive">📷</div>
+                <div class="queue-info">
+                    <div class="queue-label inactive">Get on the Board</div>
+                    <div class="queue-title">Join the Queue</div>
+                    <div class="queue-sub">Scan the QR code at the pool table to play</div>
+                </div>
+            </div>
+            <div class="queue-actions">
+                <button onclick="openQRScanner()" class="btn btn-primary">📷 Scan QR Code</button>
+                <a href="{{ url_for('public.my_status') }}" class="btn btn-secondary">My Status</a>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Birthday Banner -->
+        {% if show_birthday_banner %}
+        <div id="birthday-banner" style="padding:16px;background:linear-gradient(135deg, rgba(245,197,24,0.2), rgba(236,72,153,0.15));border:2px solid rgba(245,197,24,0.5);border-radius:12px;margin-bottom:16px;position:relative;">
+            <button onclick="document.getElementById('birthday-banner').style.display='none'" style="position:absolute;top:8px;right:8px;background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;">×</button>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div style="font-size:2.5rem;">🎂</div>
+                <div>
+                    <div style="font-size:1.1rem;font-weight:700;color:var(--accent);">{{ birthday_message or 'Happy Birthday!' }}</div>
+                    {% if birthday_tokens_awarded > 0 %}
+                    <div style="font-size:0.85rem;color:var(--text-primary);margin-top:3px;">+{{ birthday_tokens_awarded }} bonus tokens! 🪙</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Guest Banner -->
+        {% if is_guest %}
+        <div style="padding:14px;background:linear-gradient(135deg, rgba(139,92,246,0.12), rgba(59,130,246,0.08));border:1px solid rgba(139,92,246,0.25);border-radius:10px;margin-bottom:16px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div style="font-size:1.8rem;">👤</div>
+                <div style="flex:1;">
+                    <div style="font-size:0.9rem;font-weight:600;">You're browsing as a guest</div>
+                    <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Sign up to save your stats & earn rewards</div>
+                </div>
+                <a href="/auth/signup" style="padding:8px 14px;background:linear-gradient(135deg, #8b5cf6, #6d28d9);color:#fff;font-size:0.75rem;font-weight:600;border-radius:6px;text-decoration:none;">Sign Up</a>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Promo Row: Invite Friends + Pool Nights -->
+        <div class="promo-row">
+            <a href="/player/invite" class="promo-card friends">
+                <div class="promo-icon">🎁</div>
+                <div class="promo-title">Invite Friends</div>
+                <div class="promo-sub">Earn 100 tokens each</div>
+            </a>
+            <a href="/player/pool-nights" class="promo-card nights">
+                <div class="promo-icon">🌙</div>
+                <div class="promo-title">Pool Nights</div>
+                <div class="promo-sub">{% if upcoming_events_count %}{{ upcoming_events_count }} event{% if upcoming_events_count != 1 %}s{% endif %}{% else %}Browse events{% endif %}</div>
+            </a>
+        </div>
+        
+        <!-- Friend Activity -->
+        {% if friend_activity and friend_activity|length > 0 %}
+        <div class="friend-activity">
+            <div class="friend-activity-header">👥 Friends Playing Now</div>
+            {% for friend in friend_activity[:3] %}
+            <div class="friend-item">
+                <span style="font-weight:500;">{{ friend.nickname }}</span>
+                <span style="color:var(--text-muted);">is</span>
+                <span class="friend-badge {% if friend.position == 1 %}king{% elif friend.position == 2 %}challenger{% else %}default{% endif %}">
+                    {% if friend.position == 1 %}👑 Shot Caller{% elif friend.position == 2 %}⚔️ Challenger{% else %}#{{ friend.position }}{% endif %}
+                </span>
+                {% if friend.wins_on_table > 0 %}<span style="font-size:0.7rem;color:var(--accent);">({{ friend.wins_on_table }}W)</span>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Pending Confirmations -->
+        {% if pending_match_confirmations and pending_match_confirmations > 0 %}
+        <a href="/player/match-confirmations" style="display:block;padding:14px;background:rgba(245,197,24,0.1);border:1px solid rgba(245,197,24,0.3);border-radius:10px;margin-bottom:16px;text-decoration:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <span style="font-size:0.9rem;font-weight:600;color:var(--text-primary);">⏳ {{ pending_match_confirmations }} Pending Confirmation{% if pending_match_confirmations != 1 %}s{% endif %}</span>
+                    <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Match results awaiting your review</div>
+                </div>
+                <span style="color:var(--accent);font-weight:500;">Review →</span>
+            </div>
+        </a>
+        {% endif %}
+        
+        <!-- Bar List -->
+        <div id="bars" class="section-header">
+            <span class="section-title">🍺 Nearby Bars</span>
+            <div class="filters">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="favorites">★ Saved</button>
+            </div>
+        </div>
+        
+        <div class="bar-list" id="barList">
+            {% if bars and bars|length > 0 %}
+            {% for bar in bars %}
+            <div class="bar-card" data-bar-id="{{ bar.id }}" onclick="location.href='/player/bar/{{ bar.id }}'">
+                <div class="bar-top">
+                    <div>
+                        <div class="bar-name">{{ bar.name }}</div>
+                        <div class="bar-address">{{ bar.address or 'Address not set' }}</div>
+                    </div>
+                    <span class="bar-status {% if bar.queue_count > 3 %}status-hot{% elif bar.queue_count > 0 %}status-active{% else %}status-quiet{% endif %}">
+                        {% if bar.queue_count > 3 %}🔥 Hot{% elif bar.queue_count > 0 %}Active{% else %}Quiet{% endif %}
+                    </span>
+                </div>
+                <div class="bar-stats">
+                    <div class="bar-stat"><div class="bar-stat-value">{{ bar.queue_count or 0 }}</div><div class="bar-stat-label">In Queue</div></div>
+                    <div class="bar-stat"><div class="bar-stat-value">{{ bar.tables or 2 }}</div><div class="bar-stat-label">Tables</div></div>
+                    <div class="bar-stat"><div class="bar-stat-value">{{ bar.games_today or 0 }}</div><div class="bar-stat-label">Games Today</div></div>
+                </div>
+                {% if (bar.friends_here is defined and bar.friends_here > 0) or (bar.avg_wait is defined and bar.avg_wait) %}
+                <div class="bar-meta">
+                    {% if bar.friends_here is defined and bar.friends_here > 0 %}<span class="meta-tag friends">👥 {{ bar.friends_here }} friend{% if bar.friends_here != 1 %}s{% endif %} here</span>{% endif %}
+                    {% if bar.avg_wait is defined and bar.avg_wait %}<span class="meta-tag">⏱️ ~{{ bar.avg_wait }}min wait</span>{% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <div style="font-size:2rem;margin-bottom:8px;">🎱</div>
+                <div>No bars nearby</div>
+                <div style="font-size:0.8rem;margin-top:4px;">Check back soon as we expand!</div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Ad Slot -->
+        {% if active_ad %}
+        <div class="ad-slot">
+            <a href="{{ active_ad.click_url or '#' }}" target="_blank">
+                <img src="/admin/ads/image/player_app/{{ active_ad.file_name }}" alt="{{ active_ad.headline or 'Ad' }}">
+            </a>
+            <div class="ad-label">Sponsored</div>
+        </div>
+        {% endif %}
+        
+        <div style="text-align:center;padding:12px 0;font-size:0.7rem;color:var(--text-muted);">
+            Own a business? <a href="/market/pricing" style="color:var(--accent);text-decoration:none;">Advertise with Pool Cue →</a>
+        </div>
+    </div>
+    
+        <nav class="bottom-nav">
+        <a href="{% if demo_mode %}/player/demo/home{% else %}/player/home{% endif %}" class="nav-item active"><div class="icon">🎱</div><div>Home</div></a>
+        <a href="{% if demo_mode %}/player/demo/friends{% else %}/player/friends{% endif %}" class="nav-item"><div class="icon">👥</div><div>Friends</div></a>
+        <a href="{% if demo_mode %}/player/demo/challenges{% else %}/player/challenges{% endif %}" class="nav-item"><div class="icon">⚔️</div><div>Challenges</div></a>
+        <a href="{% if demo_mode %}/player/demo/leaderboards{% else %}/player/leaderboard{% endif %}" class="nav-item"><div class="icon">🏆</div><div>Rankings</div></a>
+        <a href="{% if demo_mode %}/player/demo/profile{% else %}/player/profile{% endif %}" class="nav-item"><div class="icon">👤</div><div>Profile</div></a>
+    </nav>
+    
+    <script>
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                filterBars(this.dataset.filter);
+            });
+        });
+        
+        function filterBars(filter) {
+            const cards = document.querySelectorAll('.bar-card');
+            cards.forEach(card => {
+                if (filter === 'all') {
+                    card.style.display = '';
+                } else if (filter === 'favorites') {
+                    // Check localStorage for favorites
+                    const barId = card.dataset.barId;
+                    const favorites = JSON.parse(localStorage.getItem('favoritesBars') || '[]');
+                    card.style.display = favorites.includes(barId) ? '' : 'none';
+                }
+            });
+        }
+        
+        function openQRScanner() {
+            // Check for native camera support
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                window.location.href = '/player/scan';
+            } else {
+                alert('Camera not supported on this device');
+            }
+        }
+        
+        function leaveQueue() {
+            if (confirm('Leave the queue?')) {
+                fetch('/api/leave', { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) location.reload();
+                    else alert(d.error || 'Failed to leave queue');
+                })
+                .catch(() => location.reload()); // Reload anyway in case session cleared
+            }
+        }
+        
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.style.cssText = `padding:12px 20px;background:${type === 'success' ? 'var(--success)' : 'var(--accent)'};color:#111;border-radius:8px;font-size:0.85rem;font-weight:600;animation:fadeIn 0.3s;`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>

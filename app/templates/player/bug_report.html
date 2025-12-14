@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Report a Bug - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555;
+            --accent: #f5c518; --success: #22c55e; --danger: #ef4444;
+            --border: rgba(255,255,255,0.08);
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding: 20px; padding-bottom: 100px; }
+        
+        .header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+        .back-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; color: var(--text-primary); text-decoration: none; font-size: 1.2rem; }
+        .page-title { font-size: 1.3rem; font-weight: 700; }
+        
+        .intro { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+        .intro-icon { font-size: 2rem; margin-bottom: 12px; }
+        .intro-title { font-size: 1rem; font-weight: 600; margin-bottom: 8px; }
+        .intro-text { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 8px; font-weight: 500; }
+        .form-input, .form-select, .form-textarea { width: 100%; padding: 14px 16px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; color: var(--text-primary); font-size: 1rem; font-family: inherit; -webkit-appearance: none; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--accent); }
+        .form-textarea { min-height: 120px; resize: vertical; }
+        .form-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; }
+        
+        .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .type-btn { padding: 16px; background: var(--bg-secondary); border: 2px solid var(--border); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.15s; }
+        .type-btn:hover { border-color: var(--text-muted); }
+        .type-btn.selected { border-color: var(--accent); background: rgba(245,197,24,0.1); }
+        .type-btn input { display: none; }
+        .type-icon { font-size: 1.5rem; margin-bottom: 6px; }
+        .type-label { font-size: 0.85rem; font-weight: 500; }
+        
+        .submit-btn { width: 100%; padding: 16px; background: var(--accent); border: none; border-radius: 12px; color: #111; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 24px; }
+        .submit-btn:hover { opacity: 0.9; }
+        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .toast { position: fixed; bottom: 100px; left: 20px; right: 20px; padding: 16px; background: var(--success); color: white; border-radius: 10px; text-align: center; font-weight: 500; transform: translateY(200%); transition: transform 0.3s; z-index: 1000; }
+        .toast.show { transform: translateY(0); }
+        .toast.error { background: var(--danger); }
+        
+        .device-info { background: var(--bg-tertiary); padding: 12px; border-radius: 8px; font-size: 0.75rem; color: var(--text-muted); margin-top: 20px; }
+        .device-info-title { font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/player/" class="back-btn">←</a>
+        <h1 class="page-title">Report a Bug</h1>
+    </div>
+    
+    <div class="intro">
+        <div class="intro-icon">🐛</div>
+        <div class="intro-title">Help Us Improve Pool Cue</div>
+        <div class="intro-text">Found something that's not working right? Let us know and we'll fix it. Your feedback helps make the app better for everyone.</div>
+    </div>
+    
+    <form id="bugForm" method="POST" action="/api/bug-report">
+        <div class="form-group">
+            <label class="form-label">What type of issue?</label>
+            <div class="type-grid">
+                <label class="type-btn" onclick="selectType(this, 'crash')">
+                    <input type="radio" name="bug_type" value="crash" required>
+                    <div class="type-icon">💥</div>
+                    <div class="type-label">App Crash</div>
+                </label>
+                <label class="type-btn" onclick="selectType(this, 'display')">
+                    <input type="radio" name="bug_type" value="display">
+                    <div class="type-icon">🖥️</div>
+                    <div class="type-label">Display Issue</div>
+                </label>
+                <label class="type-btn" onclick="selectType(this, 'queue')">
+                    <input type="radio" name="bug_type" value="queue">
+                    <div class="type-icon">📋</div>
+                    <div class="type-label">Queue Problem</div>
+                </label>
+                <label class="type-btn" onclick="selectType(this, 'other')">
+                    <input type="radio" name="bug_type" value="other">
+                    <div class="type-icon">❓</div>
+                    <div class="type-label">Other</div>
+                </label>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">What happened?</label>
+            <textarea name="description" class="form-textarea" placeholder="Describe the issue... What were you trying to do? What happened instead?" required></textarea>
+            <div class="form-hint">The more detail you provide, the faster we can fix it</div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">What page were you on?</label>
+            <select name="page" class="form-select">
+                <option value="">Not sure / General</option>
+                <option value="join">Join Queue</option>
+                <option value="my-status">My Status</option>
+                <option value="board">Board Display</option>
+                <option value="profile">Profile</option>
+                <option value="friends">Friends</option>
+                <option value="leaderboard">Leaderboard</option>
+                <option value="challenges">Challenges</option>
+                <option value="tokens">Tokens / Shop</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Your email (optional)</label>
+            <input type="email" name="email" class="form-input" placeholder="we'll follow up if we need more info" value="{{ player.email if player else '' }}">
+        </div>
+        
+        <input type="hidden" name="player_id" value="{{ player.id if player else '' }}">
+        <input type="hidden" name="user_agent" id="userAgent">
+        <input type="hidden" name="screen_size" id="screenSize">
+        <input type="hidden" name="url" id="currentUrl">
+        
+        <button type="submit" class="submit-btn" id="submitBtn">Submit Bug Report</button>
+        
+        <div class="device-info">
+            <div class="device-info-title">Device Info (auto-captured)</div>
+            <div id="deviceDisplay">Loading...</div>
+        </div>
+    </form>
+    
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        // Capture device info
+        document.getElementById('userAgent').value = navigator.userAgent;
+        document.getElementById('screenSize').value = window.innerWidth + 'x' + window.innerHeight;
+        document.getElementById('currentUrl').value = document.referrer || window.location.href;
+        
+        // Display device info
+        const ua = navigator.userAgent;
+        let device = 'Unknown';
+        if (/iPhone/.test(ua)) device = 'iPhone';
+        else if (/iPad/.test(ua)) device = 'iPad';
+        else if (/Android/.test(ua)) device = 'Android';
+        else if (/Mac/.test(ua)) device = 'Mac';
+        else if (/Windows/.test(ua)) device = 'Windows';
+        
+        document.getElementById('deviceDisplay').textContent = 
+            `${device} • ${window.innerWidth}×${window.innerHeight} • ${new Date().toLocaleString()}`;
+        
+        function selectType(el, type) {
+            document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+        
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show' + (isError ? ' error' : '');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        document.getElementById('bugForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+            
+            try {
+                const formData = new FormData(this);
+                const response = await fetch('/api/bug-report', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('🙏 Thank you! Bug report submitted.');
+                    setTimeout(() => window.location.href = '/player/', 2000);
+                } else {
+                    showToast(result.error || 'Something went wrong', true);
+                    btn.disabled = false;
+                    btn.textContent = 'Submit Bug Report';
+                }
+            } catch (err) {
+                showToast('Network error. Please try again.', true);
+                btn.disabled = false;
+                btn.textContent = 'Submit Bug Report';
+            }
+        });
+    </script>
+</body>
+</html>

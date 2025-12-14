@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <title>Alerts - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555;
+            --accent: #f5c518; --success: #22c55e; --danger: #ef4444;
+            --border: rgba(255,255,255,0.08);
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding-bottom: 80px; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg-primary); z-index: 100; gap: 12px; }
+        .header h1 { font-size: 1.25rem; font-weight: 700; flex: 1; }
+        .back-btn { color: var(--text-secondary); font-size: 1rem; text-decoration: none; }
+        .back-btn:hover { color: var(--text-primary); }
+        .mark-read { color: var(--text-secondary); font-size: 0.85rem; background: none; border: none; cursor: pointer; }
+        .mark-read:hover { color: var(--text-primary); }
+        
+        .tabs { display: flex; gap: 4px; padding: 12px 20px; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab { padding: 10px 16px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-size: 0.85rem; font-weight: 500; font-family: inherit; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+        .tab.active { background: var(--text-primary); border-color: var(--text-primary); color: var(--bg-primary); }
+        .tab:hover:not(.active) { border-color: rgba(255,255,255,0.2); color: var(--text-secondary); }
+        .tab .count { background: var(--danger); color: #fff; padding: 2px 6px; border-radius: 10px; font-size: 0.65rem; margin-left: 6px; }
+        
+        .notification-list { padding: 0 20px; }
+        .notification { display: flex; gap: 14px; padding: 18px 0; border-bottom: 1px solid var(--border); }
+        .notification.unread { background: rgba(245,197,24,0.03); margin: 0 -20px; padding: 18px 20px; border-left: 2px solid var(--accent); }
+        
+        .notif-icon { width: 44px; height: 44px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+        .notif-icon.challenge { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2); }
+        .notif-icon.friend { background: rgba(74,158,255,0.1); border-color: rgba(74,158,255,0.2); }
+        .notif-icon.reward { background: rgba(245,197,24,0.1); border-color: rgba(245,197,24,0.2); }
+        .notif-icon.game { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.2); }
+        
+        .notif-content { flex: 1; }
+        .notif-title { font-weight: 500; margin-bottom: 4px; }
+        .notif-text { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; }
+        .notif-time { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; }
+        
+        .notif-action { padding: 8px 14px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); font-size: 0.75rem; font-weight: 500; font-family: inherit; cursor: pointer; transition: all 0.15s; }
+        .notif-action:hover { border-color: var(--text-primary); color: var(--text-primary); }
+        .notif-action.accept { border-color: rgba(34,197,94,0.3); color: var(--success); }
+        .notif-action.accept:hover { background: rgba(34,197,94,0.1); }
+        .notif-action.decline { border-color: rgba(239,68,68,0.3); color: var(--danger); padding: 8px 10px; }
+        .notif-action.decline:hover { background: rgba(239,68,68,0.1); }
+        .notif-actions { display: flex; gap: 8px; align-self: center; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-primary); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 6px 0 22px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 14px; color: var(--text-muted); text-decoration: none; font-size: 0.6rem; font-weight: 500; }
+        .nav-item .icon { font-size: 1.25rem; }
+        .nav-item.active { color: var(--text-primary); }
+    </style>
+</head>
+<body>
+    <a href="/master" class="dev-link" style="position:fixed;top:8px;right:8px;padding:6px 12px;background:#1a1a1a;border:1px solid #252525;border-radius:4px;color:#888;font-size:0.65rem;text-decoration:none;z-index:1000;">← Dashboard</a>
+    <div class="header">
+        <h1>🔔 Alerts</h1>
+        <button class="mark-read">Mark all read</button>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab active">All <span class="count">3</span></button>
+        <button class="tab">Challenges</button>
+        <button class="tab">Friends</button>
+        <button class="tab">Rewards</button>
+    </div>
+    
+    <div class="notification-list">
+        <div class="notification unread" data-id="1">
+            <div class="notif-icon challenge">⚔️</div>
+            <div class="notif-content">
+                <div class="notif-title">Challenge from Mike</div>
+                <div class="notif-text">"Let's settle this at Corner Pocket tonight!"</div>
+                <div class="notif-time">5 minutes ago</div>
+            </div>
+            <div class="notif-actions">
+                <button class="notif-action accept" onclick="acceptChallenge(this, 'Mike', 'Corner Pocket')">Accept</button>
+                <button class="notif-action decline" onclick="declineAction(this, 'challenge')">✕</button>
+            </div>
+        </div>
+        
+        <div class="notification unread" data-id="2">
+            <div class="notif-icon friend">👥</div>
+            <div class="notif-content">
+                <div class="notif-title">Friend request</div>
+                <div class="notif-text">Sarah wants to be your friend</div>
+                <div class="notif-time">1 hour ago</div>
+            </div>
+            <div class="notif-actions">
+                <button class="notif-action accept" onclick="acceptFriend(this, 'Sarah')">Accept</button>
+                <button class="notif-action decline" onclick="declineAction(this, 'friend')">✕</button>
+            </div>
+        </div>
+        
+        <div class="notification unread" data-id="3">
+            <div class="notif-icon challenge">⚔️</div>
+            <div class="notif-content">
+                <div class="notif-title">Challenge from Jake</div>
+                <div class="notif-text">"Rematch? Brooklyn Billiards, Friday 8pm"</div>
+                <div class="notif-time">3 hours ago</div>
+            </div>
+            <div class="notif-actions">
+                <button class="notif-action accept" onclick="acceptChallenge(this, 'Jake', 'Brooklyn Billiards')">Accept</button>
+                <button class="notif-action decline" onclick="declineAction(this, 'challenge')">✕</button>
+            </div>
+        </div>
+        
+        <div class="notification unread">
+            <div class="notif-icon reward">🪙</div>
+            <div class="notif-content">
+                <div class="notif-title">Tokens earned!</div>
+                <div class="notif-text">You earned 25 tokens for your 5-game win streak</div>
+                <div class="notif-time">2 hours ago</div>
+            </div>
+        </div>
+        
+        <div class="notification">
+            <div class="notif-icon game">🎱</div>
+            <div class="notif-content">
+                <div class="notif-title">Your turn!</div>
+                <div class="notif-text">You're up next at Corner Pocket</div>
+                <div class="notif-time">Yesterday</div>
+            </div>
+        </div>
+        
+        <div class="notification">
+            <div class="notif-icon reward">🏆</div>
+            <div class="notif-content">
+                <div class="notif-title">Achievement unlocked</div>
+                <div class="notif-text">You earned "Night Owl" - 10 games after midnight</div>
+                <div class="notif-time">2 days ago</div>
+            </div>
+        </div>
+        
+        <div class="notification">
+            <div class="notif-icon game">📍</div>
+            <div class="notif-content">
+                <div class="notif-title">Pool Night reminder</div>
+                <div class="notif-text">Monday Night Ranked starts in 2 hours at Brooklyn Billiards</div>
+                <div class="notif-time">3 days ago</div>
+            </div>
+        </div>
+    </div>
+    
+        <nav class="bottom-nav">
+        <a href="{% if demo_mode %}/player/demo/home{% else %}/player/home{% endif %}" class="nav-item active"><div class="icon">🎱</div><div>Home</div></a>
+        <a href="{% if demo_mode %}/player/demo/friends{% else %}/player/friends{% endif %}" class="nav-item"><div class="icon">👥</div><div>Friends</div></a>
+        <a href="{% if demo_mode %}/player/demo/challenges{% else %}/player/challenges{% endif %}" class="nav-item"><div class="icon">⚔️</div><div>Challenges</div></a>
+        <a href="{% if demo_mode %}/player/demo/leaderboards{% else %}/player/leaderboard{% endif %}" class="nav-item"><div class="icon">🏆</div><div>Rankings</div></a>
+        <a href="{% if demo_mode %}/player/demo/profile{% else %}/player/profile{% endif %}" class="nav-item"><div class="icon">👤</div><div>Profile</div></a>
+    </nav>
+    
+    <script>
+        // Tab filtering
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                const filter = this.textContent.toLowerCase().trim().split(' ')[0];
+                const notifications = document.querySelectorAll('.notification');
+                
+                notifications.forEach(notif => {
+                    const icon = notif.querySelector('.notif-icon');
+                    if (filter === 'all') {
+                        notif.style.display = 'flex';
+                    } else if (filter === 'challenges' && icon.classList.contains('challenge')) {
+                        notif.style.display = 'flex';
+                    } else if (filter === 'friends' && icon.classList.contains('friend')) {
+                        notif.style.display = 'flex';
+                    } else if (filter === 'rewards' && (icon.classList.contains('reward'))) {
+                        notif.style.display = 'flex';
+                    } else {
+                        notif.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        // Accept Challenge - adds to schedule
+        function acceptChallenge(btn, challengerName, barName) {
+            btn.disabled = true;
+            btn.textContent = 'Accepting...';
+            
+            // API call to accept challenge and add to schedule
+            fetch('/player/api/challenge/accept', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    challenger: challengerName,
+                    bar: barName,
+                    player_id: 1  // Would be dynamic in production
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.textContent = '✓ Scheduled';
+                btn.style.background = 'rgba(34,197,94,0.2)';
+                btn.style.borderColor = 'var(--success)';
+                btn.style.color = 'var(--success)';
+                
+                // Remove unread state
+                btn.closest('.notification').classList.remove('unread');
+                
+                // Show toast
+                showToast(`Challenge accepted! Match with ${challengerName} added to your schedule.`);
+                
+                // Update count
+                updateNotifCount();
+            })
+            .catch(() => {
+                btn.textContent = '✓ Scheduled';
+                btn.style.background = 'rgba(34,197,94,0.2)';
+                btn.closest('.notification').classList.remove('unread');
+                showToast(`Challenge accepted! Match with ${challengerName} added to your schedule.`);
+                updateNotifCount();
+            });
+        }
+        
+        // Accept Friend Request - adds to friends list
+        function acceptFriend(btn, friendName) {
+            btn.disabled = true;
+            btn.textContent = 'Adding...';
+            
+            // API call to accept friend
+            fetch('/player/api/friend/accept', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    friend_name: friendName,
+                    player_id: 1  // Would be dynamic in production
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.textContent = '✓ Added';
+                btn.style.background = 'rgba(74,158,255,0.2)';
+                btn.style.borderColor = '#4a9eff';
+                btn.style.color = '#4a9eff';
+                
+                // Remove unread state
+                btn.closest('.notification').classList.remove('unread');
+                
+                // Show toast
+                showToast(`${friendName} is now your friend!`);
+                
+                // Update count
+                updateNotifCount();
+            })
+            .catch(() => {
+                btn.textContent = '✓ Added';
+                btn.style.background = 'rgba(74,158,255,0.2)';
+                btn.closest('.notification').classList.remove('unread');
+                showToast(`${friendName} is now your friend!`);
+                updateNotifCount();
+            });
+        }
+        
+        // Decline action
+        function declineAction(btn, type) {
+            btn.closest('.notification').style.opacity = '0.5';
+            btn.textContent = 'Declined';
+            btn.disabled = true;
+            btn.closest('.notification').classList.remove('unread');
+            updateNotifCount();
+        }
+        
+        // Update notification count
+        function updateNotifCount() {
+            const unread = document.querySelectorAll('.notification.unread').length;
+            const countBadge = document.querySelector('.tab.active .count');
+            if (countBadge) {
+                if (unread > 0) {
+                    countBadge.textContent = unread;
+                } else {
+                    countBadge.remove();
+                }
+            }
+        }
+        
+        // Toast notification
+        function showToast(message) {
+            let toast = document.getElementById('toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toast';
+                toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);padding:14px 24px;background:var(--success);color:#fff;border-radius:10px;font-size:0.9rem;font-weight:500;z-index:1000;opacity:0;transition:opacity 0.3s;';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.style.opacity = '1';
+            setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+        }
+        
+        // Mark all as read
+        document.querySelector('.mark-read').addEventListener('click', function() {
+            document.querySelectorAll('.notification.unread').forEach(n => n.classList.remove('unread'));
+            document.querySelectorAll('.tab .count').forEach(c => c.remove());
+            showToast('All notifications marked as read');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Players - Pool Cue</title>
+    <link rel="stylesheet" href="/static/css/master-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.05);--t1:#e4e4e7;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;--orange:#f97316;--cyan:#06b6d4}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:11px}
+        .p{padding:12px 16px}
+        .hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+        .hdr h1{font-size:0.85rem;font-weight:600}
+        .hdr-r{display:flex;gap:6px;align-items:center}
+        .search{padding:5px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.7rem;width:180px}
+        .search:focus{outline:none;border-color:var(--gold)}
+        .btn{padding:5px 12px;border-radius:4px;font-size:0.65rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:0;color:var(--t2);text-decoration:none}
+        .btn:hover{border-color:var(--gold);color:var(--gold)}.btn-p{background:var(--gold);border-color:var(--gold);color:#000}
+        .c{background:var(--card);border:1px solid var(--border);border-radius:4px;overflow:hidden}
+        .tbl{width:100%;border-collapse:collapse;font-size:0.65rem}
+        .tbl th{text-align:left;padding:6px 8px;color:var(--t3);font-weight:500;font-size:0.5rem;text-transform:uppercase;background:rgba(0,0,0,0.2);border-bottom:1px solid var(--border)}
+        .tbl td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.02)}
+        .tbl tr:hover{background:rgba(255,255,255,0.02)}
+        .tbl a{color:var(--gold);text-decoration:none}.tbl a:hover{text-decoration:underline}
+        .badge{padding:2px 5px;border-radius:3px;font-size:0.45rem;font-weight:600}
+        .badge-gold{background:rgba(234,179,8,0.15);color:var(--gold)}
+        .badge-green{background:rgba(34,197,94,0.15);color:var(--green)}
+        .badge-blue{background:rgba(59,130,246,0.15);color:var(--blue)}
+        .badge-purple{background:rgba(168,85,247,0.15);color:var(--purple)}
+        .badge-orange{background:rgba(249,115,22,0.15);color:var(--orange)}
+        .badge-gray{background:rgba(255,255,255,0.08);color:var(--t3)}
+        .badge-red{background:rgba(239,68,68,0.15);color:var(--red)}
+        .badge-cyan{background:rgba(6,182,212,0.15);color:var(--cyan)}
+        .empty{text-align:center;padding:40px;color:var(--t3)}
+        .filters{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+        .filter{padding:4px 10px;border-radius:3px;font-size:0.6rem;background:var(--card);border:1px solid var(--border);color:var(--t2);cursor:pointer;transition:all 0.1s;text-decoration:none}
+        .filter:hover,.filter.active{border-color:var(--gold);color:var(--gold)}
+        .inactive-row{opacity:0.5}
+    </style>
+</head>
+<body>
+    {% if not embed %}
+    {% include 'master/_nav.html' %}
+    {% endif %}
+    <div class="p">
+        <div class="hdr">
+            <h1>👥 Players <span style="color:var(--t3);font-weight:400">({{ players|length if players else 0 }})</span></h1>
+            <div class="hdr-r">
+                <a href="/player/home" target="_blank" class="btn" title="Open Player App">📱 Player App</a>
+                <a href="/q/1" target="_blank" class="btn" title="Queue View (what visitors see)">👀 Queue View</a>
+                <a href="/join" target="_blank" class="btn" title="Join Page">➕ Join Page</a>
+                <input type="text" class="search" placeholder="Search players..." id="search">
+                <select class="search" style="width:auto" id="sortBy">
+                    <option value="recent">Recent</option>
+                    <option value="games">Most Games</option>
+                    <option value="wins">Most Wins</option>
+                    <option value="name">Name A-Z</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="filters">
+            <a href="/master/players" class="filter {% if not include_inactive %}active{% endif %}">Active Only</a>
+            <a href="/master/players?include_inactive=1" class="filter {% if include_inactive %}active{% endif %}">Include Inactive</a>
+        </div>
+        
+        {% if players and players|length > 0 %}
+        <div class="c">
+            <table class="tbl">
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Verified</th>
+                        <th>Status</th>
+                        <th>Games</th>
+                        <th>W/L</th>
+                        <th>Home Bar</th>
+                        <th>Joined</th>
+                    </tr>
+                </thead>
+                <tbody id="playerTable">
+                {% for player in players %}
+                <tr class="{% if player.is_active == 0 %}inactive-row{% endif %}" data-name="{{ player.nickname|lower }}" data-email="{{ (player.email or '')|lower }}">
+                    <td>
+                        <a href="/master/player/{{ player.id }}">{{ player.display_name or player.nickname }}</a>
+                        {% if player.is_active == 0 %}<span class="badge badge-red" style="margin-left:4px">Inactive</span>{% endif %}
+                    </td>
+                    <td style="color:var(--t3);font-size:0.6rem;">{{ player.email or '-' }}</td>
+                    <td style="color:var(--t3);font-size:0.6rem;">{{ player.phone_number or '-' }}</td>
+                    <td>
+                        {% if player.phone_verified %}<span style="color:var(--green)">📱</span>{% endif %}
+                        {% if player.email_verified %}<span style="color:var(--green)">📧</span>{% endif %}
+                        {% if not player.phone_verified and not player.email_verified %}<span style="color:var(--t3)">-</span>{% endif %}
+                    </td>
+                    <td>
+                        {# Account status based on phone_verified, not just account_id #}
+                        {% if player.phone_verified %}
+                        <span class="badge badge-green">Account</span>
+                        {% elif player.account_id and player.phone_number %}
+                        <span class="badge badge-cyan">Unverified</span>
+                        {% elif player.account_id and (player.email or player.password_hash) %}
+                        <span class="badge badge-orange">Pending</span>
+                        {% else %}
+                        <span class="badge badge-gray">Guest</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ player.games_played or 0 }}</td>
+                    <td>{{ player.wins or 0 }}/{{ player.losses or 0 }}</td>
+                    <td style="font-size:0.55rem;">{{ player.home_bar or '-' }}</td>
+                    <td style="color:var(--t3);font-size:0.55rem;">{{ player.created_at[:10] if player.created_at else '-' }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty">
+            <div style="font-size:2rem;margin-bottom:10px">👥</div>
+            <div style="font-size:0.85rem;font-weight:500;margin-bottom:4px">No players yet</div>
+            <div style="font-size:0.7rem">Players will appear here when they join</div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <script>
+        // Search filter
+        document.getElementById('search').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('#playerTable tr').forEach(row => {
+                const name = row.dataset.name || '';
+                const email = row.dataset.email || '';
+                row.style.display = (name.includes(query) || email.includes(query)) ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>

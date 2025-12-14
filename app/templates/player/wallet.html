@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#111111">
+    <title>Wallet - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222; --border: rgba(255,255,255,0.1);
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555; --accent: #f5c518; --success: #22c55e;
+            --purple: #a78bfa; --danger: #ef4444;
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding-bottom: 100px; }
+        
+        .header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+        .back-btn { width: 36px; height: 36px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .header h1 { font-size: 1.2rem; font-weight: 600; }
+        
+        .balance-card { margin: 20px; background: linear-gradient(135deg, #1a3a1a 0%, #0d1f0d 100%); border: 1px solid var(--success); border-radius: 16px; padding: 24px; text-align: center; }
+        .balance-label { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+        .balance-amount { font-size: 3rem; font-weight: 700; color: var(--success); margin: 8px 0; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .balance-amount .symbol { font-size: 2rem; opacity: 0.8; }
+        
+        .action-buttons { display: flex; gap: 12px; margin-top: 16px; }
+        .action-btn { flex: 1; padding: 14px; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; font-family: inherit; border: none; }
+        .action-btn.primary { background: var(--success); color: #111; }
+        .action-btn.secondary { background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border); }
+        
+        .section { padding: 0 20px; margin-bottom: 24px; }
+        .section-title { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        
+        .quick-add { display: flex; gap: 10px; flex-wrap: wrap; }
+        .quick-btn { padding: 12px 20px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 0.9rem; font-weight: 500; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+        .quick-btn:hover { border-color: var(--success); }
+        .quick-btn.selected { border-color: var(--success); background: rgba(34,197,94,0.1); }
+        
+        .payment-methods { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; }
+        .method-item { display: flex; align-items: center; gap: 14px; padding: 16px; border-bottom: 1px solid var(--border); cursor: pointer; }
+        .method-item:last-child { border-bottom: none; }
+        .method-icon { width: 40px; height: 40px; background: var(--bg-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .method-info { flex: 1; }
+        .method-name { font-weight: 500; font-size: 0.95rem; }
+        .method-detail { font-size: 0.8rem; color: var(--text-secondary); }
+        .method-action { color: var(--success); font-size: 0.85rem; }
+        
+        .history-section { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; }
+        .history-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+        .history-item:last-child { border-bottom: none; }
+        .history-left { display: flex; align-items: center; gap: 12px; }
+        .history-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+        .history-icon.credit { background: rgba(34,197,94,0.15); }
+        .history-icon.debit { background: rgba(239,68,68,0.15); }
+        .history-desc { font-size: 0.9rem; }
+        .history-date { font-size: 0.75rem; color: var(--text-secondary); }
+        .history-amount { font-weight: 600; font-size: 0.95rem; }
+        .history-amount.positive { color: var(--success); }
+        .history-amount.negative { color: var(--danger); }
+        
+        .info-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+        .info-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+        .info-icon { font-size: 1.3rem; }
+        .info-text { flex: 1; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-primary); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 6px 0 22px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 14px; color: var(--text-muted); text-decoration: none; font-size: 0.6rem; font-weight: 500; }
+        .nav-item .icon { font-size: 1.25rem; }
+        .nav-item.active { color: var(--text-primary); }
+        
+        
+        /* Add Funds Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.show { display: flex; }
+        .modal { background: var(--bg-secondary); border-radius: 16px; width: 100%; max-width: 400px; padding: 24px; }
+        .modal-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+        .modal-subtitle { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 20px; }
+        .modal-input { width: 100%; padding: 16px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 10px; color: var(--text-primary); font-size: 1.5rem; font-weight: 600; text-align: center; margin-bottom: 16px; font-family: inherit; }
+        .modal-input:focus { outline: none; border-color: var(--success); }
+        .modal-buttons { display: flex; gap: 12px; }
+        .modal-btn { flex: 1; padding: 14px; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; font-family: inherit; border: none; }
+        .modal-btn.cancel { background: var(--bg-primary); color: var(--text-primary); }
+        .modal-btn.confirm { background: var(--success); color: #111; }
+        
+        .stripe-badge { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; font-size: 0.75rem; color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/player/profile" class="back-btn">←</a>
+        <h1>💵 Wallet</h1>
+    </div>
+    
+    <div class="balance-card">
+        <div class="balance-label">Available Balance</div>
+        <div class="balance-amount"><span class="symbol">$</span><span id="walletBalance">0.00</span></div>
+        <div class="action-buttons">
+            <button class="action-btn primary" onclick="showAddFunds()">+ Add Funds</button>
+            <button class="action-btn secondary" onclick="showCashOut()">💸 Cash Out</button>
+        </div>
+    </div>
+    
+    <div class="section" style="margin-top:-8px;">
+        <a href="/player/tokens" style="display:block;text-decoration:none;">
+            <div class="info-card" style="display:flex;align-items:center;gap:12px;cursor:pointer;">
+                <span style="font-size:1.5rem;">🪙</span>
+                <div style="flex:1;">
+                    <div style="font-weight:600;color:var(--text-primary);">View Tokens</div>
+                    <div style="font-size:0.8rem;color:var(--text-secondary);">Earn & spend tokens in-app</div>
+                </div>
+                <span style="color:var(--text-secondary);">→</span>
+            </div>
+        </a>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">💳 Payment Methods</div>
+        <div class="payment-methods">
+            <div class="method-item" id="linkedCard" style="display:none;">
+                <div class="method-icon">💳</div>
+                <div class="method-info">
+                    <div class="method-name" id="cardDisplay">•••• 4242</div>
+                    <div class="method-detail">Default payment method</div>
+                </div>
+                <span class="method-action" onclick="manageCard()">Manage</span>
+            </div>
+            <div class="method-item" id="addCardPrompt" onclick="linkCard()">
+                <div class="method-icon" style="background:rgba(34,197,94,0.15);">+</div>
+                <div class="method-info">
+                    <div class="method-name">Add Payment Method</div>
+                    <div class="method-detail">Link a card to add funds quickly</div>
+                </div>
+                <span class="method-action">Add →</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">ℹ️ How It Works</div>
+        <div class="info-card">
+            <div class="info-row">
+                <span class="info-icon">💵</span>
+                <span class="info-text">Add funds to pay entry fees for pool nights and tournaments</span>
+            </div>
+            <div class="info-row">
+                <span class="info-icon">🏆</span>
+                <span class="info-text">Win prize money that gets added directly to your balance</span>
+            </div>
+            <div class="info-row">
+                <span class="info-icon">🔒</span>
+                <span class="info-text">Payments processed securely via Stripe. We never store your card details.</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">📜 Transaction History</div>
+        <div class="history-section" id="historyList">
+            <div style="padding:20px;text-align:center;color:var(--text-secondary);">Loading...</div>
+        </div>
+    </div>
+    
+        <nav class="bottom-nav">
+        <a href="{% if demo_mode %}/player/demo/home{% else %}/player/home{% endif %}" class="nav-item"><div class="icon">🎱</div><div>Home</div></a>
+        <a href="{% if demo_mode %}/player/demo/friends{% else %}/player/friends{% endif %}" class="nav-item"><div class="icon">👥</div><div>Friends</div></a>
+        <a href="{% if demo_mode %}/player/demo/challenges{% else %}/player/challenges{% endif %}" class="nav-item"><div class="icon">⚔️</div><div>Challenges</div></a>
+        <a href="{% if demo_mode %}/player/demo/leaderboards{% else %}/player/leaderboard{% endif %}" class="nav-item"><div class="icon">🏆</div><div>Rankings</div></a>
+        <a href="{% if demo_mode %}/player/demo/profile{% else %}/player/profile{% endif %}" class="nav-item active"><div class="icon">👤</div><div>Profile</div></a>
+    </nav>
+    
+    <!-- Add Funds Modal -->
+    <div class="modal-overlay" id="addFundsModal">
+        <div class="modal">
+            <div class="modal-title">Add Funds</div>
+            <div class="modal-subtitle">Choose an amount to add to your wallet</div>
+            
+            <div class="quick-add" style="margin-bottom:16px;">
+                <button class="quick-btn" onclick="selectAmount(10)">$10</button>
+                <button class="quick-btn" onclick="selectAmount(25)">$25</button>
+                <button class="quick-btn" onclick="selectAmount(50)">$50</button>
+                <button class="quick-btn" onclick="selectAmount(100)">$100</button>
+            </div>
+            
+            <input type="number" class="modal-input" id="fundAmount" placeholder="0.00" min="5" step="0.01">
+            
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="hideAddFunds()">Cancel</button>
+                <button class="modal-btn confirm" onclick="processAddFunds()">Continue</button>
+            </div>
+            
+            <div class="stripe-badge">
+                <span>🔒</span>
+                <span>Secured by Stripe</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cash Out Modal -->
+    <div class="modal-overlay" id="cashOutModal">
+        <div class="modal">
+            <div class="modal-title">💸 Cash Out</div>
+            <div class="modal-subtitle">Withdraw funds to your bank account</div>
+            
+            <div style="background:var(--bg-primary);border-radius:10px;padding:14px;margin-bottom:16px;text-align:center;">
+                <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Available to withdraw</div>
+                <div style="font-size:1.5rem;font-weight:700;color:var(--success);">$<span id="cashOutAvailable">0.00</span></div>
+            </div>
+            
+            <input type="number" class="modal-input" id="cashOutAmount" placeholder="0.00" min="10" step="0.01">
+            <div style="font-size:0.75rem;color:var(--text-secondary);text-align:center;margin-bottom:16px;">Minimum cashout: $10.00</div>
+            
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="hideCashOut()">Cancel</button>
+                <button class="modal-btn confirm" style="background:var(--success);" onclick="processCashOut()">Cash Out</button>
+            </div>
+            
+            <div style="margin-top:16px;padding:12px;background:rgba(59,130,246,0.1);border-radius:8px;font-size:0.8rem;color:#60a5fa;">
+                💡 Funds typically arrive in 2-3 business days
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let selectedAmount = 0;
+        
+        async function loadWallet() {
+            try {
+                const res = await fetch('/api/wallet');
+                const data = await res.json();
+                
+                if (data.error) {
+                    window.location.href = '/auth/login';
+                    return;
+                }
+                
+                document.getElementById('walletBalance').textContent = 
+                    parseFloat(data.balance || 0).toFixed(2);
+                
+                // Show linked card if exists
+                if (data.has_payment_method) {
+                    document.getElementById('linkedCard').style.display = 'flex';
+                    document.getElementById('addCardPrompt').style.display = 'none';
+                    if (data.card_last4) {
+                        document.getElementById('cardDisplay').textContent = '•••• ' + data.card_last4;
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load wallet:', e);
+            }
+        }
+        
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/wallet/transactions');
+                const data = await res.json();
+                
+                const list = document.getElementById('historyList');
+                const history = data.transactions || [];
+                
+                if (history.length === 0) {
+                    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-secondary);">No transactions yet</div>';
+                    return;
+                }
+                
+                const typeLabels = {
+                    'deposit': { icon: '💵', label: 'Added Funds' },
+                    'entry_fee': { icon: '🎱', label: 'Entry Fee' },
+                    'winnings': { icon: '🏆', label: 'Prize Winnings' },
+                    'refund': { icon: '↩️', label: 'Refund' },
+                    'payout': { icon: '💰', label: 'Payout' },
+                    'cashout': { icon: '💸', label: 'Cash Out' },
+                    'marketplace_purchase': { icon: '🎱', label: 'Cue Purchase' },
+                    'marketplace_sale': { icon: '💰', label: 'Cue Sale' }
+                };
+                
+                list.innerHTML = history.map(t => {
+                    const isCredit = t.amount > 0;
+                    const info = typeLabels[t.transaction_type] || { icon: '💵', label: t.transaction_type };
+                    const desc = t.description || info.label;
+                    return `
+                        <div class="history-item">
+                            <div class="history-left">
+                                <div class="history-icon ${isCredit ? 'credit' : 'debit'}">${info.icon}</div>
+                                <div>
+                                    <div class="history-desc">${desc}</div>
+                                    <div class="history-date">${new Date(t.created_at).toLocaleDateString()}</div>
+                                </div>
+                            </div>
+                            <div class="history-amount ${isCredit ? 'positive' : 'negative'}">
+                                ${isCredit ? '+' : ''}$${Math.abs(t.amount).toFixed(2)}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error('Failed to load history:', e);
+            }
+        }
+        
+        function showAddFunds() {
+            document.getElementById('addFundsModal').classList.add('show');
+        }
+        
+        function hideAddFunds() {
+            document.getElementById('addFundsModal').classList.remove('show');
+            document.getElementById('fundAmount').value = '';
+            document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
+            selectedAmount = 0;
+        }
+        
+        function showCashOut() {
+            const balance = document.getElementById('walletBalance').textContent;
+            document.getElementById('cashOutAvailable').textContent = balance;
+            document.getElementById('cashOutAmount').value = '';
+            document.getElementById('cashOutModal').classList.add('show');
+        }
+        
+        function hideCashOut() {
+            document.getElementById('cashOutModal').classList.remove('show');
+            document.getElementById('cashOutAmount').value = '';
+        }
+        
+        async function processCashOut() {
+            const amount = parseFloat(document.getElementById('cashOutAmount').value);
+            const available = parseFloat(document.getElementById('cashOutAvailable').textContent);
+            
+            if (!amount || amount < 10) {
+                alert('Minimum cashout is $10.00');
+                return;
+            }
+            
+            if (amount > available) {
+                alert(`You can only cash out up to $${available.toFixed(2)}`);
+                return;
+            }
+            
+            if (!confirm(`Cash out $${amount.toFixed(2)}? Funds typically arrive in 2-3 business days.`)) {
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/wallet/cashout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: amount })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert(data.message);
+                    hideCashOut();
+                    loadWallet();
+                    loadHistory();
+                } else {
+                    alert(data.error || 'Failed to process cashout');
+                }
+            } catch (e) {
+                alert('Connection error. Please try again.');
+            }
+        }
+        
+        function selectAmount(amount) {
+            selectedAmount = amount;
+            document.getElementById('fundAmount').value = amount;
+            document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+        
+        async function processAddFunds() {
+            const amount = parseFloat(document.getElementById('fundAmount').value) || selectedAmount;
+            
+            if (amount < 5) {
+                alert('Minimum amount is $5.00');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/wallet/add-funds', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: amount })
+                });
+                const data = await res.json();
+                
+                if (data.checkout_url) {
+                    // Redirect to Stripe checkout
+                    window.location.href = data.checkout_url;
+                } else if (data.success) {
+                    // For stub/test mode
+                    alert(`$${amount.toFixed(2)} added to your wallet!`);
+                    hideAddFunds();
+                    loadWallet();
+                    loadHistory();
+                } else {
+                    alert(data.error || 'Failed to process payment');
+                }
+            } catch (e) {
+                alert('Connection error. Please try again.');
+            }
+        }
+        
+        function linkCard() {
+            // Stub: Would redirect to Stripe for card setup
+            fetch('/api/wallet/setup-payment-method', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.setup_url) {
+                        window.location.href = data.setup_url;
+                    } else {
+                        alert('Payment method setup coming soon!');
+                    }
+                });
+        }
+        
+        function manageCard() {
+            // Stub: Would open Stripe customer portal
+            fetch('/api/wallet/manage-payment-method', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.portal_url) {
+                        window.location.href = data.portal_url;
+                    } else {
+                        alert('Card management coming soon!');
+                    }
+                });
+        }
+        
+        loadWallet();
+        loadHistory();
+    </script>
+</body>
+</html>

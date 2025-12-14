@@ -1,0 +1,46 @@
+/* Master Nav - Shared Styles */
+.master-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    background: #09090b;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    color: #e4e4e7;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+.logo-icon { font-size: 1rem; }
+.master-nav {
+    display: flex;
+    gap: 2px;
+    background: #0f0f12;
+    padding: 2px;
+    border-radius: 5px;
+}
+.nav-link {
+    padding: 6px 10px;
+    border-radius: 4px;
+    color: #a1a1aa;
+    text-decoration: none;
+    font-size: 0.65rem;
+    font-weight: 500;
+    transition: all 0.15s;
+}
+.nav-link:hover {
+    color: #e4e4e7;
+    background: rgba(255,255,255,0.05);
+}
+.nav-link.active {
+    background: #eab308;
+    color: #000;
+}

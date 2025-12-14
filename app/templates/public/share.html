@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <title>Share Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #f2f2f2;
+            --text-secondary: #888888;
+            --accent: #f5c518;
+            --success: #22c55e;
+            --border: rgba(255,255,255,0.08);
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary); color: var(--text-primary);
+            min-height: 100vh; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 24px;
+            text-align: center;
+        }
+        .logo { font-size: 3rem; margin-bottom: 8px; }
+        h1 { font-size: 1.8rem; margin-bottom: 8px; }
+        .subtitle { color: #888; margin-bottom: 32px; }
+        .qr-box {
+            background: white; padding: 20px; border-radius: 16px;
+            margin-bottom: 24px; box-shadow: 0 10px 40px rgba(245,197,24,0.2);
+        }
+        .qr-box img { width: 200px; height: 200px; }
+        .url-box {
+            background: #1a1a1a; border: 1px solid #333; border-radius: 10px;
+            padding: 14px 20px; margin-bottom: 16px; max-width: 320px;
+            font-family: monospace; font-size: 0.85rem; color: #f5c518;
+            word-break: break-all;
+        }
+        .btn {
+            background: #f5c518; color: #111; border: none;
+            padding: 14px 28px; border-radius: 8px; font-size: 1rem;
+            font-weight: 600; cursor: pointer; margin: 8px;
+        }
+        .btn-secondary { background: #222; color: #f2f2f2; border: 1px solid #333; }
+        .copied { background: #22c55e !important; }
+        .instructions {
+            margin-top: 32px; padding: 20px; background: #1a1a1a;
+            border-radius: 12px; max-width: 360px; text-align: left;
+        }
+        .instructions h3 { color: #f5c518; margin-bottom: 12px; font-size: 0.9rem; }
+        .instructions ol { padding-left: 20px; color: #888; font-size: 0.85rem; line-height: 1.8; }
+        .instructions li { margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+    <div class="logo">🎱</div>
+    <h1>Pool Cue</h1>
+    <p class="subtitle">Scan to join the queue</p>
+    
+    <div class="qr-box">
+        <img src="{{ url_for('display.qr_code', bar_id=bar_id) if bar_id else url_for('display.qr_code') }}" alt="QR Code">
+    </div>
+    
+    <div class="url-box" id="shareUrl">{{ share_url }}</div>
+    
+    <div>
+        <button class="btn" onclick="copyUrl()">📋 Copy Link</button>
+        <button class="btn btn-secondary" onclick="shareUrl()">📤 Share</button>
+    </div>
+    
+    <div class="instructions">
+        <h3>📱 For Testers</h3>
+        <ol>
+            <li>Connect to the same WiFi network</li>
+            <li>Scan QR code or open the link</li>
+            <li>Tap "Create Account" to sign up</li>
+            <li>Add to Home Screen for app-like experience</li>
+        </ol>
+    </div>
+    
+    <script>
+        const shareUrl = '{{ share_url }}';
+        
+        function copyUrl() {
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                const btn = event.target;
+                btn.textContent = '✓ Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '📋 Copy Link';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+        
+        function shareUrl() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Pool Cue',
+                    text: 'Join me on Pool Cue!',
+                    url: shareUrl
+                });
+            } else {
+                copyUrl();
+            }
+        }
+    </script>
+</body>
+</html>

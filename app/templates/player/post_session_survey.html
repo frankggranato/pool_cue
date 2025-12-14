@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#111111">
+    <title>Quick Survey - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555;
+            --accent: #f5c518; --success: #22c55e; --danger: #ef4444; --blue: #3b82f6; --purple: #a855f7;
+            --border: rgba(255,255,255,0.08);
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding: 20px; }
+        
+        .survey-container { max-width: 400px; margin: 0 auto; }
+        
+        .survey-header { text-align: center; margin-bottom: 30px; }
+        .survey-icon { font-size: 3rem; margin-bottom: 16px; }
+        .survey-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+        .survey-subtitle { font-size: 0.9rem; color: var(--text-secondary); }
+        
+        .token-reward { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; padding: 12px; background: rgba(245,197,24,0.1); border-radius: 10px; }
+        .token-reward span { font-size: 0.85rem; color: var(--accent); font-weight: 600; }
+        
+        .question { margin-bottom: 24px; }
+        .question-label { font-size: 0.9rem; font-weight: 600; margin-bottom: 12px; display: block; }
+        
+        /* Drink selection grid */
+        .drink-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .drink-option { padding: 16px 12px; background: var(--bg-secondary); border: 2px solid var(--border); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .drink-option:hover { border-color: var(--text-muted); }
+        .drink-option.selected { border-color: var(--accent); background: rgba(245,197,24,0.1); }
+        .drink-option.selected .drink-name { color: var(--accent); }
+        .drink-emoji { font-size: 1.5rem; margin-bottom: 6px; }
+        .drink-name { font-size: 0.8rem; font-weight: 600; }
+        .drink-brand { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+        
+        /* Rating stars */
+        .rating-container { display: flex; gap: 8px; justify-content: center; }
+        .rating-star { font-size: 2rem; cursor: pointer; transition: all 0.15s; color: var(--text-muted); }
+        .rating-star:hover, .rating-star.active { color: var(--accent); transform: scale(1.1); }
+        
+        /* Slider */
+        .slider-container { margin-top: 8px; }
+        .slider { width: 100%; height: 8px; -webkit-appearance: none; background: var(--bg-tertiary); border-radius: 4px; outline: none; }
+        .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; background: var(--accent); border-radius: 50%; cursor: pointer; }
+        .slider-labels { display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.75rem; color: var(--text-muted); }
+        .slider-value { text-align: center; font-size: 1.2rem; font-weight: 700; color: var(--accent); margin-top: 8px; }
+        
+        /* Yes/No buttons */
+        .yesno-container { display: flex; gap: 12px; }
+        .yesno-btn { flex: 1; padding: 14px; background: var(--bg-secondary); border: 2px solid var(--border); border-radius: 10px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; color: var(--text-primary); }
+        .yesno-btn:hover { border-color: var(--text-muted); }
+        .yesno-btn.selected.yes { border-color: var(--success); background: rgba(34,197,94,0.15); color: var(--success); }
+        .yesno-btn.selected.no { border-color: var(--danger); background: rgba(239,68,68,0.15); color: var(--danger); }
+        
+        /* Submit button */
+        .submit-btn { width: 100%; padding: 16px; background: var(--accent); border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; color: #111; cursor: pointer; margin-top: 20px; transition: all 0.2s; }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(245,197,24,0.3); }
+        .submit-btn:disabled { background: var(--bg-tertiary); color: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; }
+        
+        .skip-link { display: block; text-align: center; margin-top: 16px; color: var(--text-muted); font-size: 0.85rem; text-decoration: none; }
+        .skip-link:hover { color: var(--text-secondary); }
+        
+        /* Success state */
+        .success-container { text-align: center; padding: 40px 20px; display: none; }
+        .success-icon { font-size: 4rem; margin-bottom: 20px; }
+        .success-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; }
+        .success-tokens { font-size: 1.2rem; color: var(--accent); margin-bottom: 24px; }
+        .success-btn { padding: 14px 30px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; color: var(--text-primary); font-size: 0.9rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="survey-container">
+        <!-- Survey Form -->
+        <div id="surveyForm">
+            <div class="survey-header">
+                <div class="survey-icon">🍻</div>
+                <div class="survey-title">Quick Post-Game Survey</div>
+                <div class="survey-subtitle">Help us improve your experience</div>
+                <div class="token-reward">
+                    <span>🪙</span>
+                    <span>Earn 50 tokens for completing!</span>
+                </div>
+            </div>
+            
+            <!-- Q1: What did you drink? -->
+            <div class="question">
+                <label class="question-label">What did you drink tonight? (Select all)</label>
+                <div class="drink-grid">
+                    <div class="drink-option" onclick="toggleDrink(this, 'budweiser')">
+                        <div class="drink-emoji">🍺</div>
+                        <div class="drink-name">Budweiser</div>
+                    </div>
+                    <div class="drink-option" onclick="toggleDrink(this, 'miller')">
+                        <div class="drink-emoji">🍺</div>
+                        <div class="drink-name">Miller Lite</div>
+                    </div>
+                    <div class="drink-option" onclick="toggleDrink(this, 'heineken')">
+                        <div class="drink-emoji">🍺</div>
+                        <div class="drink-name">Heineken</div>
+                    </div>
+                    <div class="drink-option" onclick="toggleDrink(this, 'corona')">
+                        <div class="drink-emoji">🍺</div>
+                        <div class="drink-name">Corona</div>
+                    </div>
+                    <div class="drink-option" onclick="toggleDrink(this, 'jameson')">
+                        <div class="drink-emoji">🥃</div>
+                        <div class="drink-name">Jameson</div>
+                    </div>
+                    <div class="drink-option" onclick="toggleDrink(this, 'jack')">
+                        <div class="drink-emoji">🥃</div>
+                        <div class="drink-name">Jack Daniel's</div>
+                    </div>
+                    <div class="drink-option" onclick="toggleDrink(this, 'titos')">
+                        <div class="drink-emoji">🍸</div>
+                        <div class="drink-name">Tito's</div>
+                    </div>
+                    <div class="drink-option" onclick="toggleDrink(this, 'other')">
+                        <div class="drink-emoji">🍹</div>
+                        <div class="drink-name">Other</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Q2: Did you see an ad? -->
+            <div class="question">
+                <label class="question-label">Did you notice any drink ads in the app tonight?</label>
+                <div class="yesno-container">
+                    <button class="yesno-btn yes" onclick="selectYesNo(this, 'saw_ad', true)">✓ Yes</button>
+                    <button class="yesno-btn no" onclick="selectYesNo(this, 'saw_ad', false)">✗ No</button>
+                </div>
+            </div>
+            
+            <!-- Q3: Ad influence (conditional) -->
+            <div class="question" id="adInfluenceQ" style="display:none;">
+                <label class="question-label">Did an ad influence what you ordered?</label>
+                <div class="yesno-container">
+                    <button class="yesno-btn yes" onclick="selectYesNo(this, 'ad_influenced', true)">✓ Yes, it did</button>
+                    <button class="yesno-btn no" onclick="selectYesNo(this, 'ad_influenced', false)">✗ No</button>
+                </div>
+            </div>
+            
+            <!-- Q4: Spend estimate -->
+            <div class="question">
+                <label class="question-label">About how much did you spend on drinks?</label>
+                <div class="slider-container">
+                    <input type="range" class="slider" min="0" max="100" value="25" oninput="updateSpend(this.value)">
+                    <div class="slider-value" id="spendValue">$25</div>
+                    <div class="slider-labels">
+                        <span>$0</span>
+                        <span>$50+</span>
+                        <span>$100+</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Q5: Experience rating -->
+            <div class="question">
+                <label class="question-label">How was your experience tonight?</label>
+                <div class="rating-container">
+                    <span class="rating-star" onclick="setRating(1)">★</span>
+                    <span class="rating-star" onclick="setRating(2)">★</span>
+                    <span class="rating-star" onclick="setRating(3)">★</span>
+                    <span class="rating-star" onclick="setRating(4)">★</span>
+                    <span class="rating-star" onclick="setRating(5)">★</span>
+                </div>
+            </div>
+            
+            <button class="submit-btn" onclick="submitSurvey()">Submit & Earn 50 🪙</button>
+            <a href="/player/home" class="skip-link">Skip for now</a>
+        </div>
+        
+        <!-- Success State -->
+        <div class="success-container" id="successState">
+            <div class="success-icon">🎉</div>
+            <div class="success-title">Thanks for your feedback!</div>
+            <div class="success-tokens">+50 tokens added to your account</div>
+            <button class="success-btn" onclick="location.href='/player/home'">Back to Home</button>
+        </div>
+    </div>
+    
+    <script>
+        // Survey state
+        const surveyData = {
+            drinks: [],
+            saw_ad: null,
+            ad_influenced: null,
+            spend: 25,
+            rating: 0,
+            player_id: 1, // Would come from session
+            bar_id: 1,    // Would come from session
+            game_context: 'win' // win/loss/queue - set by app
+        };
+        
+        function toggleDrink(el, drink) {
+            el.classList.toggle('selected');
+            if (el.classList.contains('selected')) {
+                surveyData.drinks.push(drink);
+            } else {
+                surveyData.drinks = surveyData.drinks.filter(d => d !== drink);
+            }
+        }
+        
+        function selectYesNo(el, field, value) {
+            const container = el.parentElement;
+            container.querySelectorAll('.yesno-btn').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+            surveyData[field] = value;
+            
+            // Show ad influence question if they saw an ad
+            if (field === 'saw_ad' && value === true) {
+                document.getElementById('adInfluenceQ').style.display = 'block';
+            } else if (field === 'saw_ad' && value === false) {
+                document.getElementById('adInfluenceQ').style.display = 'none';
+                surveyData.ad_influenced = null;
+            }
+        }
+        
+        function updateSpend(value) {
+            surveyData.spend = parseInt(value);
+            document.getElementById('spendValue').textContent = value >= 100 ? '$100+' : '$' + value;
+        }
+        
+        function setRating(rating) {
+            surveyData.rating = rating;
+            document.querySelectorAll('.rating-star').forEach((star, i) => {
+                star.classList.toggle('active', i < rating);
+            });
+        }
+        
+        async function submitSurvey() {
+            try {
+                const response = await fetch('/player/api/survey/post-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(surveyData)
+                });
+                
+                if (response.ok) {
+                    document.getElementById('surveyForm').style.display = 'none';
+                    document.getElementById('successState').style.display = 'block';
+                }
+            } catch (err) {
+                // For demo, just show success
+                document.getElementById('surveyForm').style.display = 'none';
+                document.getElementById('successState').style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>

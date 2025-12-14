@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queue | Bar Manager</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --bg: #0a0a0f; --bg-secondary: #12121a; --border: rgba(255,255,255,0.1); --text: #fff; --text-muted: rgba(255,255,255,0.5); --accent: #f5c518; --green: #22c55e; --red: #ef4444; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        .header { background: var(--bg-secondary); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.2rem; color: var(--accent); }
+        .logout-btn { background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 8px 16px; border-radius: 8px; cursor: pointer; text-decoration: none; font-size: 0.85rem; }
+        .container { max-width: 800px; margin: 0 auto; padding: 24px; }
+        .nav-links { display: flex; gap: 12px; margin-bottom: 24px; }
+        .nav-link { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text); padding: 12px 20px; border-radius: 10px; text-decoration: none; font-size: 0.9rem; }
+        .nav-link.active { border-color: var(--accent); color: var(--accent); }
+        .section { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; }
+        .section-header { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+        .queue-item { display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+        .queue-item:last-child { border-bottom: none; }
+        .queue-pos { width: 36px; height: 36px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #111; margin-right: 16px; font-size: 0.9rem; }
+        .queue-pos.p1 { background: var(--accent); }
+        .queue-pos.p2 { background: var(--red); }
+        .queue-pos.p3 { background: var(--green); }
+        .queue-name { flex: 1; }
+        .queue-name strong { display: block; margin-bottom: 2px; }
+        .queue-name small { color: var(--text-muted); font-size: 0.8rem; }
+        .remove-btn { background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.4); color: var(--red); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+        .empty-state { padding: 60px 20px; text-align: center; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>🎱 Pool Cue</h1>
+            <div style="color:var(--text-muted);font-size:0.85rem;">{{ session.bar_manager_bar_name }}</div>
+        </div>
+        <a href="{{ url_for('bar_manager.logout') }}" class="logout-btn">Logout</a>
+    </div>
+    
+    <div class="container">
+        <div class="nav-links">
+            <a href="{{ url_for('bar_manager.dashboard') }}" class="nav-link">Dashboard</a>
+            <a href="{{ url_for('bar_manager.queue') }}" class="nav-link active">Queue</a>
+            <a href="{{ url_for('bar_manager.reports') }}" class="nav-link">Reports</a>
+        </div>
+        
+        <div class="section">
+            <div class="section-header">
+                <h2>Current Queue</h2>
+            </div>
+            {% if queue %}
+                {% for q in queue %}
+                <div class="queue-item">
+                    <div class="queue-pos {% if loop.index == 1 %}p1{% elif loop.index == 2 %}p2{% elif loop.index == 3 %}p3{% endif %}">
+                        {% if loop.index == 1 %}👑{% elif loop.index == 2 %}⚔️{% elif loop.index == 3 %}🎯{% else %}{{ loop.index }}{% endif %}
+                    </div>
+                    <div class="queue-name">
+                        <strong>{{ q.nickname }}</strong>
+                        <small>Player #{{ q.player_id }}</small>
+                    </div>
+                    <button class="remove-btn" onclick="removeFromQueue({{ q.id }})">Remove</button>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <div style="font-size:2rem;margin-bottom:12px;">🎱</div>
+                    <div>No players in queue</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        async function removeFromQueue(queueId) {
+            if (!confirm('Remove this player from the queue?')) return;
+            const res = await fetch(`/bar-manager/api/queue/remove/${queueId}`, { method: 'POST' });
+            if (res.ok) location.reload();
+            else alert('Failed to remove player');
+        }
+    </script>
+</body>
+</html>

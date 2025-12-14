@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Board Control - Pool Cue</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #111;
+            color: #fff;
+            min-height: 100vh;
+        }
+        .header {
+            background: #1a1a1a;
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .auth-badge {
+            background: #22c55e;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .main {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .section {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .match-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            padding: 20px;
+        }
+        .player-box {
+            background: #222;
+            border: 2px solid #444;
+            border-radius: 10px;
+            padding: 20px 30px;
+            text-align: center;
+            min-width: 150px;
+        }
+        .player-box.king {
+            border-color: #d4af37;
+        }
+        .player-role {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .player-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        .vs {
+            color: #666;
+            font-size: 1.5rem;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-king {
+            background: linear-gradient(135deg, #d4af37, #b8962f);
+            color: #000;
+        }
+        .btn-challenger {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: #fff;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: #fff;
+        }
+        .btn-secondary {
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+        }
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .queue-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .queue-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #222;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        .queue-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .queue-pos {
+            background: #333;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .queue-name {
+            font-weight: 500;
+        }
+        .remove-btn {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .badges {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .empty-state {
+            text-align: center;
+            color: #666;
+            padding: 30px;
+            font-style: italic;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .alert-warning {
+            background: rgba(245,158,11,0.2);
+            border: 1px solid #f59e0b;
+            color: #f59e0b;
+        }
+        .pending-confirmation {
+            background: rgba(239,68,68,0.1);
+            border: 2px solid #ef4444;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .pending-title {
+            color: #ef4444;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="title">🎱 Board Control</h1>
+        <div class="auth-badge">✓ Authorized</div>
+    </div>
+    
+    <div class="main">
+        <div id="badges-container" class="badges"></div>
+        
+        <div id="pending-container"></div>
+        
+        <div class="section">
+            <div class="section-title">Current Match</div>
+            <div class="match-display" id="match-display">
+                <div class="empty-state">Loading...</div>
+            </div>
+            <div class="controls" id="match-controls" style="display:none;">
+                <button class="btn btn-king" onclick="recordResult('king')">👑 King Wins</button>
+                <button class="btn btn-challenger" onclick="recordResult('challenger')">Challenger Wins</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">Queue</div>
+            <div class="queue-list" id="queue-list">
+                <div class="empty-state">No players in queue</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">Danger Zone</div>
+            <div style="display:flex;gap:15px;">
+                <button class="btn btn-danger" onclick="clearQueue()">Clear Entire Queue</button>
+                <button class="btn btn-secondary" onclick="cancelMatch()">Cancel Current Match</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const barId = {{ bar_id }};
+        const boardToken = getCookie('board_session');
+        
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+        
+        async function apiCall(url, method = 'GET', body = null) {
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Board-Token': boardToken
+                }
+            };
+            if (body) options.body = JSON.stringify(body);
+            
+            const res = await fetch(url, options);
+            return res.json();
+        }
+        
+        async function fetchState() {
+            try {
+                const data = await apiCall(`/board/state/${barId}`);
+                renderMatch(data);
+                renderQueue(data.queue || []);
+            } catch (err) {
+                console.error('Fetch error:', err);
+            }
+        }
+        
+        async function fetchBadges() {
+            try {
+                const data = await apiCall(`/board/api/match/badges/${barId}`);
+                renderBadges(data.badges);
+            } catch (err) {
+                console.error('Badge error:', err);
+            }
+        }
+        
+        async function fetchMatchStatus() {
+            try {
+                const data = await apiCall(`/board/api/match/status/${barId}`);
+                renderPending(data);
+            } catch (err) {
+                console.error('Status error:', err);
+            }
+        }
+        
+        function renderMatch(data) {
+            const display = document.getElementById('match-display');
+            const controls = document.getElementById('match-controls');
+            
+            if (data.king) {
+                display.innerHTML = `
+                    <div class="player-box king">
+                        <div class="player-role">👑 Shot Caller</div>
+                        <div class="player-name">${escapeHtml(data.king.nickname)}</div>
+                    </div>
+                    ${data.challenger ? `
+                        <div class="vs">VS</div>
+                        <div class="player-box">
+                            <div class="player-role">Challenger</div>
+                            <div class="player-name">${escapeHtml(data.challenger.nickname)}</div>
+                        </div>
+                    ` : `
+                        <div class="vs">...</div>
+                        <div class="player-box" style="opacity:0.5;">
+                            <div class="player-role">Waiting</div>
+                            <div class="player-name">--</div>
+                        </div>
+                    `}
+                `;
+                controls.style.display = data.challenger ? 'grid' : 'none';
+            } else {
+                display.innerHTML = '<div class="empty-state">No players in queue</div>';
+                controls.style.display = 'none';
+            }
+        }
+        
+        function renderQueue(queue) {
+            const list = document.getElementById('queue-list');
+            
+            if (queue.length === 0) {
+                list.innerHTML = '<div class="empty-state">No players in queue</div>';
+                return;
+            }
+            
+            list.innerHTML = queue.map((p, i) => `
+                <div class="queue-item">
+                    <div class="queue-info">
+                        <div class="queue-pos">${i + 1}</div>
+                        <div class="queue-name">${escapeHtml(p.nickname)}</div>
+                        ${i === 0 ? '<span style="color:#d4af37;font-size:0.8rem;">👑</span>' : ''}
+                        ${i === 1 ? '<span style="color:#8b5cf6;font-size:0.8rem;">⚔️</span>' : ''}
+                    </div>
+                    <button class="remove-btn" onclick="removePlayer(${p.id})">Remove</button>
+                </div>
+            `).join('');
+        }
+        
+        function renderBadges(badges) {
+            const container = document.getElementById('badges-container');
+            container.innerHTML = badges.map(b => `
+                <div class="badge" style="background:${b.color};" title="${b.info}">${b.label}</div>
+            `).join('');
+        }
+        
+        function renderPending(data) {
+            const container = document.getElementById('pending-container');
+            
+            if (data.has_active_match && data.match.result_pending) {
+                container.innerHTML = `
+                    <div class="pending-confirmation">
+                        <div class="pending-title">⏳ Awaiting Result Confirmation</div>
+                        <p>Result recorded. Waiting for player confirmations or host override.</p>
+                        <button class="btn btn-secondary" style="margin-top:15px;" onclick="hostConfirm()">
+                            Host Override - Confirm Result
+                        </button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '';
+            }
+        }
+        
+        async function recordResult(winner) {
+            if (!confirm(`Record ${winner} as winner?`)) return;
+            
+            try {
+                const data = await apiCall('/board/api/match/result', 'POST', { bar_id: barId, winner });
+                
+                if (data.success) {
+                    alert(data.message);
+                    fetchState();
+                    fetchMatchStatus();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Failed to record result');
+            }
+        }
+        
+        async function removePlayer(queueId) {
+            if (!confirm('Remove this player from queue?')) return;
+            
+            try {
+                const data = await apiCall(`/board/api/queue/remove/${queueId}`, 'POST', { bar_id: barId });
+                
+                if (data.success) {
+                    fetchState();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Failed to remove player');
+            }
+        }
+        
+        async function clearQueue() {
+            if (!confirm('Clear the ENTIRE queue? This cannot be undone.')) return;
+            
+            try {
+                const data = await apiCall('/board/api/queue/clear', 'POST', { bar_id: barId });
+                
+                if (data.success) {
+                    fetchState();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Failed to clear queue');
+            }
+        }
+        
+        async function cancelMatch() {
+            const reason = prompt('Reason for cancellation (optional):');
+            
+            try {
+                const data = await apiCall('/board/api/match/cancel', 'POST', { bar_id: barId, reason });
+                
+                if (data.success) {
+                    alert('Match cancelled');
+                    fetchState();
+                    fetchMatchStatus();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Failed to cancel match');
+            }
+        }
+        
+        async function hostConfirm() {
+            try {
+                const statusData = await apiCall(`/board/api/match/status/${barId}`);
+                if (!statusData.has_active_match) {
+                    alert('No active match');
+                    return;
+                }
+                
+                const data = await apiCall('/board/api/match/host-confirm', 'POST', { 
+                    match_id: statusData.match.id 
+                });
+                
+                if (data.success) {
+                    alert(data.message);
+                    fetchState();
+                    fetchMatchStatus();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Failed to confirm');
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+        
+        // Initial load
+        fetchState();
+        fetchBadges();
+        fetchMatchStatus();
+        
+        // Poll
+        setInterval(fetchState, 1500);
+        setInterval(fetchBadges, 3000);
+        setInterval(fetchMatchStatus, 3000);
+    </script>
+</body>
+</html>

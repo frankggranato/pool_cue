@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <title>Bar Details - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555;
+            --accent: #f5c518; --success: #22c55e; --border: rgba(255,255,255,0.08);
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding-bottom: 120px; }
+        
+        .header { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg-primary); z-index: 100; }
+        .back-btn { color: var(--text-secondary); text-decoration: none; font-size: 1.3rem; }
+        .header h1 { font-size: 1.1rem; font-weight: 600; flex: 1; }
+        .favorite-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5; transition: all 0.15s; }
+        .favorite-btn.active { opacity: 1; }
+        
+        .bar-hero { padding: 24px 20px; border-bottom: 1px solid var(--border); }
+        .bar-name { font-size: 1.75rem; font-weight: 800; margin-bottom: 4px; }
+        .bar-address { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 4px; }
+        .bar-home-players { font-size: 0.8rem; color: var(--accent); margin-top: 8px; }
+        
+        .stats-row { display: flex; gap: 10px; margin-top: 20px; }
+        .stat-card { flex: 1; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 14px; text-align: center; }
+        .stat-card .value { font-size: 1.4rem; font-weight: 700; }
+        .stat-card .label { font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; }
+        .stat-card.highlight .value { color: var(--accent); }
+        
+        .section { padding: 20px; border-bottom: 1px solid var(--border); }
+        .section-title { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+        
+        /* Queue Section */
+        .queue-preview { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+        .queue-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+        .queue-item:last-child { border-bottom: none; }
+        .queue-item.shot-caller { background: rgba(34,197,94,0.05); border-left: 2px solid var(--success); }
+        .queue-pos { font-size: 0.8rem; color: var(--text-muted); min-width: 24px; font-weight: 600; }
+        .queue-name { flex: 1; font-weight: 500; }
+        .queue-badge { padding: 4px 10px; background: rgba(34,197,94,0.15); border-radius: 4px; font-size: 0.65rem; color: var(--success); font-weight: 600; }
+        
+        /* Table Rating - Category Based */
+        .rating-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+        .overall-rating { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+        .rating-big { font-size: 2.5rem; font-weight: 800; color: var(--accent); }
+        .rating-stars { font-size: 1.1rem; margin-bottom: 4px; }
+        .rating-count { font-size: 0.8rem; color: var(--text-muted); }
+        
+        .category-ratings { margin-bottom: 20px; }
+        .category-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+        .category-name { flex: 1; font-size: 0.9rem; }
+        .category-bar { width: 100px; height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; }
+        .category-fill { height: 100%; background: var(--accent); border-radius: 3px; }
+        .category-score { font-size: 0.85rem; font-weight: 600; color: var(--accent); min-width: 30px; text-align: right; }
+        
+        /* Rate This Bar */
+        .rate-section { background: linear-gradient(135deg, rgba(245,197,24,0.1), rgba(245,197,24,0.02)); border: 1px solid rgba(245,197,24,0.2); border-radius: 10px; padding: 18px; margin-top: 16px; }
+        .rate-title { font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .rate-title .tokens { font-size: 0.75rem; color: var(--accent); font-weight: 500; }
+        
+        .rate-categories { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+        .rate-category { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+        .rate-category-name { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; }
+        .rate-stars { display: flex; gap: 2px; }
+        .rate-star { background: none; border: none; font-size: 1.1rem; opacity: 0.3; cursor: pointer; padding: 0; }
+        .rate-star.active { opacity: 1; }
+        
+        .submit-rating { width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: 8px; color: #111; font-size: 0.9rem; font-weight: 700; font-family: inherit; cursor: pointer; margin-bottom: 12px; }
+        
+        .google-review { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--bg-tertiary); border-radius: 8px; text-decoration: none; color: inherit; }
+        .google-icon { font-size: 1.5rem; }
+        .google-text { flex: 1; }
+        .google-title { font-size: 0.85rem; font-weight: 600; }
+        .google-bonus { font-size: 0.75rem; color: var(--accent); }
+        .google-arrow { color: var(--text-muted); }
+        
+        /* Home Bar Players */
+        .home-bar-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+        .home-bar-count { font-size: 2.5rem; font-weight: 800; color: var(--accent); }
+        .home-bar-label { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+        .home-bar-desc { font-size: 0.8rem; color: var(--text-secondary); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+        
+        .join-section { position: fixed; bottom: 90px; left: 20px; right: 20px; z-index: 50; }
+        .join-btn { display: block; width: 100%; padding: 18px; background: var(--text-primary); border: none; border-radius: 12px; color: var(--bg-primary); font-size: 1rem; font-weight: 700; font-family: inherit; cursor: pointer; }
+        .join-btn.disabled { background: var(--bg-tertiary); color: var(--text-muted); cursor: not-allowed; }
+        .join-notice { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-primary); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 6px 0 22px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 14px; color: var(--text-muted); text-decoration: none; font-size: 0.6rem; font-weight: 500; }
+        .nav-item .icon { font-size: 1.25rem; }
+        .nav-item.active { color: var(--text-primary); }
+    </style>
+</head>
+<body>
+    <a href="/master" class="dev-link" style="position:fixed;top:8px;right:8px;padding:6px 12px;background:#1a1a1a;border:1px solid #252525;border-radius:4px;color:#888;font-size:0.65rem;text-decoration:none;z-index:1000;">← Dashboard</a>
+    <div class="header">
+        <a href="/player/home" class="back-btn">←</a>
+        <h1>Bar Details</h1>
+        <button class="favorite-btn" id="favBtn" onclick="toggleFavorite()">⭐</button>
+    </div>
+    
+    <div class="bar-hero">
+        <h2 class="bar-name">{{ bar.name }}</h2>
+        <div class="bar-address">{{ bar.address or 'Address not available' }}</div>
+        <div class="bar-home-players">🏠 Pool Cue Bar</div>
+        <div class="stats-row">
+            <div class="stat-card"><div class="value">{{ bar.queue_count or 0 }}</div><div class="label">Queue</div></div>
+            <div class="stat-card highlight"><div class="value">{% if bar.queue_count %}~{{ bar.queue_count * 5 }}m{% else %}Open{% endif %}</div><div class="label">Wait</div></div>
+            <div class="stat-card"><div class="value">-</div><div class="label">Tables</div></div>
+        </div>
+    </div>
+    
+    <!-- SHOT CALLER / MATCH CONTROLS -->
+    {% if in_active_match or is_shot_caller or is_challenger %}
+    <div class="section" style="background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(34,197,94,0.02)); border: 1px solid rgba(34,197,94,0.3); margin: 16px; border-radius: 12px; padding: 20px;">
+        <div class="section-title" style="color: #22c55e;">
+            {% if is_shot_caller %}👑 You're the Shot Caller{% elif is_challenger %}🎯 You're the Challenger{% else %}🎱 You're in a Match{% endif %}
+        </div>
+        
+        {% if active_match %}
+        <div style="margin-bottom: 16px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); margin-bottom: 6px;">CURRENT MATCH</div>
+            <div style="font-size: 1.1rem; font-weight: 600;">
+                {{ active_match.player1_name or 'Player 1' }} vs {{ active_match.player2_name or 'Player 2' }}
+            </div>
+            {% if active_match.is_ranked %}
+            <div style="margin-top: 8px;">
+                <span style="background: rgba(139,92,246,0.2); color: #a78bfa; padding: 4px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600;">
+                    {% if active_match.pool_night_id %}💰 Paid Event{% else %}⭐ Ranked{% endif %}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if not active_match.result_winner_id %}
+        {% if active_match.is_ranked %}
+        <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-bottom: 14px;">
+            Report the match result below:
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="reportResult('me')" style="flex:1; padding: 14px; border: none; border-radius: 10px; background: #22c55e; color: #000; font-weight: 600; font-size: 1rem; cursor: pointer;">
+                I Won
+            </button>
+            <button onclick="reportResult('opponent')" style="flex:1; padding: 14px; border: none; border-radius: 10px; background: rgba(255,255,255,0.1); color: #fff; font-weight: 600; font-size: 1rem; cursor: pointer; border: 1px solid rgba(255,255,255,0.2);">
+                Opponent Won
+            </button>
+        </div>
+        {% else %}
+        <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">
+            Match in progress. Use the board to manage game flow.
+        </div>
+        {% endif %}
+        {% else %}
+        <div style="padding: 14px; background: rgba(245,197,24,0.15); border: 1px solid rgba(245,197,24,0.3); border-radius: 10px; text-align: center;">
+            <div style="font-size: 0.8rem; color: #f5c518;">⏳ Result Pending Confirmation</div>
+            <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 6px;">
+                Go to <a href="/player/match-confirmations" style="color: #8b5cf6;">Match Confirmations</a> to confirm
+            </div>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <!-- No active match yet - prompt to start -->
+        {% if is_shot_caller and queue|length > 1 and is_ranked %}
+        <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-bottom: 14px;">
+            Ready to start your game? Report result after you play:
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="reportResult('me')" style="flex:1; padding: 14px; border: none; border-radius: 10px; background: #22c55e; color: #000; font-weight: 600; font-size: 1rem; cursor: pointer;">
+                I Won
+            </button>
+            <button onclick="reportResult('opponent')" style="flex:1; padding: 14px; border: none; border-radius: 10px; background: rgba(255,255,255,0.1); color: #fff; font-weight: 600; font-size: 1rem; cursor: pointer; border: 1px solid rgba(255,255,255,0.2);">
+                Opponent Won
+            </button>
+        </div>
+        {% elif is_challenger %}
+        <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">
+            You're up next! The shot caller will start the match.
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- QUEUE FIRST -->
+    <div class="section">
+        <div class="section-title">🎱 Current Queue</div>
+        <div class="queue-preview">
+            {% if queue and queue|length > 0 %}
+                {% for player in queue %}
+                <div class="queue-item {% if loop.first %}shot-caller{% endif %}">
+                    <span class="queue-pos">{% if loop.first %}👑{% else %}{{ loop.index }}{% endif %}</span>
+                    <span class="queue-name">{{ player.nickname }}</span>
+                    {% if loop.first %}<span class="queue-badge">SHOT CALLER</span>{% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="queue-item">
+                    <span class="queue-pos">-</span>
+                    <span class="queue-name" style="color:var(--text-muted);">No one in queue</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- TABLE RATINGS BY CATEGORY -->
+    <div class="section">
+        <div class="section-title">⭐ Table Ratings</div>
+        <div class="rating-card">
+            <div class="overall-rating">
+                <div class="rating-big">4.2</div>
+                <div>
+                    <div class="rating-stars">⭐⭐⭐⭐☆</div>
+                    <div class="rating-count">89 ratings</div>
+                </div>
+            </div>
+            
+            <div class="category-ratings">
+                <div class="category-item">
+                    <span class="category-name">🎱 Felt Quality</span>
+                    <div class="category-bar"><div class="category-fill" style="width:86%"></div></div>
+                    <span class="category-score">4.3</span>
+                </div>
+                <div class="category-item">
+                    <span class="category-name">🏒 Cue Sticks</span>
+                    <div class="category-bar"><div class="category-fill" style="width:76%"></div></div>
+                    <span class="category-score">3.8</span>
+                </div>
+                <div class="category-item">
+                    <span class="category-name">💡 Lighting</span>
+                    <div class="category-bar"><div class="category-fill" style="width:90%"></div></div>
+                    <span class="category-score">4.5</span>
+                </div>
+                <div class="category-item">
+                    <span class="category-name">🍺 Atmosphere</span>
+                    <div class="category-bar"><div class="category-fill" style="width:84%"></div></div>
+                    <span class="category-score">4.2</span>
+                </div>
+                <div class="category-item">
+                    <span class="category-name">💰 Price/Value</span>
+                    <div class="category-bar"><div class="category-fill" style="width:72%"></div></div>
+                    <span class="category-score">3.6</span>
+                </div>
+            </div>
+            
+            <!-- Rate This Bar -->
+            <div class="rate-section">
+                <div class="rate-title">Rate This Bar <span class="tokens">🪙 +50 tokens</span></div>
+                
+                <div class="rate-categories">
+                    <div class="rate-category" data-category="felt">
+                        <div class="rate-category-name">Felt</div>
+                        <div class="rate-stars">
+                            <button class="rate-star" data-value="1">⭐</button>
+                            <button class="rate-star" data-value="2">⭐</button>
+                            <button class="rate-star" data-value="3">⭐</button>
+                            <button class="rate-star" data-value="4">⭐</button>
+                            <button class="rate-star" data-value="5">⭐</button>
+                        </div>
+                    </div>
+                    <div class="rate-category" data-category="stick">
+                        <div class="rate-category-name">Sticks</div>
+                        <div class="rate-stars">
+                            <button class="rate-star" data-value="1">⭐</button>
+                            <button class="rate-star" data-value="2">⭐</button>
+                            <button class="rate-star" data-value="3">⭐</button>
+                            <button class="rate-star" data-value="4">⭐</button>
+                            <button class="rate-star" data-value="5">⭐</button>
+                        </div>
+                    </div>
+                    <div class="rate-category" data-category="lighting">
+                        <div class="rate-category-name">Lighting</div>
+                        <div class="rate-stars">
+                            <button class="rate-star" data-value="1">⭐</button>
+                            <button class="rate-star" data-value="2">⭐</button>
+                            <button class="rate-star" data-value="3">⭐</button>
+                            <button class="rate-star" data-value="4">⭐</button>
+                            <button class="rate-star" data-value="5">⭐</button>
+                        </div>
+                    </div>
+                    <div class="rate-category" data-category="atmosphere">
+                        <div class="rate-category-name">Vibe</div>
+                        <div class="rate-stars">
+                            <button class="rate-star" data-value="1">⭐</button>
+                            <button class="rate-star" data-value="2">⭐</button>
+                            <button class="rate-star" data-value="3">⭐</button>
+                            <button class="rate-star" data-value="4">⭐</button>
+                            <button class="rate-star" data-value="5">⭐</button>
+                        </div>
+                    </div>
+                    <div class="rate-category" data-category="price" style="grid-column: span 2;">
+                        <div class="rate-category-name">Price/Value</div>
+                        <div class="rate-stars">
+                            <button class="rate-star" data-value="1">⭐</button>
+                            <button class="rate-star" data-value="2">⭐</button>
+                            <button class="rate-star" data-value="3">⭐</button>
+                            <button class="rate-star" data-value="4">⭐</button>
+                            <button class="rate-star" data-value="5">⭐</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="submit-rating" onclick="submitRating()">Submit Rating & Earn 50 Tokens</button>
+                
+                <a href="#" class="google-review" id="googleReviewLink" onclick="openGoogleReview()">
+                    <span class="google-icon">📍</span>
+                    <div class="google-text">
+                        <div class="google-title">Leave a Google Review</div>
+                        <div class="google-bonus">🪙 +100 bonus tokens</div>
+                    </div>
+                    <span class="google-arrow">→</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Players who call this home -->
+    <div class="section">
+        <div class="section-title">🏠 Home Bar Players</div>
+        <div class="home-bar-card">
+            <div class="home-bar-count">47</div>
+            <div class="home-bar-label">Players call this their home bar</div>
+            <div class="home-bar-desc">This shows how many Pool Cue players primarily play at this location. A higher number means a more active pool community!</div>
+        </div>
+    </div>
+    
+    <div class="join-section">
+        <button class="join-btn disabled" id="joinBtn">📱 Scan QR Code at Bar to Join</button>
+        <div class="join-notice">Queue access requires scanning the bar's QR code</div>
+    </div>
+    
+        <nav class="bottom-nav">
+        <a href="{% if demo_mode %}/player/demo/home{% else %}/player/home{% endif %}" class="nav-item active"><div class="icon">🎱</div><div>Home</div></a>
+        <a href="{% if demo_mode %}/player/demo/friends{% else %}/player/friends{% endif %}" class="nav-item"><div class="icon">👥</div><div>Friends</div></a>
+        <a href="{% if demo_mode %}/player/demo/challenges{% else %}/player/challenges{% endif %}" class="nav-item"><div class="icon">⚔️</div><div>Challenges</div></a>
+        <a href="{% if demo_mode %}/player/demo/leaderboards{% else %}/player/leaderboard{% endif %}" class="nav-item"><div class="icon">🏆</div><div>Rankings</div></a>
+        <a href="{% if demo_mode %}/player/demo/profile{% else %}/player/profile{% endif %}" class="nav-item"><div class="icon">👤</div><div>Profile</div></a>
+    </nav>
+    
+    <script>
+        // Report match result
+        async function reportResult(winner) {
+            const barId = {{ bar.id }};
+            
+            if (!confirm(winner === 'me' ? 'Confirm you won the game?' : 'Confirm your opponent won?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/player/api/report-result/${barId}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({winner: winner})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.needs_confirmation) {
+                        alert(data.message);
+                        location.href = '/player/match-confirmations';
+                    } else {
+                        alert(data.message);
+                        location.reload();
+                    }
+                } else {
+                    alert(data.error || 'Failed to report result');
+                }
+            } catch (error) {
+                alert('Error reporting result. Please try again.');
+            }
+        }
+        
+        // Favorite toggle
+        function toggleFavorite() {
+            const btn = document.getElementById('favBtn');
+            btn.classList.toggle('active');
+            // In real app: POST to /api/favorites
+        }
+        
+        // Category rating stars
+        document.querySelectorAll('.rate-category').forEach(category => {
+            const stars = category.querySelectorAll('.rate-star');
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const value = parseInt(this.dataset.value);
+                    stars.forEach((s, i) => {
+                        s.classList.toggle('active', i < value);
+                    });
+                });
+            });
+        });
+        
+        // Submit rating
+        function submitRating() {
+            const ratings = {};
+            document.querySelectorAll('.rate-category').forEach(cat => {
+                const category = cat.dataset.category;
+                const activeStars = cat.querySelectorAll('.rate-star.active').length;
+                ratings[category] = activeStars;
+            });
+            
+            // Validate all categories rated
+            if (Object.values(ratings).some(v => v === 0)) {
+                alert('Please rate all categories!');
+                return;
+            }
+            
+            // In real app: POST to /api/bar/rate
+            alert('Thanks! +50 tokens earned. Now leave a Google review for +100 more!');
+        }
+        
+        // Google review
+        function openGoogleReview() {
+            // In real app: Get Google review URL from bar data and open it
+            // Then mark as reviewed via POST /api/bar/google-reviewed
+            window.open('https://www.google.com/maps', '_blank');
+            setTimeout(() => {
+                alert('🪙 +100 bonus tokens! Thanks for supporting the bar!');
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

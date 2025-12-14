@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#111111">
+    <title>Profile - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222; --border: rgba(255,255,255,0.1);
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555; --accent: #f5c518; --success: #22c55e;
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding-bottom: 100px; }
+        
+        .header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .back-btn { width: 36px; height: 36px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .settings-btn { width: 36px; height: 36px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        
+        .profile-header { padding: 30px 20px; text-align: center; }
+        .avatar { width: 100px; height: 100px; background: var(--bg-secondary); border: 3px solid var(--accent); border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+        .nickname { font-size: 1.8rem; font-weight: 700; margin-bottom: 4px; }
+        .member-since { font-size: 0.85rem; color: var(--text-secondary); }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 0 20px; margin-bottom: 24px; }
+        .stat-box { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 14px 10px; text-align: center; }
+        .stat-value { font-size: 1.4rem; font-weight: 700; }
+        .stat-value.accent { color: var(--accent); }
+        .stat-value.success { color: var(--success); }
+        .stat-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 4px; }
+        
+        .section { padding: 0 20px; margin-bottom: 24px; }
+        .section-title { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        
+        .menu-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .menu-item { display: flex; align-items: center; gap: 14px; padding: 16px; border-bottom: 1px solid var(--border); cursor: pointer; text-decoration: none; color: var(--text-primary); }
+        .menu-item:last-child { border-bottom: none; }
+        .menu-item:hover { background: rgba(255,255,255,0.02); }
+        .menu-icon { width: 36px; height: 36px; background: rgba(245,197,24,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .menu-text { flex: 1; }
+        .menu-title { font-weight: 500; }
+        .menu-desc { font-size: 0.8rem; color: var(--text-secondary); }
+        .menu-arrow { color: var(--text-secondary); }
+        
+        .logout-btn { width: 100%; padding: 16px; background: transparent; border: 1px solid var(--border); border-radius: 12px; color: #ef4444; font-size: 1rem; font-weight: 500; cursor: pointer; font-family: inherit; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-primary); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 6px 0 22px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 14px; color: var(--text-muted); text-decoration: none; font-size: 0.6rem; font-weight: 500; }
+        .nav-item .icon { font-size: 1.25rem; }
+        .nav-item.active { color: var(--text-primary); }
+        
+    </style>
+</head>
+<body>
+    {% if demo_mode %}
+    <!-- Demo Mode Banner -->
+    <div style="position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#a855f7,#8b5cf6);color:white;text-align:center;padding:8px 16px;font-size:0.8rem;font-weight:600;z-index:2000;display:flex;justify-content:space-between;align-items:center;">
+        <span>🎮 DEMO MODE – Not Live Data</span>
+        <a href="/player/demo/exit" style="color:white;text-decoration:none;background:rgba(0,0,0,0.2);padding:4px 10px;border-radius:4px;font-size:0.7rem;">Exit Demo</a>
+    </div>
+    <div style="height:36px;"></div><!-- Spacer for fixed demo banner -->
+    {% endif %}
+
+    <div class="header">
+        <a href="/player/home" class="back-btn">←</a>
+        <a href="/player/notifications" class="settings-btn" title="Notifications & Settings">🔔</a>
+    </div>
+    
+    <div class="profile-header">
+        <div class="avatar">🎱</div>
+        <div class="nickname" id="nickname">Loading...</div>
+        <div class="member-since" id="memberSince">Member since ...</div>
+        
+        <!-- Edit Profile Button -->
+        <a href="/player/profile/edit" style="display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:8px 16px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;text-decoration:none;color:var(--text-primary);font-size:0.85rem;font-weight:500;">
+            ✏️ Edit Profile
+        </a>
+        
+        <!-- Profile Details (Home Bar, Skill, Frequency) -->
+        {% if player_data %}
+        <div style="margin-top:16px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;">
+            {% if player_data.home_bar_name %}
+            <span style="padding:4px 10px;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.25);border-radius:16px;font-size:0.75rem;color:#a78bfa;">📍 {{ player_data.home_bar_name }}</span>
+            {% endif %}
+            {% if player_data.skill_self_rating %}
+            <span style="padding:4px 10px;background:rgba(245,197,24,0.15);border:1px solid rgba(245,197,24,0.25);border-radius:16px;font-size:0.75rem;color:var(--accent);">
+                {% if player_data.skill_self_rating == 'beginner' %}🌱 Beginner
+                {% elif player_data.skill_self_rating == 'intermediate' %}📊 Intermediate
+                {% elif player_data.skill_self_rating == 'advanced' %}🎯 Advanced
+                {% elif player_data.skill_self_rating == 'expert' %}🏆 Expert
+                {% else %}{{ player_data.skill_self_rating }}{% endif %}
+            </span>
+            {% endif %}
+            {% if player_data.play_frequency %}
+            <span style="padding:4px 10px;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.25);border-radius:16px;font-size:0.75rem;color:var(--success);">
+                {% if player_data.play_frequency == 'rarely' %}🎱 Casual
+                {% elif player_data.play_frequency == 'weekly' %}🎱 Weekly
+                {% elif player_data.play_frequency == 'multiple_weekly' %}🎱 Regular
+                {% elif player_data.play_frequency == 'daily' %}🎱 Daily
+                {% else %}{{ player_data.play_frequency }}{% endif %}
+            </span>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Guest Account Upgrade Banner -->
+    {% if is_guest %}
+    <div style="margin:0 20px 20px;padding:18px;background:linear-gradient(135deg, rgba(139,92,246,0.15), rgba(59,130,246,0.1));border:1px solid rgba(139,92,246,0.3);border-radius:14px;">
+        <div style="display:flex;align-items:center;gap:14px;">
+            <div style="font-size:2.5rem;">⬆️</div>
+            <div style="flex:1;">
+                <div style="font-size:1rem;font-weight:600;color:var(--text-primary);">Upgrade Your Account</div>
+                <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;">Add email & password to save your stats permanently and sync across devices</div>
+            </div>
+        </div>
+        <a href="/auth/signup" style="display:block;width:100%;margin-top:14px;padding:12px;background:linear-gradient(135deg, #8b5cf6, #6d28d9);color:#fff;font-size:0.9rem;font-weight:600;border-radius:10px;text-decoration:none;text-align:center;">Create Full Account</a>
+    </div>
+    {% endif %}
+    
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="stat-value success" id="wins">0</div>
+            <div class="stat-label">Wins</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="losses">0</div>
+            <div class="stat-label">Losses</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="winRate">0%</div>
+            <div class="stat-label">Win Rate</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value accent" id="tokens">0</div>
+            <div class="stat-label">Tokens</div>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">Quick Links</div>
+        <div class="menu-card">
+            <a href="/player/wallet" class="menu-item">
+                <div class="menu-icon" style="background:rgba(34,197,94,0.15);">💵</div>
+                <div class="menu-text">
+                    <div class="menu-title">Wallet</div>
+                    <div class="menu-desc">Balance & payments</div>
+                </div>
+                <div class="menu-arrow">→</div>
+            </a>
+            <a href="/player/tokens" class="menu-item">
+                <div class="menu-icon">🪙</div>
+                <div class="menu-text">
+                    <div class="menu-title">Tokens & Rewards</div>
+                    <div class="menu-desc">Earn tokens, shop & cue marketplace</div>
+                </div>
+                <div class="menu-arrow">→</div>
+            </a>
+            <a href="/player/challenges" class="menu-item">
+                <div class="menu-icon">⚔️</div>
+                <div class="menu-text">
+                    <div class="menu-title">Challenges</div>
+                    <div class="menu-desc">Challenge friends to matches</div>
+                </div>
+                <div class="menu-arrow">→</div>
+            </a>
+            <a href="/player/friends" class="menu-item">
+                <div class="menu-icon">👥</div>
+                <div class="menu-text">
+                    <div class="menu-title">Friends</div>
+                    <div class="menu-desc">See who's playing</div>
+                </div>
+                <div class="menu-arrow">→</div>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Invite Friends Section - Prominent -->
+    <div class="section">
+        <div class="section-title">🎁 Earn Tokens</div>
+        <div class="menu-card">
+            <a href="/player/invite" class="menu-item" style="background:linear-gradient(135deg, rgba(34,197,94,0.08), rgba(245,197,24,0.05));">
+                <div class="menu-icon" style="background:rgba(34,197,94,0.2);font-size:1.4rem;">🎁</div>
+                <div class="menu-text">
+                    <div class="menu-title" style="color:var(--success);">Invite Friends</div>
+                    <div class="menu-desc">Earn <strong>100 tokens</strong> for each friend who joins!</div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                    {% if invite_stats and invite_stats.completed > 0 %}
+                    <span style="background:var(--success);color:#fff;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;">{{ invite_stats.completed }} joined</span>
+                    {% endif %}
+                    {% if invite_stats and invite_stats.pending > 0 %}
+                    <span style="background:rgba(249,115,22,0.2);color:#f97316;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;">{{ invite_stats.pending }} pending</span>
+                    {% endif %}
+                    <div class="menu-arrow">→</div>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">More</div>
+        <div class="menu-card">
+            <a href="/player/leaderboard" class="menu-item">
+                <div class="menu-icon">🏆</div>
+                <div class="menu-text">
+                    <div class="menu-title">Leaderboard</div>
+                    <div class="menu-desc">See top players</div>
+                </div>
+                <div class="menu-arrow">→</div>
+            </a>
+            <a href="/advertise" class="menu-item">
+                <div class="menu-icon" style="background:rgba(234,179,8,0.1);">🎯</div>
+                <div class="menu-text">
+                    <div class="menu-title">Advertise with Pool Cue</div>
+                    <div class="menu-desc">Promote your business to bar-goers</div>
+                </div>
+                <div class="menu-arrow">→</div>
+            </a>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">Privacy Settings</div>
+        <div class="menu-card">
+            <div class="menu-item" style="cursor:default;">
+                <div class="menu-icon">🕵️</div>
+                <div class="menu-text">
+                    <div class="menu-title">Anonymous Mode</div>
+                    <div class="menu-desc" {% if player_data and player_data.privacy_mode %}style="color:var(--success)"{% endif %}>{% if player_data and player_data.privacy_mode %}🕵️ Anonymous mode ON - Your location is hidden{% else %}Hide your location from friends' activity feeds{% endif %}</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="privacyToggle" onchange="togglePrivacy(this.checked)" {% if player_data and player_data.privacy_mode %}checked{% endif %}>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">Support</div>
+        <div class="menu-card">
+            <a href="/player/bug-report" class="menu-item" style="text-decoration:none;color:inherit;">
+                <div class="menu-icon">🐛</div>
+                <div class="menu-text">
+                    <div class="menu-title">Report a Bug</div>
+                    <div class="menu-desc">Help us fix issues and improve the app</div>
+                </div>
+                <div style="color:var(--text-muted);">→</div>
+            </a>
+        </div>
+    </div>
+    
+    <style>
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: 0.3s; border-radius: 28px; }
+        .toggle-slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background-color: white; transition: 0.3s; border-radius: 50%; }
+        input:checked + .toggle-slider { background-color: #22c55e; }
+        input:checked + .toggle-slider:before { transform: translateX(22px); }
+    </style>
+    
+    <div class="section">
+        <button class="logout-btn" onclick="logout()">Log Out</button>
+    </div>
+    
+        <nav class="bottom-nav">
+        <a href="{% if demo_mode %}/player/demo/home{% else %}/player/home{% endif %}" class="nav-item"><div class="icon">🎱</div><div>Home</div></a>
+        <a href="{% if demo_mode %}/player/demo/friends{% else %}/player/friends{% endif %}" class="nav-item"><div class="icon">👥</div><div>Friends</div></a>
+        <a href="{% if demo_mode %}/player/demo/challenges{% else %}/player/challenges{% endif %}" class="nav-item"><div class="icon">⚔️</div><div>Challenges</div></a>
+        <a href="{% if demo_mode %}/player/demo/leaderboards{% else %}/player/leaderboard{% endif %}" class="nav-item"><div class="icon">🏆</div><div>Rankings</div></a>
+        <a href="{% if demo_mode %}/player/demo/profile{% else %}/player/profile{% endif %}" class="nav-item active"><div class="icon">👤</div><div>Profile</div></a>
+    </nav>
+    
+    <script>
+        
+        async function loadProfile() {
+            try {
+                const res = await fetch('/auth/me');
+                const data = await res.json();
+                
+                if (!data.logged_in) {
+                    window.location.href = '/auth/login';
+                    return;
+                }
+                
+                const p = data.player;
+                document.getElementById('nickname').textContent = p.display_name || p.nickname || 'Player';
+                document.getElementById('wins').textContent = p.wins || 0;
+                document.getElementById('losses').textContent = p.losses || 0;
+                document.getElementById('tokens').textContent = p.tokens_balance || 0;
+                
+                const total = (p.wins || 0) + (p.losses || 0);
+                const rate = total > 0 ? Math.round((p.wins || 0) * 100 / total) : 0;
+                document.getElementById('winRate').textContent = rate + '%';
+                
+                if (p.created_at) {
+                    const date = new Date(p.created_at);
+                    document.getElementById('memberSince').textContent = 'Member since ' + date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                }
+            } catch (e) {
+                console.error('Failed to load profile:', e);
+            }
+        }
+        
+        async function logout() {
+            if (confirm('Are you sure you want to log out?')) {
+                window.location.href = '/auth/logout';
+            }
+        }
+        
+        async function togglePrivacy(enabled) {
+            const toggle = document.getElementById('privacyToggle');
+            const desc = toggle.closest('.menu-item').querySelector('.menu-desc');
+            const originalDesc = desc.textContent;
+            
+            try {
+                const res = await fetch('/player/api/privacy-mode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled: enabled })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    // Update description to show current state
+                    desc.textContent = enabled ? '🕵️ Anonymous mode ON - Your location is hidden' : 'Hide your location from friends\' activity feeds';
+                    desc.style.color = enabled ? 'var(--success)' : '';
+                } else {
+                    // Revert toggle and show error
+                    toggle.checked = !enabled;
+                    desc.textContent = '❌ Failed to update - try again';
+                    desc.style.color = 'var(--error)';
+                    setTimeout(() => { desc.textContent = originalDesc; desc.style.color = ''; }, 2000);
+                }
+            } catch (e) {
+                console.error('Failed to toggle privacy:', e);
+                // Revert toggle on error
+                toggle.checked = !enabled;
+                desc.textContent = '❌ Connection error - try again';
+                desc.style.color = 'var(--error)';
+                setTimeout(() => { desc.textContent = originalDesc; desc.style.color = ''; }, 2000);
+            }
+        }
+        
+        loadProfile();
+    </script>
+</body>
+</html>

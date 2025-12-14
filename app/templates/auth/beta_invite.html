@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#111111">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+    <title>Pool Cue Beta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #111111; --card: #1a1a1a; --border: rgba(255,255,255,0.1);
+            --text: #f2f2f2; --muted: #888; --accent: #f5c518;
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg); color: var(--text);
+            min-height: 100vh; padding: 40px 24px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .logo { text-align: center; margin-bottom: 30px; }
+        .logo h1 { font-size: 2.5rem; margin-bottom: 8px; }
+        .logo .emoji { font-size: 3rem; margin-bottom: 12px; display: block; }
+        .logo p { color: var(--muted); font-size: 1rem; }
+        .beta-badge { 
+            display: inline-block; padding: 4px 12px; 
+            background: var(--accent); color: #111; 
+            font-size: 0.7rem; font-weight: 700; 
+            border-radius: 20px; margin-left: 8px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        
+        .qr-section { 
+            background: white; padding: 20px; border-radius: 16px; 
+            margin-bottom: 30px; text-align: center;
+        }
+        .qr-section img { width: 200px; height: 200px; }
+        .qr-label { 
+            margin-top: 12px; color: #111; font-size: 0.85rem; font-weight: 600;
+        }
+        
+        .url-box {
+            width: 100%; max-width: 400px;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 10px; padding: 16px; margin-bottom: 24px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .url-text {
+            flex: 1; font-family: monospace; font-size: 0.85rem;
+            color: var(--accent); word-break: break-all;
+        }
+        .copy-btn {
+            padding: 10px 16px; background: var(--accent); color: #111;
+            border: none; border-radius: 6px; font-weight: 600;
+            font-size: 0.85rem; cursor: pointer; white-space: nowrap;
+        }
+        .copy-btn.copied { background: #22c55e; }
+        
+        .steps {
+            width: 100%; max-width: 400px;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 24px; margin-bottom: 24px;
+        }
+        .steps h3 { font-size: 1rem; margin-bottom: 16px; color: var(--accent); }
+        .step {
+            display: flex; gap: 14px; padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .step:last-child { border-bottom: none; }
+        .step-num {
+            width: 28px; height: 28px; background: var(--accent); color: #111;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+        }
+        .step-text { font-size: 0.9rem; line-height: 1.5; }
+        .step-text strong { color: var(--accent); }
+        
+        .install-prompt {
+            width: 100%; max-width: 400px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid rgba(245,197,24,0.3);
+            border-radius: 12px; padding: 20px; text-align: center;
+        }
+        .install-prompt h4 { font-size: 1rem; margin-bottom: 8px; }
+        .install-prompt p { font-size: 0.85rem; color: var(--muted); margin-bottom: 16px; }
+        .install-steps { font-size: 0.8rem; color: var(--muted); text-align: left; }
+        .install-steps div { padding: 6px 0; }
+        
+        .actions { 
+            display: flex; gap: 12px; width: 100%; max-width: 400px; 
+            margin-top: 20px; 
+        }
+        .btn {
+            flex: 1; padding: 16px; border: none; border-radius: 10px;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            text-decoration: none; text-align: center;
+        }
+        .btn-primary { background: var(--accent); color: #111; }
+        .btn-secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <span class="emoji">🎱</span>
+        <h1>Pool Cue <span class="beta-badge">Beta</span></h1>
+        <p>You're invited to test!</p>
+    </div>
+    
+    <div class="qr-section">
+        <img src="{{ url_for('display.qr_code') }}" alt="QR Code">
+        <div class="qr-label">Scan to join</div>
+    </div>
+    
+    <div class="url-box">
+        <span class="url-text" id="shareUrl">http://{{ host }}:5050/join</span>
+        <button class="copy-btn" onclick="copyUrl()">Copy</button>
+    </div>
+    
+    <div class="steps">
+        <h3>📋 How to Test</h3>
+        <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-text">Connect to <strong>same WiFi</strong> as the host</div>
+        </div>
+        <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-text">Scan QR or open the URL above</div>
+        </div>
+        <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-text"><strong>Create account</strong> to save your stats</div>
+        </div>
+        <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-text">Join the queue and play!</div>
+        </div>
+    </div>
+    
+    <div class="install-prompt">
+        <h4>📱 Add to Home Screen</h4>
+        <p>Make it feel like a real app</p>
+        <div class="install-steps">
+            <div><strong>iPhone:</strong> Tap Share → Add to Home Screen</div>
+            <div><strong>Android:</strong> Tap Menu → Add to Home Screen</div>
+        </div>
+    </div>
+    
+    <div class="actions">
+        <a href="/auth/signup" class="btn btn-primary">Create Account</a>
+        <a href="/join" class="btn btn-secondary">Join Queue</a>
+    </div>
+    
+    <script>
+        function copyUrl() {
+            const url = document.getElementById('shareUrl').textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

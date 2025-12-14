@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advertise with Pool Cue - Reach Bar-Goers When It Matters</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        html{scroll-behavior:smooth;scroll-padding-top:80px}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.08);--t1:#f4f4f5;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--blue:#3b82f6;--red:#ef4444;--cyan:#06b6d4}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);line-height:1.6}
+        
+        /* Nav */
+        .nav{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(9,9,11,0.95);backdrop-filter:blur(10px);z-index:100}
+        .nav-logo{font-weight:700;font-size:1.1rem;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--t1)}
+        .nav-links{display:flex;gap:24px;align-items:center}
+        .nav-links a{color:var(--t2);text-decoration:none;font-size:0.85rem;font-weight:500;transition:color 0.2s}
+        .nav-links a:hover{color:var(--gold)}
+        .btn{padding:10px 20px;border-radius:6px;font-size:0.85rem;font-weight:600;cursor:pointer;border:none;text-decoration:none;display:inline-block;transition:all 0.2s}
+        .btn-primary{background:var(--gold);color:#000}
+        .btn-primary:hover{background:#d4a90a;transform:translateY(-1px)}
+        .btn-outline{background:transparent;border:1px solid var(--border);color:var(--t2)}
+        .btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+        
+        /* Hero */
+        .hero{padding:80px 24px;text-align:center;background:linear-gradient(180deg,rgba(234,179,8,0.03) 0%,transparent 100%)}
+        .hero-badge{display:inline-block;padding:6px 14px;background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.2);border-radius:20px;font-size:0.75rem;color:var(--gold);font-weight:600;margin-bottom:20px}
+        .hero h1{font-size:2.8rem;font-weight:800;line-height:1.1;margin-bottom:16px;max-width:700px;margin-left:auto;margin-right:auto}
+        .hero h1 span{color:var(--gold)}
+        .hero p{font-size:1.1rem;color:var(--t2);max-width:550px;margin:0 auto 32px}
+        .hero-ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+        
+        /* Stats Strip */
+        .stats{display:flex;justify-content:center;gap:48px;padding:40px 24px;border-bottom:1px solid var(--border)}
+        .stat{text-align:center}
+        .stat-value{font-size:2rem;font-weight:700;color:var(--gold)}
+        .stat-label{font-size:0.8rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+        
+        /* Section */
+        .section{padding:64px 24px;max-width:1100px;margin:0 auto}
+        .section-header{text-align:center;margin-bottom:48px}
+        .section-header h2{font-size:1.8rem;font-weight:700;margin-bottom:12px}
+        .section-header p{color:var(--t2);font-size:1rem;max-width:600px;margin:0 auto}
+        
+        /* Value Props */
+        .values{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+        .value{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px;transition:border-color 0.2s}
+        .value:hover{border-color:rgba(234,179,8,0.3)}
+        .value-icon{font-size:2rem;margin-bottom:16px}
+        .value h3{font-size:1rem;font-weight:600;margin-bottom:8px}
+        .value p{font-size:0.85rem;color:var(--t2);line-height:1.5}
+        
+        /* Tiers */
+        .tiers{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px;margin:0 auto}
+        .tier{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:32px;position:relative}
+        .tier.featured{border-color:var(--gold)}
+        .tier-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;padding:4px 16px;border-radius:12px;font-size:0.7rem;font-weight:700;text-transform:uppercase}
+        .tier h3{font-size:1.2rem;font-weight:600;margin-bottom:8px}
+        .tier-desc{font-size:0.85rem;color:var(--t2);margin-bottom:20px}
+        .tier-price{font-size:1.8rem;font-weight:700;color:var(--gold);margin-bottom:20px}
+        .tier-price span{font-size:0.9rem;color:var(--t3);font-weight:400}
+        .tier ul{list-style:none;margin-bottom:24px}
+        .tier li{padding:8px 0;font-size:0.85rem;color:var(--t2);padding-left:24px;position:relative}
+        .tier li::before{content:'✓';position:absolute;left:0;color:var(--green)}
+        .tier .btn{width:100%}
+        
+        /* Moments */
+        .moments{background:rgba(234,179,8,0.03);border-radius:16px;padding:40px;margin-top:48px}
+        .moments h3{font-size:1.1rem;font-weight:600;margin-bottom:20px;text-align:center}
+        .moment-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+        .moment{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;display:flex;align-items:flex-start;gap:12px}
+        .moment-icon{font-size:1.5rem}
+        .moment-text{flex:1}
+        .moment-trigger{font-size:0.75rem;color:var(--cyan);font-weight:600;margin-bottom:4px}
+        .moment-ad{font-size:0.85rem;color:var(--t1)}
+        
+        /* How it Works */
+        .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+        .step{text-align:center}
+        .step-num{width:40px;height:40px;background:var(--gold);color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;margin:0 auto 16px}
+        .step h4{font-size:0.95rem;font-weight:600;margin-bottom:8px}
+        .step p{font-size:0.8rem;color:var(--t3)}
+        
+        /* CTA Section */
+        .cta-section{background:linear-gradient(135deg,rgba(234,179,8,0.08),rgba(59,130,246,0.05));border-radius:16px;padding:48px;text-align:center;margin-top:48px}
+        .cta-section h2{font-size:1.5rem;font-weight:700;margin-bottom:12px}
+        .cta-section p{color:var(--t2);margin-bottom:24px;max-width:500px;margin-left:auto;margin-right:auto}
+        
+        /* Footer */
+        .footer{text-align:center;padding:40px 24px;border-top:1px solid var(--border);color:var(--t3);font-size:0.8rem}
+        .footer a{color:var(--gold);text-decoration:none}
+        
+        @media(max-width:768px){
+            .hero h1{font-size:2rem}
+            .stats{flex-wrap:wrap;gap:24px}
+            .values,.tiers,.steps,.moment-grid{grid-template-columns:1fr}
+            .nav-links{display:none}
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/" class="nav-logo"><span style="font-size:1.3rem">🎱</span> Pool Cue</a>
+        <div class="nav-links">
+            <a href="#why">Why Pool Cue</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#how">How It Works</a>
+            <a href="/market/pricing">Full Pricing →</a>
+        </div>
+        <a href="/market/dashboard" class="btn btn-primary">Get Started</a>
+    </nav>
+    
+    <section class="hero">
+        <div class="hero-badge">🎯 NYC's Pool Bar Advertising Network</div>
+        <h1>Reach bar-goers <span>the moment</span> they're ready to spend</h1>
+        <p>Captive attention. Hyperlocal targeting. Real-time context. Advertise across 24 pool bars in NYC.</p>
+        <div class="hero-ctas">
+            <a href="/market/dashboard" class="btn btn-primary">Start Advertising →</a>
+            <a href="#pricing" class="btn btn-outline">View Pricing</a>
+        </div>
+    </section>
+    
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-value">{{ stats.bars or 24 }}</div>
+            <div class="stat-label">NYC Bars</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">{{ '{:,}'.format(stats.impressions or 0) }}</div>
+            <div class="stat-label">Monthly Impressions</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">{{ '{:,}'.format(stats.players or 0) }}</div>
+            <div class="stat-label">Active Players</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">{{ stats.avg_dwell or '45+' }}</div>
+            <div class="stat-label">Min Avg Session</div>
+        </div>
+    </div>
+
+    <section class="section" id="why">
+        <div class="section-header">
+            <h2>Why Pool Cue Works</h2>
+            <p>Traditional ads interrupt. Pool Cue ads reach people in the perfect context.</p>
+        </div>
+        <div class="values">
+            <div class="value">
+                <div class="value-icon">👀</div>
+                <h3>Captive Attention</h3>
+                <p>Players watch the board waiting for their turn. No scrolling past. No skipping. Average 45+ minute sessions of engaged attention.</p>
+            </div>
+            <div class="value">
+                <div class="value-icon">📍</div>
+                <h3>Hyperlocal Targeting</h3>
+                <p>Target by borough, neighborhood, or specific bar. Know exactly where your ad runs and who sees it.</p>
+            </div>
+            <div class="value">
+                <div class="value-icon">💰</div>
+                <h3>Purchase-Ready Audience</h3>
+                <p>They're at a bar, with friends, wallet open, ready to spend. The perfect moment to influence decisions.</p>
+            </div>
+            <div class="value">
+                <div class="value-icon">⚡</div>
+                <h3>Real-Time Context</h3>
+                <p>Time-of-day targeting, event triggers, and behavioral data let you reach the right person at the right moment.</p>
+            </div>
+            <div class="value">
+                <div class="value-icon">📊</div>
+                <h3>Measurable Results</h3>
+                <p>Track impressions, clicks, and redemptions. Promo code tracking shows exactly what's working.</p>
+            </div>
+            <div class="value">
+                <div class="value-icon">🎯</div>
+                <h3>Zero Waste</h3>
+                <p>No bots. No accidental clicks. Real people in real bars seeing your message when it matters.</p>
+            </div>
+        </div>
+        
+        <!-- Moment Marketing -->
+        <div class="moments">
+            <h3>⚡ Moment Marketing - Coming Soon</h3>
+            <p style="text-align:center;color:var(--t2);margin-bottom:24px;font-size:0.9rem">Trigger ads based on what's happening in real-time</p>
+            <div class="moment-grid">
+                <div class="moment">
+                    <div class="moment-icon">🏆</div>
+                    <div class="moment-text">
+                        <div class="moment-trigger">Player wins 5 in a row</div>
+                        <div class="moment-ad">"Celebrate with Jameson 🥃 - Ask for the Pool Cue special"</div>
+                    </div>
+                </div>
+                <div class="moment">
+                    <div class="moment-icon">⏰</div>
+                    <div class="moment-text">
+                        <div class="moment-trigger">Late night (after 11pm)</div>
+                        <div class="moment-ad">"Need a ride? Uber code: POOLCUE for $5 off"</div>
+                    </div>
+                </div>
+                <div class="moment">
+                    <div class="moment-icon">🎂</div>
+                    <div class="moment-text">
+                        <div class="moment-trigger">Player's birthday</div>
+                        <div class="moment-ad">"Happy Birthday! Free birthday shot at the bar 🎉"</div>
+                    </div>
+                </div>
+                <div class="moment">
+                    <div class="moment-icon">🍕</div>
+                    <div class="moment-text">
+                        <div class="moment-trigger">Player joins queue (10min+ wait)</div>
+                        <div class="moment-ad">"While you wait - Joe's Pizza 2 blocks away. Show for 10% off"</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="section" id="pricing">
+        <div class="section-header">
+            <h2>Two Ways to Advertise</h2>
+            <p>Run it yourself or let us handle everything</p>
+        </div>
+        <div class="tiers">
+            <div class="tier">
+                <h3>🛠️ Self-Serve</h3>
+                <div class="tier-desc">You create campaigns, upload creative, set targeting</div>
+                <div class="tier-price">$8-15 <span>CPM</span></div>
+                <ul>
+                    <li>Create unlimited campaigns</li>
+                    <li>Upload your own creative</li>
+                    <li>Target by borough, bar, time</li>
+                    <li>Real-time performance dashboard</li>
+                    <li>Pay only for impressions served</li>
+                    <li>Start with as little as $50</li>
+                </ul>
+                <a href="/market/dashboard" class="btn btn-outline">Get Started Free</a>
+            </div>
+            <div class="tier featured">
+                <div class="tier-badge">Done For You</div>
+                <h3>🎯 Managed Campaign</h3>
+                <div class="tier-desc">We handle creative, targeting, and optimization</div>
+                <div class="tier-price">$500 <span>minimum</span></div>
+                <ul>
+                    <li>Professional ad creative design</li>
+                    <li>Strategic targeting recommendations</li>
+                    <li>A/B testing & optimization</li>
+                    <li>Dedicated account manager</li>
+                    <li>Weekly performance reports</li>
+                    <li>Promo code tracking setup</li>
+                </ul>
+                <a href="mailto:ads@poolcue.nyc?subject=Managed%20Campaign%20Inquiry" class="btn btn-primary">Contact Us</a>
+            </div>
+        </div>
+    </section>
+    
+    <section class="section" id="how">
+        <div class="section-header">
+            <h2>How It Works</h2>
+            <p>Live in minutes, not days</p>
+        </div>
+        <div class="steps">
+            <div class="step">
+                <div class="step-num">1</div>
+                <h4>Create Account</h4>
+                <p>Sign up free. No credit card required to explore.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <h4>Build Campaign</h4>
+                <p>Upload creative, set budget, choose targeting. Or let us handle it.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <h4>Go Live</h4>
+                <p>Quick review, then your ads start running across NYC bars.</p>
+            </div>
+        </div>
+        
+        <div class="cta-section">
+            <h2>Ready to reach bar-goers?</h2>
+            <p>Join local businesses already advertising on Pool Cue's network of NYC pool bars.</p>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+                <a href="/market/dashboard" class="btn btn-primary">Start Self-Serve →</a>
+                <a href="mailto:ads@poolcue.nyc?subject=Advertising%20Inquiry" class="btn btn-outline">Talk to Sales</a>
+            </div>
+        </div>
+    </section>
+    
+    <footer class="footer">
+        <p>🎱 Pool Cue · NYC's Pool Bar Network</p>
+        <p style="margin-top:8px"><a href="/">Player App</a> · <a href="/market/pricing">Full Pricing</a> · <a href="mailto:ads@poolcue.nyc">Contact</a></p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,270 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Pool Cue</title>
+    <link rel="stylesheet" href="/static/css/master-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.05);--t1:#e4e4e7;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--red:#ef4444;--orange:#f97316;--purple:#a855f7}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:11px}
+        .p{padding:12px 16px;max-width:900px;margin:0 auto}
+        .hdr{margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+        .hdr h1{font-size:0.85rem;font-weight:600}
+        .c{background:var(--card);border:1px solid var(--border);border-radius:4px;margin-bottom:8px;overflow:hidden}
+        .c-h{display:flex;justify-content:space-between;align-items:flex-start;padding:12px;border-bottom:1px solid var(--border)}
+        .c-info h3{font-size:0.75rem;font-weight:600;margin-bottom:2px}
+        .c-meta{font-size:0.6rem;color:var(--t3)}
+        .badge{padding:3px 8px;border-radius:3px;font-size:0.5rem;font-weight:600;text-transform:uppercase}
+        .badge-orange{background:rgba(249,115,22,0.15);color:var(--orange)}
+        .badge-green{background:rgba(34,197,94,0.15);color:var(--green)}
+        .badge-red{background:rgba(239,68,68,0.15);color:var(--red)}
+        .badge-gray{background:rgba(255,255,255,0.08);color:var(--t3)}
+        .c-body{padding:12px}
+        .c-reason{font-size:0.75rem;margin-bottom:8px}
+        .c-details{font-size:0.7rem;color:var(--t2);padding:10px;background:rgba(0,0,0,0.2);border-radius:4px;line-height:1.5;margin-bottom:10px}
+        .c-stats{display:flex;gap:16px;font-size:0.65rem;color:var(--t3);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+        .c-stat span{color:var(--t1);font-weight:600}
+        .c-actions{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;border-top:1px solid var(--border)}
+        .btn{padding:6px 12px;border-radius:4px;font-size:0.65rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:0;color:var(--t2)}
+        .btn:hover{border-color:var(--gold);color:var(--gold)}
+        .btn-green{border-color:var(--green);color:var(--green)}
+        .btn-orange{border-color:var(--orange);color:var(--orange)}
+        .btn-red{border-color:var(--red);color:var(--red)}
+        .btn-purple{border-color:var(--purple);color:var(--purple)}
+        .empty{text-align:center;padding:40px;color:var(--t3)}
+        .toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:6px;font-weight:500;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+        .toast.success{background:rgba(34,197,94,0.95);color:white}
+        .toast.error{background:rgba(239,68,68,0.95);color:white}
+        .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;align-items:center;justify-content:center}
+        .modal.show{display:flex}
+        .modal-content{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;max-width:400px;width:90%}
+        .modal h3{font-size:0.85rem;margin-bottom:12px}
+        .modal p{font-size:0.75rem;color:var(--t2);margin-bottom:16px}
+        .modal-actions{display:flex;gap:8px}
+        .modal input,.modal select{width:100%;padding:10px;margin-bottom:12px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.75rem}
+    </style>
+</head>
+<body>
+    {% if not embed %}
+    {% include 'master/_nav.html' %}
+    {% endif %}
+    <div class="p">
+        <div class="hdr">
+            <h1>📋 Player Reports ({{ reports|length if reports else 0 }})</h1>
+        </div>
+        
+        {% if reports and reports|length > 0 %}
+            {% for report in reports %}
+            <div class="c" id="report-{{ report.id }}">
+                <div class="c-h">
+                    <div class="c-info">
+                        <h3>🚩 {{ report.reported_player or 'Unknown' }}</h3>
+                        <div class="c-meta">Reported by {{ report.reporter or 'Anonymous' }} · {{ report.created_at or 'Unknown date' }}</div>
+                    </div>
+                    <span class="badge {% if report.status == 'pending' %}badge-orange{% elif report.status == 'resolved' %}badge-green{% else %}badge-gray{% endif %}">{{ report.status or 'Pending' }}</span>
+                </div>
+                <div class="c-body">
+                    <div class="c-reason"><strong>Reason:</strong> {{ report.reason|replace('_', ' ')|title or 'No reason given' }}</div>
+                    {% if report.details %}
+                    <div class="c-details">{{ report.details }}</div>
+                    {% endif %}
+                    <div class="c-stats">
+                        <div>Player ID: <span>{{ report.reported_player_id }}</span></div>
+                        <div>Total Reports: <span>{{ report.total_reports or 1 }}</span></div>
+                        <div>Games Played: <span>{{ report.games_played or 0 }}</span></div>
+                    </div>
+                </div>
+                <div class="c-actions">
+                    <button class="btn btn-green" onclick="resolveReport({{ report.id }}, 'resolved', 'no_action')">✓ Dismiss</button>
+                    <button class="btn btn-orange" onclick="warnPlayer({{ report.id }}, {{ report.reported_player_id }})">⚠️ Warn Player</button>
+                    <button class="btn btn-purple" onclick="suspendPlayer({{ report.id }}, {{ report.reported_player_id }})">⏸️ Suspend (7 days)</button>
+                    <button class="btn btn-red" onclick="banPlayer({{ report.id }}, {{ report.reported_player_id }})">🚫 Ban Player</button>
+                    <button class="btn" onclick="removeFromQueue({{ report.reported_player_id }})">🗑️ Remove from Queue</button>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="empty">
+            <div style="font-size:2rem;margin-bottom:8px">✅</div>
+            <div>No reports to review</div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Warn Modal -->
+    <div class="modal" id="warnModal">
+        <div class="modal-content">
+            <h3>⚠️ Warn Player</h3>
+            <p>Send a warning to this player. They will be notified.</p>
+            <input type="text" id="warnMessage" placeholder="Warning message..." value="Please follow community guidelines">
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal('warnModal')">Cancel</button>
+                <button class="btn btn-orange" onclick="submitWarn()">Send Warning</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Suspend Modal -->
+    <div class="modal" id="suspendModal">
+        <div class="modal-content">
+            <h3>⏸️ Suspend Player</h3>
+            <p>Temporarily ban this player from joining queues.</p>
+            <select id="suspendDays">
+                <option value="1">1 day</option>
+                <option value="3">3 days</option>
+                <option value="7" selected>7 days</option>
+                <option value="14">14 days</option>
+                <option value="30">30 days</option>
+            </select>
+            <input type="text" id="suspendReason" placeholder="Reason for suspension..." value="Repeated violations">
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal('suspendModal')">Cancel</button>
+                <button class="btn btn-purple" onclick="submitSuspend()">Suspend Player</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ban Modal -->
+    <div class="modal" id="banModal">
+        <div class="modal-content">
+            <h3>🚫 Ban Player</h3>
+            <p>Permanently ban this player. This action is serious.</p>
+            <input type="text" id="banReason" placeholder="Reason for ban..." value="Severe or repeated violations">
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal('banModal')">Cancel</button>
+                <button class="btn btn-red" onclick="submitBan()">Ban Permanently</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentReportId = null;
+        let currentPlayerId = null;
+        
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+        
+        async function resolveReport(reportId, status, action) {
+            try {
+                const res = await fetch('/master/api/resolve-report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ report_id: reportId, status, action_taken: action })
+                });
+                if (res.ok) {
+                    document.getElementById('report-' + reportId).remove();
+                    showToast('Report resolved', 'success');
+                }
+            } catch (e) {
+                showToast('Failed to resolve', 'error');
+            }
+        }
+        
+        function warnPlayer(reportId, playerId) {
+            currentReportId = reportId;
+            currentPlayerId = playerId;
+            document.getElementById('warnModal').classList.add('show');
+        }
+        
+        async function submitWarn() {
+            const message = document.getElementById('warnMessage').value;
+            try {
+                const res = await fetch('/master/api/warn-player', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ player_id: currentPlayerId, message, report_id: currentReportId })
+                });
+                closeModal('warnModal');
+                if (res.ok) {
+                    document.getElementById('report-' + currentReportId).remove();
+                    showToast('Warning sent', 'success');
+                } else {
+                    showToast('Failed to warn', 'error');
+                }
+            } catch (e) {
+                showToast('Failed to warn', 'error');
+            }
+        }
+        
+        function suspendPlayer(reportId, playerId) {
+            currentReportId = reportId;
+            currentPlayerId = playerId;
+            document.getElementById('suspendModal').classList.add('show');
+        }
+        
+        async function submitSuspend() {
+            const days = document.getElementById('suspendDays').value;
+            const reason = document.getElementById('suspendReason').value;
+            try {
+                const res = await fetch('/master/api/suspend-player', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ player_id: currentPlayerId, days: parseInt(days), reason, report_id: currentReportId })
+                });
+                closeModal('suspendModal');
+                if (res.ok) {
+                    document.getElementById('report-' + currentReportId).remove();
+                    showToast('Player suspended for ' + days + ' days', 'success');
+                } else {
+                    showToast('Failed to suspend', 'error');
+                }
+            } catch (e) {
+                showToast('Failed to suspend', 'error');
+            }
+        }
+        
+        function banPlayer(reportId, playerId) {
+            currentReportId = reportId;
+            currentPlayerId = playerId;
+            document.getElementById('banModal').classList.add('show');
+        }
+        
+        async function submitBan() {
+            const reason = document.getElementById('banReason').value;
+            try {
+                const res = await fetch('/master/api/ban-player', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ player_id: currentPlayerId, reason, report_id: currentReportId })
+                });
+                closeModal('banModal');
+                if (res.ok) {
+                    document.getElementById('report-' + currentReportId).remove();
+                    showToast('Player banned', 'success');
+                } else {
+                    showToast('Failed to ban', 'error');
+                }
+            } catch (e) {
+                showToast('Failed to ban', 'error');
+            }
+        }
+        
+        async function removeFromQueue(playerId) {
+            if (!confirm('Remove this player from the queue?')) return;
+            try {
+                const res = await fetch('/master/api/remove-from-queue', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ player_id: playerId })
+                });
+                if (res.ok) {
+                    showToast('Removed from queue', 'success');
+                }
+            } catch (e) {
+                showToast('Failed to remove', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

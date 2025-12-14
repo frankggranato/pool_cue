@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advertisers - Pool Cue</title>
+    <link rel="stylesheet" href="/static/css/master-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.05);--t1:#e4e4e7;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--red:#ef4444;--blue:#3b82f6}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:11px}
+        .p{padding:12px 16px}
+        .hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+        .hdr h1{font-size:0.85rem;font-weight:600}
+        .btn{padding:5px 12px;border-radius:4px;font-size:0.65rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:0;color:var(--t2);text-decoration:none;display:inline-block}
+        .btn:hover{border-color:var(--gold);color:var(--gold)}.btn-p{background:var(--gold);border-color:var(--gold);color:#000}
+        .btn-sm{padding:3px 8px;font-size:0.55rem}
+        .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+        .c{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:12px;transition:border-color 0.1s}
+        .c:hover{border-color:rgba(255,255,255,0.1)}
+        .c-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+        .c-name{font-size:0.8rem;font-weight:600;margin-bottom:2px}
+        .c-cat{font-size:0.6rem;color:var(--t3)}
+        .badge{padding:2px 6px;border-radius:3px;font-size:0.5rem;font-weight:600;text-transform:uppercase}
+        .badge-green{background:rgba(34,197,94,0.15);color:var(--green)}
+        .badge-gray{background:rgba(255,255,255,0.08);color:var(--t3)}
+        .badge-blue{background:rgba(59,130,246,0.15);color:var(--blue)}
+        .badge-gold{background:rgba(234,179,8,0.15);color:var(--gold)}
+</style>
+</head>
+<body>
+    {% if not embed %}
+    {% include 'master/_nav.html' %}
+    {% endif %}
+    <div class="p">
+        <div class="hdr">
+            <h1>📢 Advertisers & Campaigns</h1>
+            <div style="display:flex;gap:6px">
+                <button onclick="openModal()" class="btn btn-p">+ Add Advertiser</button>
+                <a href="/master/campaign/new" class="btn btn-p">+ New Campaign</a>
+                <a href="/master/campaigns/pending" class="btn" style="border-color:rgba(234,179,8,0.3);color:#eab308">📋 Pending</a>
+                <a href="/master/advertisers/export?start_date={{ start_date }}&end_date={{ end_date }}&status={{ status_filter }}&advertiser_id={{ advertiser_filter or '' }}" class="btn">📥 Export</a>
+            </div>
+        </div>
+        
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div style="margin-bottom:10px;">
+            {% for category, message in messages %}
+            <div style="padding:8px 12px;border-radius:4px;font-size:0.7rem;
+                {% if category == 'error' %}background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:var(--red);
+                {% else %}background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:var(--green);{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        
+        <!-- Filters -->
+        <div class="c" style="margin-bottom:10px;padding:10px">
+            <form method="GET" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                <div style="display:flex;align-items:center;gap:6px">
+                    <label style="font-size:0.6rem;color:var(--t3)">Date Range:</label>
+                    <input type="date" name="start_date" value="{{ start_date }}" style="padding:4px 8px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.65rem">
+                    <span style="color:var(--t3)">to</span>
+                    <input type="date" name="end_date" value="{{ end_date }}" style="padding:4px 8px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.65rem">
+                </div>
+                <div style="display:flex;align-items:center;gap:6px">
+                    <label style="font-size:0.6rem;color:var(--t3)">Status:</label>
+                    <select name="status" style="padding:4px 8px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.65rem">
+                        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All (excl. cancelled)</option>
+                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                        <option value="paused" {% if status_filter == 'paused' %}selected{% endif %}>Paused</option>
+                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
+                        <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px">
+                    <label style="font-size:0.6rem;color:var(--t3)">Advertiser:</label>
+                    <select name="advertiser_id" style="padding:4px 8px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.65rem">
+                        <option value="">All Advertisers</option>
+                        {% for adv in advertisers %}
+                        <option value="{{ adv.id }}" {% if advertiser_filter == adv.id %}selected{% endif %}>{{ adv.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn">Apply Filters</button>
+            </form>
+        </div>
+        
+        <!-- KPI Strip -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">
+            <div class="c" style="text-align:center;padding:10px">
+                <div style="font-size:1.1rem;font-weight:600;color:var(--gold)">{{ total_campaigns|default(0) }}</div>
+                <div style="font-size:0.5rem;color:var(--t3);text-transform:uppercase">Campaigns</div>
+            </div>
+            <div class="c" style="text-align:center;padding:10px">
+                <div style="font-size:1.1rem;font-weight:600;color:var(--gold)">{{ total_impressions|default(0) }}</div>
+                <div style="font-size:0.5rem;color:var(--t3);text-transform:uppercase">Impressions</div>
+            </div>
+            <div class="c" style="text-align:center;padding:10px">
+                <div style="font-size:1.1rem;font-weight:600;color:var(--gold)">{{ total_clicks|default(0) }}</div>
+                <div style="font-size:0.5rem;color:var(--t3);text-transform:uppercase">Clicks</div>
+            </div>
+            <div class="c" style="text-align:center;padding:10px">
+                <div style="font-size:1.1rem;font-weight:600;color:var(--green)">{{ total_ctr|default(0) }}%</div>
+                <div style="font-size:0.5rem;color:var(--t3);text-transform:uppercase">CTR</div>
+            </div>
+        </div>
+
+        <!-- Campaigns Table -->
+        <div class="c" style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)">
+                <span style="font-size:0.65rem;font-weight:600;color:var(--t2);text-transform:uppercase">All Campaigns</span>
+                <span style="font-size:0.55rem;color:var(--t3)">{{ campaigns|length if campaigns else 0 }} campaigns</span>
+            </div>
+            {% if campaigns and campaigns|length > 0 %}
+            <div style="overflow-x:auto">
+                <table style="width:100%;border-collapse:collapse;font-size:0.7rem">
+                    <thead>
+                        <tr style="border-bottom:1px solid var(--border)">
+                            <th style="text-align:left;padding:6px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Campaign</th>
+                            <th style="text-align:left;padding:6px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Advertiser</th>
+                            <th style="text-align:center;padding:6px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Status</th>
+                            <th style="text-align:left;padding:6px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Dates</th>
+                            <th style="text-align:right;padding:6px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Impressions</th>
+                            <th style="text-align:right;padding:6px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Clicks</th>
+                            <th style="text-align:right;padding:6px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">CTR</th>
+                            <th style="text-align:right;padding:6px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Unique Players</th>
+                            <th style="text-align:left;padding:6px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Top Bars</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for camp in campaigns %}
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.02)">
+                            <td style="padding:6px 8px;font-weight:500">{{ camp.name }}</td>
+                            <td style="padding:6px 8px;color:var(--t2)">{{ camp.advertiser_name }}</td>
+                            <td style="padding:6px 8px;text-align:center">
+                                <span class="badge {% if camp.status == 'active' %}badge-green{% elif camp.status == 'paused' %}badge-gold{% elif camp.status == 'completed' %}badge-gray{% else %}badge-blue{% endif %}">{{ camp.status }}</span>
+                            </td>
+                            <td style="padding:6px 8px;color:var(--t3);font-size:0.6rem">{{ camp.start_date or '-' }} - {{ camp.end_date or 'Ongoing' }}</td>
+                            <td style="padding:6px 8px;text-align:right;color:var(--gold);font-weight:600">{{ camp.impressions }}</td>
+                            <td style="padding:6px 8px;text-align:right">{{ camp.clicks }}</td>
+                            <td style="padding:6px 8px;text-align:right;color:var(--green)">{{ camp.ctr }}%</td>
+                            <td style="padding:6px 8px;text-align:right;color:var(--blue)">{{ camp.unique_players }}</td>
+                            <td style="padding:6px 8px;color:var(--t3);font-size:0.6rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ camp.top_bars }}">{{ camp.top_bars }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="text-align:center;padding:20px;color:var(--t3);font-size:0.7rem">
+                No campaigns match your filters. <a href="/master/advertisers" style="color:var(--gold)">Clear filters</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Advertisers Section -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">
+            <span style="font-size:0.65rem;font-weight:600;color:var(--t2);text-transform:uppercase">📢 Advertisers</span>
+            <span style="font-size:0.55rem;color:var(--t3)">{{ advertisers|length if advertisers else 0 }} advertisers</span>
+        </div>
+        
+        {% if advertisers and advertisers|length > 0 %}
+        <div class="grid">
+            {% for adv in advertisers %}
+            {% set adv_totals = advertiser_totals.get(adv.id, {}) if advertiser_totals else {} %}
+            <div class="c">
+                <div class="c-top">
+                    <div>
+                        <div class="c-name">{{ adv.name }}</div>
+                        <div class="c-cat">{{ adv.category or 'Uncategorized' }}</div>
+                    </div>
+                    <span class="badge {% if adv.is_active %}badge-green{% else %}badge-gray{% endif %}">{% if adv.is_active %}Active{% else %}Inactive{% endif %}</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:8px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:8px 0">
+                    <div style="text-align:center">
+                        <div style="font-size:0.85rem;font-weight:600;color:var(--gold)">{{ adv.campaign_count or 0 }}</div>
+                        <div style="font-size:0.45rem;color:var(--t3);text-transform:uppercase">Campaigns</div>
+                    </div>
+                    <div style="text-align:center">
+                        <div style="font-size:0.85rem;font-weight:600;color:var(--gold)">{{ adv_totals.impressions|default(0) }}</div>
+                        <div style="font-size:0.45rem;color:var(--t3);text-transform:uppercase">Impressions</div>
+                    </div>
+                    <div style="text-align:center">
+                        <div style="font-size:0.85rem;font-weight:600">{{ adv_totals.clicks|default(0) }}</div>
+                        <div style="font-size:0.45rem;color:var(--t3);text-transform:uppercase">Clicks</div>
+                    </div>
+                    <div style="text-align:center">
+                        <div style="font-size:0.85rem;font-weight:600;color:var(--green)">{{ adv_totals.ctr|default(0) }}%</div>
+                        <div style="font-size:0.45rem;color:var(--t3);text-transform:uppercase">CTR</div>
+                    </div>
+                    <div style="text-align:center">
+                        <div style="font-size:0.85rem;font-weight:600;color:var(--blue)">{{ adv_totals.unique_players|default(0) }}</div>
+                        <div style="font-size:0.45rem;color:var(--t3);text-transform:uppercase">Players</div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:6px">
+                    <a href="/master/advertiser/{{ adv.id }}" class="btn" style="flex:1;text-align:center">View</a>
+                    <a href="/master/advertiser/{{ adv.id }}/edit" class="btn" style="flex:1;text-align:center">Edit</a>
+                    <form action="/master/advertiser/{{ adv.id }}/delete" method="POST" style="display:inline" onsubmit="return confirm('Deactivate {{ adv.name }}?')">
+                        <button type="submit" class="btn" style="color:var(--red);border-color:var(--red)">✕</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:40px;color:var(--t3)">
+            <div style="font-size:2.5rem;margin-bottom:10px">📢</div>
+            <div style="font-size:0.85rem;font-weight:500;margin-bottom:4px">No advertisers yet</div>
+            <div style="font-size:0.7rem;margin-bottom:12px">Advertisers sign up through the marketer portal</div>
+            <button onclick="openModal()" class="btn btn-p">+ Add Advertiser</button>
+        </div>
+        {% endif %}
+        
+        <!-- External Links -->
+        <div style="margin-top:20px;padding-top:12px;border-top:1px solid var(--border);display:flex;gap:12px;justify-content:center">
+            <a href="/advertise" target="_blank" style="font-size:0.6rem;color:var(--t3);text-decoration:none">🎯 Public Advertise Page</a>
+            <span style="color:var(--border)">|</span>
+            <a href="/market/dashboard" target="_blank" style="font-size:0.6rem;color:var(--t3);text-decoration:none">🌐 Marketer Portal</a>
+        </div>
+    </div>
+
+    <!-- Add Advertiser Modal -->
+    <div class="modal-bg" id="modal" {% if editing_advertiser %}class="show"{% endif %} style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:center;justify-content:center;padding:16px">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;width:100%;max-width:450px;max-height:90vh;overflow-y:auto">
+            <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:0.8rem;font-weight:600">{% if editing_advertiser %}Edit {{ editing_advertiser.name }}{% else %}Add Advertiser{% endif %}</span>
+                <button onclick="closeModal()" style="background:0;border:0;color:var(--t3);font-size:1.2rem;cursor:pointer">&times;</button>
+            </div>
+            <form action="{% if editing_advertiser %}/master/advertiser/{{ editing_advertiser.id }}/edit{% else %}/master/advertiser/add{% endif %}" method="POST">
+                <div style="padding:14px">
+                    <div style="margin-bottom:12px">
+                        <label style="display:block;font-size:0.6rem;color:var(--t2);margin-bottom:4px;font-weight:500">Company Name *</label>
+                        <input type="text" name="name" required placeholder="e.g. Modelo" value="{{ editing_advertiser.name if editing_advertiser else '' }}" style="width:100%;padding:8px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.75rem;font-family:inherit">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                        <div style="margin-bottom:12px">
+                            <label style="display:block;font-size:0.6rem;color:var(--t2);margin-bottom:4px;font-weight:500">Category</label>
+                            <select name="category" style="width:100%;padding:8px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.75rem;font-family:inherit">
+                                <option value="">Select...</option>
+                                <option value="Beer" {% if editing_advertiser and editing_advertiser.category == 'Beer' %}selected{% endif %}>Beer</option>
+                                <option value="Whiskey" {% if editing_advertiser and editing_advertiser.category == 'Whiskey' %}selected{% endif %}>Whiskey</option>
+                                <option value="Vodka" {% if editing_advertiser and editing_advertiser.category == 'Vodka' %}selected{% endif %}>Vodka</option>
+                                <option value="Tequila" {% if editing_advertiser and editing_advertiser.category == 'Tequila' %}selected{% endif %}>Tequila</option>
+                                <option value="Wine" {% if editing_advertiser and editing_advertiser.category == 'Wine' %}selected{% endif %}>Wine</option>
+                                <option value="RTD" {% if editing_advertiser and editing_advertiser.category == 'RTD' %}selected{% endif %}>RTD / Seltzer</option>
+                                <option value="Non-Alcoholic" {% if editing_advertiser and editing_advertiser.category == 'Non-Alcoholic' %}selected{% endif %}>Non-Alcoholic</option>
+                                <option value="Local Business" {% if editing_advertiser and editing_advertiser.category == 'Local Business' %}selected{% endif %}>Local Business</option>
+                                <option value="Other" {% if editing_advertiser and editing_advertiser.category == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom:12px">
+                            <label style="display:block;font-size:0.6rem;color:var(--t2);margin-bottom:4px;font-weight:500">Contact Email</label>
+                            <input type="email" name="email" placeholder="contact@company.com" value="{{ editing_advertiser.contact_email if editing_advertiser else '' }}" style="width:100%;padding:8px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.75rem;font-family:inherit">
+                        </div>
+                    </div>
+                    <div style="margin-bottom:12px">
+                        <label style="display:block;font-size:0.6rem;color:var(--t2);margin-bottom:4px;font-weight:500">Notes</label>
+                        <textarea name="notes" rows="2" placeholder="Additional info..." style="width:100%;padding:8px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.75rem;font-family:inherit;resize:vertical">{{ editing_advertiser.notes if editing_advertiser else '' }}</textarea>
+                    </div>
+                </div>
+                <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px">
+                    {% if editing_advertiser %}
+                    <a href="/master/advertisers" class="btn">Cancel</a>
+                    <button type="submit" class="btn btn-p">Save Changes</button>
+                    {% else %}
+                    <button type="button" class="btn" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-p">Create</button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        function openModal(){document.getElementById('modal').style.display='flex'}
+        function closeModal(){document.getElementById('modal').style.display='none'}
+        document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+        {% if editing_advertiser %}openModal();{% endif %}
+    </script>
+</body>
+</html>

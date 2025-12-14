@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ advertiser.name }} - Pool Cue</title>
+    <link rel="stylesheet" href="/static/css/master-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.05);--t1:#e4e4e7;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--red:#ef4444;--blue:#3b82f6}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:11px}
+        .p{padding:12px 16px;max-width:1000px;margin:0 auto}
+        .back{display:inline-flex;align-items:center;gap:4px;color:var(--t3);text-decoration:none;font-size:0.65rem;margin-bottom:10px}
+        .back:hover{color:var(--gold)}
+        .hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+        .hdr h1{font-size:1rem;font-weight:600;margin-bottom:2px;display:flex;align-items:center;gap:8px}
+        .hdr-sub{font-size:0.7rem;color:var(--t3)}
+        .badge{padding:3px 8px;border-radius:3px;font-size:0.55rem;font-weight:600;text-transform:uppercase}
+        .badge-green{background:rgba(34,197,94,0.15);color:var(--green)}
+        .badge-gray{background:rgba(255,255,255,0.08);color:var(--t3)}
+        .badge-blue{background:rgba(59,130,246,0.15);color:var(--blue)}
+        .badge-gold{background:rgba(234,179,8,0.15);color:var(--gold)}
+        .btn{padding:5px 12px;border-radius:4px;font-size:0.65rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:0;color:var(--t2);text-decoration:none}
+        .btn:hover{border-color:var(--gold);color:var(--gold)}.btn-p{background:var(--gold);border-color:var(--gold);color:#000}
+        .kpi{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}
+        .k{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:10px;text-align:center}
+        .k-v{font-size:1.1rem;font-weight:600;color:var(--gold)}.k-l{font-size:0.5rem;color:var(--t3);text-transform:uppercase;margin-top:2px}
+        .g{display:grid;gap:8px;margin-bottom:8px}.g2{grid-template-columns:1fr 1fr}
+        .c{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:12px}
+        .c-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+        .c-t{font-size:0.65rem;font-weight:600;color:var(--t2);text-transform:uppercase}
+        .tbl{width:100%;border-collapse:collapse;font-size:0.7rem}
+        .tbl th{text-align:left;padding:6px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase;border-bottom:1px solid var(--border)}
+        .tbl td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.02)}
+        .tbl a{color:var(--gold);text-decoration:none}
+        .empty{text-align:center;padding:20px;color:var(--t3);font-size:0.7rem}
+        .camp{background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:4px;padding:10px;margin-bottom:6px}
+        .camp:last-child{margin:0}
+        .camp-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+        .camp-name{font-size:0.75rem;font-weight:600}
+        .camp-stats{display:flex;gap:12px;font-size:0.65rem;color:var(--t3)}
+        .camp-stat b{color:var(--gold);font-weight:600}
+    </style>
+</head>
+<body>
+    {% include 'master/_nav.html' %}
+    <div class="p">
+        <a href="/master/advertisers" class="back">← Back to Advertisers</a>
+        
+        <div class="hdr">
+            <div>
+                <h1>{{ advertiser.name }}<span class="badge {% if advertiser.is_active %}badge-green{% else %}badge-gray{% endif %}">{% if advertiser.is_active %}Active{% else %}Inactive{% endif %}</span></h1>
+                <div class="hdr-sub">{{ advertiser.category or 'Uncategorized' }} · {{ advertiser.contact_email or 'No email' }}</div>
+            </div>
+            <div style="display:flex;gap:6px">
+                <button class="btn">Edit</button>
+                <a href="/master/advertiser/{{ advertiser.id }}/campaign/new" class="btn btn-p">+ New Campaign</a>
+            </div>
+        </div>
+        
+        <div class="kpi">
+            <div class="k"><div class="k-v">{{ advertiser.campaign_count or 0 }}</div><div class="k-l">Campaigns</div></div>
+            <div class="k"><div class="k-v">{{ total_impressions|default(0)|int }}</div><div class="k-l">Impressions</div></div>
+            <div class="k"><div class="k-v">{{ total_clicks|default(0)|int }}</div><div class="k-l">Clicks</div></div>
+            <div class="k"><div class="k-v">{{ avg_ctr|default(0) }}%</div><div class="k-l">Avg CTR</div></div>
+            <div class="k"><div class="k-v">${{ total_spend|default(0) }}</div><div class="k-l">Total Spend</div></div>
+        </div>
+        
+        <div class="c">
+            <div class="c-h"><span class="c-t">Campaigns</span></div>
+            {% if campaigns and campaigns|length > 0 %}
+                {% for camp in campaigns %}
+                <div class="camp">
+                    <div class="camp-top">
+                        <div>
+                            <div class="camp-name">{{ camp.name }}</div>
+                            <div style="font-size:0.6rem;color:var(--t3)">{{ camp.start_date }} - {{ camp.end_date or 'Ongoing' }}</div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px">
+                            <span class="badge {% if camp.status == 'active' %}badge-green{% elif camp.status == 'paused' %}badge-gold{% elif camp.status == 'cancelled' %}badge-gray{% elif camp.status == 'scheduled' %}badge-blue{% else %}badge-gold{% endif %}">{{ camp.status or 'Draft' }}</span>
+                            <a href="/master/campaign/{{ camp.id }}/edit" class="btn" style="padding:3px 8px;font-size:0.55rem">Edit</a>
+                        </div>
+                    </div>
+                    <div class="camp-stats">
+                        <span>Impressions: <b>{{ camp.impressions or 0 }}</b></span>
+                        <span>Clicks: <b>{{ camp.clicks or 0 }}</b></span>
+                        <span>CTR: <b>{{ camp.ctr or 0 }}%</b></span>
+                        <span>Budget: <b>${{ camp.budget or 0 }}</b></span>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="empty">No campaigns yet. <a href="/master/advertiser/{{ advertiser.id }}/campaign/new" style="color:var(--gold)">Create one</a></div>
+            {% endif %}
+        </div>
+        
+        <div class="g g2" style="margin-top:8px">
+            <div class="c">
+                <div class="c-h"><span class="c-t">Creatives</span></div>
+                {% if creatives and creatives|length > 0 %}
+                <table class="tbl">
+                    <thead><tr><th>File</th><th>Type</th><th>Status</th></tr></thead>
+                    <tbody>
+                    {% for cr in creatives %}
+                    <tr>
+                        <td>{{ cr.file_name or cr.label or 'Unnamed' }}</td>
+                        <td>{{ cr.ad_type or 'Image' }}</td>
+                        <td><span class="badge {% if cr.is_active %}badge-green{% else %}badge-gray{% endif %}">{% if cr.is_active %}Active{% else %}Inactive{% endif %}</span></td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty">No creatives uploaded</div>
+                {% endif %}
+            </div>
+            
+            <div class="c">
+                <div class="c-h"><span class="c-t">Survey Questions</span></div>
+                {% if questions and questions|length > 0 %}
+                <table class="tbl">
+                    <thead><tr><th>Question</th><th>Responses</th></tr></thead>
+                    <tbody>
+                    {% for q in questions %}
+                    <tr>
+                        <td>{{ (q.question_text or q.text)|truncate(40) }}</td>
+                        <td>{{ q.times_answered or q.response_count or 0 }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty">No survey questions</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

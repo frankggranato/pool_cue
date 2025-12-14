@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#111111">
+    <title>Tokens & Rewards - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222; --border: rgba(255,255,255,0.1);
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555; --accent: #f5c518; --success: #22c55e;
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding-bottom: 100px; }
+        
+        .header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+        .back-btn { width: 36px; height: 36px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .header h1 { font-size: 1.2rem; font-weight: 600; }
+        
+        /* Top tabs navigation */
+        .top-tabs { display: flex; gap: 6px; padding: 12px 20px; background: var(--bg-primary); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+        .top-tab { flex: 1; padding: 10px 8px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; text-align: center; font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
+        .top-tab:hover { border-color: rgba(245,197,24,0.3); }
+        .top-tab.active { border-color: var(--accent); color: var(--accent); background: rgba(245,197,24,0.08); }
+        .top-tab .tab-icon { font-size: 1.1rem; display: block; margin-bottom: 2px; }
+        
+        .balance-card { margin: 20px; background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%); border: 1px solid var(--accent); border-radius: 16px; padding: 24px; text-align: center; }
+        .balance-label { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+        .balance-amount { font-size: 3rem; font-weight: 700; color: var(--accent); margin: 8px 0; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .balance-amount .coin { font-size: 2rem; }
+        .daily-bonus { background: var(--success); color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; display: inline-block; margin-top: 8px; }
+        
+        .section { padding: 0 20px; margin-bottom: 24px; }
+        .section-title { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        
+        .earn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .earn-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .earn-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .earn-icon { font-size: 2rem; margin-bottom: 8px; }
+        .earn-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; }
+        .earn-tokens { color: var(--accent); font-weight: 700; font-size: 0.85rem; }
+        
+        .how-it-works { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+        .how-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .how-item:last-child { border-bottom: none; }
+        .how-icon { width: 36px; height: 36px; background: rgba(245,197,24,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .how-text { flex: 1; }
+        .how-title { font-weight: 500; font-size: 0.9rem; }
+        .how-desc { font-size: 0.8rem; color: var(--text-secondary); }
+        .how-tokens { color: var(--accent); font-weight: 700; }
+        
+        .history-section { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; }
+        .history-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+        .history-item:last-child { border-bottom: none; }
+        .history-reason { font-size: 0.9rem; }
+        .history-date { font-size: 0.75rem; color: var(--text-secondary); }
+        .history-amount { font-weight: 600; }
+        .history-amount.positive { color: var(--success); }
+        .history-amount.negative { color: #ef4444; }
+        
+        /* Tab content panels */
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+        
+        /* Marketplace card styling */
+        .marketplace-card { background: linear-gradient(135deg, rgba(245,197,24,0.08), rgba(34,197,94,0.05)); border: 1px solid rgba(245,197,24,0.2); }
+        .marketplace-card:hover { border-color: var(--accent); }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-primary); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 6px 0 22px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 14px; color: var(--text-muted); text-decoration: none; font-size: 0.6rem; font-weight: 500; }
+        .nav-item .icon { font-size: 1.25rem; }
+        .nav-item.active { color: var(--text-primary); }
+        
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/player/home" class="back-btn">←</a>
+        <h1>🪙 Tokens & Rewards</h1>
+    </div>
+    
+    <!-- Top navigation tabs -->
+    <div class="top-tabs">
+        <div class="top-tab active" onclick="showPanel('balance')">
+            <span class="tab-icon">💰</span>
+            Balance
+        </div>
+        <div class="top-tab" onclick="showPanel('earn')">
+            <span class="tab-icon">⭐</span>
+            Earn
+        </div>
+        <div class="top-tab" onclick="showPanel('marketplace')">
+            <span class="tab-icon">🎱</span>
+            Buy & Sell
+        </div>
+        <div class="top-tab" onclick="showPanel('history')">
+            <span class="tab-icon">📜</span>
+            History
+        </div>
+    </div>
+    
+    <!-- BALANCE TAB -->
+    <div id="balance-panel" class="tab-panel active">
+        <div class="balance-card">
+            <div class="balance-label">Your Balance</div>
+            <div class="balance-amount"><span class="coin">🪙</span><span id="tokenBalance">0</span></div>
+            <div class="daily-bonus" id="dailyBonus" style="display:none;">+5 Daily Login Bonus!</div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="section">
+            <div class="section-title">⚡ Quick Actions</div>
+            <div class="earn-grid">
+                <a href="/player/shop" class="earn-card" style="text-decoration:none;color:inherit;">
+                    <div class="earn-icon">🛍️</div>
+                    <div class="earn-title">Shop</div>
+                    <div class="earn-tokens" style="color:var(--text-secondary);font-size:0.75rem;">Spend tokens</div>
+                </a>
+                <a href="/player/tokens/marketplace" class="earn-card" style="text-decoration:none;color:inherit;border-color:rgba(245,197,24,0.3);">
+                    <div class="earn-icon">🎱</div>
+                    <div class="earn-title">Cue Market</div>
+                    <div class="earn-tokens" style="color:var(--text-secondary);font-size:0.75rem;">Buy & sell cues</div>
+                </a>
+                <a href="/player/invite" class="earn-card" style="text-decoration:none;color:inherit;">
+                    <div class="earn-icon">👥</div>
+                    <div class="earn-title">Invite Friends</div>
+                    <div class="earn-tokens">+100 tokens</div>
+                </a>
+                <a href="/player/earn" class="earn-card" style="text-decoration:none;color:inherit;">
+                    <div class="earn-icon">📝</div>
+                    <div class="earn-title">Surveys</div>
+                    <div class="earn-tokens">+25-100 tokens</div>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Marketplace Promo (visible on Balance tab) -->
+        <div class="section">
+            <div class="section-title">🎱 Cue Marketplace</div>
+            <div class="how-it-works marketplace-card">
+                <a href="/player/tokens/marketplace" class="how-item" style="text-decoration:none;color:inherit;cursor:pointer;">
+                    <div class="how-icon" style="background:rgba(245,197,24,0.2);">🛒</div>
+                    <div class="how-text">
+                        <div class="how-title">Browse Cues for Sale</div>
+                        <div class="how-desc">Find cues from other players nearby</div>
+                    </div>
+                    <span style="color:var(--accent);font-size:0.9rem;font-weight:500;">Browse →</span>
+                </a>
+                <a href="/player/tokens/marketplace/new" class="how-item" style="text-decoration:none;color:inherit;cursor:pointer;">
+                    <div class="how-icon" style="background:rgba(34,197,94,0.2);">💰</div>
+                    <div class="how-text">
+                        <div class="how-title">List Your Cue for Sale</div>
+                        <div class="how-desc">Sell your cue for tokens or cash</div>
+                    </div>
+                    <span style="color:var(--success);font-size:0.9rem;font-weight:500;">List →</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- EARN TAB -->
+    <div id="earn-panel" class="tab-panel">
+        <div class="section" style="margin-top:20px;">
+            <div class="section-title">💰 Ways to Earn Tokens</div>
+            <div class="earn-grid">
+                <div class="earn-card" onclick="window.location='/player/challenges'">
+                    <div class="earn-icon">🏆</div>
+                    <div class="earn-title">Win Games</div>
+                    <div class="earn-tokens">+50 tokens</div>
+                </div>
+                <div class="earn-card" onclick="window.location='/player/challenges'">
+                    <div class="earn-icon">⚔️</div>
+                    <div class="earn-title">Win Challenges</div>
+                    <div class="earn-tokens">+75 tokens</div>
+                </div>
+                <div class="earn-card" onclick="window.location='/player/earn'">
+                    <div class="earn-icon">📝</div>
+                    <div class="earn-title">Take Surveys</div>
+                    <div class="earn-tokens">+25-100 tokens</div>
+                </div>
+                <div class="earn-card" onclick="window.location='/player/invite'">
+                    <div class="earn-icon">👥</div>
+                    <div class="earn-title">Refer Friends</div>
+                    <div class="earn-tokens">+100 tokens</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">📖 Token Rewards Breakdown</div>
+            <div class="how-it-works">
+                <div class="how-item">
+                    <div class="how-icon">🎱</div>
+                    <div class="how-text">
+                        <div class="how-title">Play & Win</div>
+                        <div class="how-desc">Win games to earn tokens</div>
+                    </div>
+                    <div class="how-tokens">+50</div>
+                </div>
+                <div class="how-item">
+                    <div class="how-icon">😢</div>
+                    <div class="how-text">
+                        <div class="how-title">Consolation</div>
+                        <div class="how-desc">Even losses earn a little</div>
+                    </div>
+                    <div class="how-tokens">+10</div>
+                </div>
+                <div class="how-item">
+                    <div class="how-icon">📅</div>
+                    <div class="how-text">
+                        <div class="how-title">Daily Login</div>
+                        <div class="how-desc">Open the app every day</div>
+                    </div>
+                    <div class="how-tokens">+5</div>
+                </div>
+                <div class="how-item">
+                    <div class="how-icon">🎂</div>
+                    <div class="how-text">
+                        <div class="how-title">Birthday Bonus</div>
+                        <div class="how-desc">Yearly birthday reward</div>
+                    </div>
+                    <div class="how-tokens">+100</div>
+                </div>
+                <div class="how-item">
+                    <div class="how-icon">🛍️</div>
+                    <div class="how-text">
+                        <div class="how-title">Spend Tokens</div>
+                        <div class="how-desc">Redeem for merch & perks</div>
+                    </div>
+                    <a href="/player/shop" style="color:var(--accent);font-size:0.85rem;">Shop →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MARKETPLACE TAB (Buy & Sell) -->
+    <div id="marketplace-panel" class="tab-panel">
+        <div class="section" style="margin-top:20px;">
+            <div class="section-title">🎱 Cue Marketplace</div>
+            <div class="how-it-works marketplace-card">
+                <a href="/player/tokens/marketplace" class="how-item" style="text-decoration:none;color:inherit;cursor:pointer;">
+                    <div class="how-icon" style="background:rgba(245,197,24,0.2);">🛒</div>
+                    <div class="how-text">
+                        <div class="how-title">Browse Cues for Sale</div>
+                        <div class="how-desc">Find cues from other players nearby</div>
+                    </div>
+                    <span style="color:var(--accent);font-size:0.9rem;font-weight:500;">Browse →</span>
+                </a>
+                <a href="/player/tokens/marketplace/new" class="how-item" style="text-decoration:none;color:inherit;cursor:pointer;background:rgba(34,197,94,0.05);">
+                    <div class="how-icon" style="background:rgba(34,197,94,0.2);">💰</div>
+                    <div class="how-text">
+                        <div class="how-title">List Your Cue for Sale</div>
+                        <div class="how-desc">Sell your cue and earn tokens or cash</div>
+                    </div>
+                    <span style="color:var(--success);font-size:0.9rem;font-weight:500;">List →</span>
+                </a>
+                <a href="/player/tokens/marketplace?tab=mine" class="how-item" style="text-decoration:none;color:inherit;cursor:pointer;">
+                    <div class="how-icon" style="background:rgba(136,136,136,0.2);">📦</div>
+                    <div class="how-text">
+                        <div class="how-title">My Listings</div>
+                        <div class="how-desc">Manage your active listings</div>
+                    </div>
+                    <span style="color:var(--text-secondary);font-size:0.9rem;font-weight:500;">View →</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">ℹ️ How It Works</div>
+            <div class="how-it-works">
+                <div class="how-item">
+                    <div class="how-icon">🪙</div>
+                    <div class="how-text">
+                        <div class="how-title">Pay with Tokens</div>
+                        <div class="how-desc">Use your earned tokens to buy cues</div>
+                    </div>
+                </div>
+                <div class="how-item">
+                    <div class="how-icon">💵</div>
+                    <div class="how-text">
+                        <div class="how-title">Or Use Cash</div>
+                        <div class="how-desc">Some sellers accept cash payment</div>
+                    </div>
+                </div>
+                <div class="how-item">
+                    <div class="how-icon">🤝</div>
+                    <div class="how-text">
+                        <div class="how-title">Meet at Bars</div>
+                        <div class="how-desc">Exchange cues at Pool Cue partner bars</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- HISTORY TAB -->
+    <div id="history-panel" class="tab-panel">
+        <div class="section" style="margin-top:20px;">
+            <div class="section-title">📜 Token Activity</div>
+            <div class="history-section" id="historyList">
+                <div style="padding:20px;text-align:center;color:var(--text-secondary);">Loading...</div>
+            </div>
+        </div>
+    </div>
+    
+        <nav class="bottom-nav">
+        <a href="{% if demo_mode %}/player/demo/home{% else %}/player/home{% endif %}" class="nav-item"><div class="icon">🎱</div><div>Home</div></a>
+        <a href="{% if demo_mode %}/player/demo/friends{% else %}/player/friends{% endif %}" class="nav-item"><div class="icon">👥</div><div>Friends</div></a>
+        <a href="{% if demo_mode %}/player/demo/challenges{% else %}/player/challenges{% endif %}" class="nav-item"><div class="icon">⚔️</div><div>Challenges</div></a>
+        <a href="{% if demo_mode %}/player/demo/leaderboards{% else %}/player/leaderboard{% endif %}" class="nav-item"><div class="icon">🏆</div><div>Rankings</div></a>
+        <a href="{% if demo_mode %}/player/demo/profile{% else %}/player/profile{% endif %}" class="nav-item active"><div class="icon">👤</div><div>Profile</div></a>
+    </nav>
+    
+    <script>
+        // Tab panel switching
+        function showPanel(panelName) {
+            // Hide all panels
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            // Deactivate all tabs
+            document.querySelectorAll('.top-tab').forEach(t => t.classList.remove('active'));
+            // Show selected panel
+            const panel = document.getElementById(panelName + '-panel');
+            if (panel) panel.classList.add('active');
+            // Activate clicked tab
+            event.target.closest('.top-tab').classList.add('active');
+        }
+        
+        async function loadTokens() {
+            try {
+                const res = await fetch('/api/social/tokens');
+                const data = await res.json();
+                
+                if (data.error) {
+                    window.location.href = '/auth/login';
+                    return;
+                }
+                
+                document.getElementById('tokenBalance').textContent = data.balance || 0;
+                
+                if (data.daily_bonus_awarded > 0) {
+                    document.getElementById('dailyBonus').style.display = 'inline-block';
+                }
+            } catch (e) {
+                console.error('Failed to load tokens:', e);
+            }
+        }
+        
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/social/tokens/history');
+                const data = await res.json();
+                
+                const list = document.getElementById('historyList');
+                const history = data.history || [];
+                
+                if (history.length === 0) {
+                    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-secondary);">No activity yet</div>';
+                    return;
+                }
+                
+                const reasonLabels = {
+                    'game_win': '🏆 Game Won',
+                    'game_loss': '🎱 Game Played',
+                    'challenge_win': '⚔️ Challenge Won',
+                    'challenge_loss': '⚔️ Challenge Played',
+                    'survey_general': '📝 Survey Completed',
+                    'daily_login': '📅 Daily Login',
+                    'referral': '👥 Friend Referred'
+                };
+                
+                list.innerHTML = history.map(h => {
+                    const isPositive = h.amount > 0;
+                    const label = reasonLabels[h.reason] || h.reason;
+                    return `
+                        <div class="history-item">
+                            <div>
+                                <div class="history-reason">${label}</div>
+                                <div class="history-date">${new Date(h.created_at).toLocaleDateString()}</div>
+                            </div>
+                            <div class="history-amount ${isPositive ? 'positive' : 'negative'}">
+                                ${isPositive ? '+' : ''}${h.amount}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error('Failed to load history:', e);
+            }
+        }
+        
+        async function takeSurvey() {
+            if (confirm('Complete a quick survey to earn 25 tokens?')) {
+                try {
+                    const res = await fetch('/api/social/tokens/earn/survey', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ survey_type: 'quick' })
+                    });
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        alert(`🪙 +${data.tokens_earned} tokens earned!`);
+                        loadTokens();
+                        loadHistory();
+                    }
+                } catch (e) {
+                    alert('Failed to complete survey');
+                }
+            }
+        }
+        
+        loadTokens();
+        loadHistory();
+    </script>
+</body>
+</html>

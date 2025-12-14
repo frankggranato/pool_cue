@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Queue Status - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555;
+            --accent: #f5c518; --success: #22c55e; --border: rgba(255,255,255,0.08);
+        }
+        body { 
+            font-family: 'Inter', -apple-system, sans-serif; 
+            background: var(--bg-primary); 
+            color: var(--text-primary); 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 16px 20px; border-bottom: 1px solid var(--border); 
+        }
+        .back-btn { 
+            padding: 8px 14px; background: var(--bg-secondary); 
+            border: 1px solid var(--border); border-radius: 8px; 
+            color: var(--text-secondary); font-size: 0.85rem; text-decoration: none; 
+        }
+        .title { font-size: 1.1rem; font-weight: 600; }
+        
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .icon { font-size: 5rem; margin-bottom: 24px; opacity: 0.8; }
+        .heading { font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; }
+        .subtext { font-size: 1rem; color: var(--text-secondary); max-width: 300px; line-height: 1.5; }
+        
+        .cta-section { 
+            padding: 24px 20px; 
+            background: var(--bg-secondary); 
+            border-top: 1px solid var(--border); 
+        }
+        .cta-card {
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(245,197,24,0.15), rgba(245,197,24,0.05));
+            border: 1px solid rgba(245,197,24,0.3);
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        .cta-title { font-size: 1rem; font-weight: 600; margin-bottom: 8px; }
+        .cta-text { font-size: 0.85rem; color: var(--text-secondary); }
+        
+        .action-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            border: none;
+            border-radius: 10px;
+            color: #111;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            cursor: pointer;
+        }
+        .secondary-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        {% if bar_id %}
+        <a href="/q/{{ bar_id }}" class="back-btn">← Back</a>
+        {% else %}
+        <a href="/player/home" class="back-btn">← Home</a>
+        {% endif %}
+        <div class="title">My Queue Status</div>
+        <div style="width: 70px;"></div>
+    </div>
+    
+    <div class="content">
+        <div class="icon">🎱</div>
+        <div class="heading">You're Not in a Queue</div>
+        <div class="subtext">Scan the QR code at a participating bar to join the queue and start playing!</div>
+    </div>
+    
+    <div class="cta-section">
+        <div class="cta-card">
+            <div class="cta-title">📷 How to Join</div>
+            <div class="cta-text">Look for the QR code on or near the pool table at any participating bar. Scan it with your phone's camera to instantly get in line.</div>
+        </div>
+        
+        {% if bar_id %}
+        <a href="/q/{{ bar_id }}" class="action-btn">Rejoin Queue</a>
+        <a href="/player/home#bars" class="secondary-btn">Find Other Bars</a>
+        {% else %}
+        <a href="/player/home#bars" class="action-btn">Find a Bar Near You</a>
+        <a href="/player/home" class="secondary-btn">Back to Home</a>
+        {% endif %}
+    </div>
+</body>
+</html>

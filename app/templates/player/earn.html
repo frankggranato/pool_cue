@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <title>Earn Tokens - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555;
+            --accent: #f5c518; --success: #22c55e; --border: rgba(255,255,255,0.08);
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding-bottom: 100px; }
+        
+        .header { padding: 16px 20px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid var(--border); }
+        .back { color: var(--text-secondary); text-decoration: none; font-size: 1.2rem; }
+        .header h1 { font-size: 1.15rem; flex: 1; font-weight: 600; }
+        .token-balance { background: rgba(245,197,24,0.15); color: var(--accent); padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; }
+        
+        .empty-state { padding: 60px 20px; text-align: center; }
+        .empty-icon { font-size: 4rem; margin-bottom: 16px; }
+        .empty-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; }
+        .empty-text { color: var(--text-secondary); font-size: 0.9rem; }
+        
+        .survey-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; margin: 16px 20px; padding: 20px; }
+        .survey-card.sponsored { border-color: rgba(245,197,24,0.2); }
+        .sponsor-tag { display: inline-block; background: rgba(245,197,24,0.15); color: var(--accent); padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; margin-bottom: 12px; }
+        .question-text { font-size: 1.05rem; font-weight: 500; margin-bottom: 18px; line-height: 1.4; }
+        .reward-badge { display: inline-flex; align-items: center; gap: 5px; background: rgba(245,197,24,0.15); color: var(--accent); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; margin-bottom: 14px; }
+        
+        .options { display: flex; flex-direction: column; gap: 8px; }
+        .option { background: var(--bg-tertiary); border: 2px solid var(--border); border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 12px; }
+        .option:hover { background: rgba(255,255,255,0.05); }
+        .option.selected { background: rgba(245,197,24,0.1); border-color: var(--accent); }
+        .option .radio { width: 20px; height: 20px; border: 2px solid var(--text-muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .option.selected .radio { border-color: var(--accent); background: var(--accent); }
+        .option.selected .radio::after { content: '✓'; color: #111; font-size: 0.75rem; }
+        .option .label { flex: 1; font-size: 0.9rem; }
+        
+        .submit-btn { width: 100%; margin-top: 16px; padding: 14px; background: var(--accent); border: none; border-radius: 12px; color: #111; font-size: 0.95rem; font-weight: 600; cursor: pointer; font-family: inherit; opacity: 0.4; pointer-events: none; }
+        .submit-btn.active { opacity: 1; pointer-events: auto; }
+        .submit-btn:disabled { opacity: 0.4; pointer-events: none; }
+        
+        .completed { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.3); }
+        .completed .question-text { color: var(--text-secondary); }
+        .completed-badge { display: inline-flex; align-items: center; gap: 6px; color: var(--success); font-size: 0.85rem; font-weight: 500; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-primary); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 6px 0 22px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 14px; color: var(--text-muted); text-decoration: none; font-size: 0.6rem; }
+        .nav-item .icon { font-size: 1.25rem; }
+        .nav-item.active { color: var(--text-primary); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/player/tokens" class="back">←</a>
+        <h1>Earn Tokens</h1>
+        <div class="token-balance">🪙 {{ token_balance }}</div>
+    </div>
+    
+    {% if questions %}
+        {% for q in questions %}
+        <div class="survey-card {% if q.sponsor %}sponsored{% endif %}" id="card-{{ q.id }}">
+            {% if q.sponsor %}
+            <div class="sponsor-tag">🎯 Sponsored by {{ q.sponsor }}</div>
+            {% endif %}
+            <div class="reward-badge">🪙 +{{ q.token_reward }} tokens</div>
+            <div class="question-text">{{ q.text }}</div>
+            <div class="options" id="options-{{ q.id }}">
+                {% for opt in q.options %}
+                <div class="option" onclick="selectOption(this, {{ q.id }}, '{{ opt }}')">
+                    <div class="radio"></div>
+                    <div class="label">{{ opt }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="submit-btn" id="submit-{{ q.id }}" onclick="submitAnswer({{ q.id }})">Submit Answer</button>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">✅</div>
+            <div class="empty-title">All caught up!</div>
+            <div class="empty-text">No surveys available right now.<br>Check back later for new earning opportunities.</div>
+        </div>
+    {% endif %}
+    
+        <nav class="bottom-nav">
+        <a href="{% if demo_mode %}/player/demo/home{% else %}/player/home{% endif %}" class="nav-item"><div class="icon">🎱</div><div>Home</div></a>
+        <a href="{% if demo_mode %}/player/demo/friends{% else %}/player/friends{% endif %}" class="nav-item"><div class="icon">👥</div><div>Friends</div></a>
+        <a href="{% if demo_mode %}/player/demo/challenges{% else %}/player/challenges{% endif %}" class="nav-item"><div class="icon">⚔️</div><div>Challenges</div></a>
+        <a href="{% if demo_mode %}/player/demo/leaderboards{% else %}/player/leaderboard{% endif %}" class="nav-item"><div class="icon">🏆</div><div>Rankings</div></a>
+        <a href="{% if demo_mode %}/player/demo/profile{% else %}/player/profile{% endif %}" class="nav-item active"><div class="icon">👤</div><div>Profile</div></a>
+    </nav>
+    
+    <script>
+        let selectedAnswers = {};
+        
+        function selectOption(el, questionId, answer) {
+            // Deselect all options for this question
+            document.querySelectorAll(`#options-${questionId} .option`).forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            // Select this option
+            el.classList.add('selected');
+            selectedAnswers[questionId] = answer;
+            // Enable submit button
+            document.getElementById(`submit-${questionId}`).classList.add('active');
+        }
+        
+        async function submitAnswer(questionId) {
+            const answer = selectedAnswers[questionId];
+            if (!answer) return;
+            
+            const btn = document.getElementById(`submit-${questionId}`);
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+            
+            try {
+                const response = await fetch('/player/api/survey/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question_id: questionId, answer: answer })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const card = document.getElementById(`card-${questionId}`);
+                    card.classList.add('completed');
+                    card.innerHTML = `
+                        <div class="completed-badge">✅ Completed - Earned ${data.tokens_earned} tokens!</div>
+                        <div class="question-text" style="margin-top:12px;opacity:0.6;">Thank you for your response.</div>
+                    `;
+                    // Update balance display
+                    const balance = document.querySelector('.token-balance');
+                    const current = parseInt(balance.textContent.replace(/\D/g, '')) || 0;
+                    balance.textContent = `🪙 ${current + data.tokens_earned}`;
+                } else {
+                    btn.textContent = data.error || 'Error';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                btn.textContent = 'Error - Try Again';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

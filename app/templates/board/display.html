@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <!-- Soft refresh via JS instead of meta refresh to prevent flicker -->
+    <title>Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #111111;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #f2f2f2;
+            --text-secondary: #888888;
+            --text-muted: #555555;
+            --accent: #f5c518;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --border: rgba(255,255,255,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+        html, body { height: 100%; overflow: hidden; background: var(--bg-secondary); }
+        body { font-family: 'Inter', -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; padding: 10px; }
+        
+        /* Wooden Frame */
+        .frame {
+            width: 100%;
+            max-width: 620px;
+            height: 100vh;
+            max-height: 96vh;
+            background: linear-gradient(165deg, #5d4037 0%, #4e342e 30%, #3e2723 70%, #2d1f1a 100%);
+            border-radius: 6px;
+            padding: 14px;
+            box-shadow: 
+                inset 2px 2px 4px rgba(255,255,255,0.1),
+                inset -2px -2px 4px rgba(0,0,0,0.3),
+                0 8px 32px rgba(0,0,0,0.6),
+                0 2px 8px rgba(0,0,0,0.4);
+            position: relative;
+        }
+        
+        .frame::before {
+            content: '';
+            position: absolute;
+            top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border: 2px solid rgba(0,0,0,0.3);
+            border-radius: 4px;
+            pointer-events: none;
+        }
+        
+        .board {
+            width: 100%; height: 100%;
+            background: #0c0c0c;
+            border-radius: 4px;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+        
+        /* Header */
+        .header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        
+        .shot-caller-section { flex: 1; }
+        .meta { font-size: 0.65rem; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .shot-caller-name { font-size: 2rem; font-weight: 700; color: #fff; letter-spacing: -0.03em; line-height: 1.1; }
+        .shot-caller-name.empty { font-size: 1.3rem; color: #444; font-weight: 500; }
+        
+        .win-streak { display: flex; align-items: baseline; gap: 6px; margin-top: 4px; }
+        .win-count { font-size: 1.2rem; font-weight: 700; color: #e5a147; }
+        .win-label { font-size: 0.7rem; color: #666; }
+        
+        .rules { display: flex; gap: 6px; margin-top: 8px; }
+        .rule-tag { padding: 4px 10px; background: #1a1a1a; border-radius: 4px; font-size: 0.7rem; color: #888; font-weight: 500; }
+        
+        .qr-section { text-align: center; flex-shrink: 0; }
+        .qr-box { background: #fff; padding: 10px; border-radius: 8px; }
+        .qr-code { width: 130px; height: 130px; display: block; }
+        .qr-label { font-size: 0.65rem; color: #666; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* Main Content - Natural column flow */
+        .main { 
+            flex: 1; 
+            display: block;
+            column-count: 3;
+            column-gap: 12px;
+            column-fill: auto;
+            overflow: hidden; 
+            min-height: 0;
+            padding: 12px 16px;
+        }
+        
+        .queue-label {
+            font-size: 0.65rem; 
+            font-weight: 600; 
+            color: #555; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            margin-bottom: 6px;
+            column-span: all;
+        }
+        
+        .section-label { font-size: 0.65rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        
+        /* Challenger Card */
+        .challenger-card {
+            background: #1a1a1a;
+            border: 1px solid rgba(239,68,68,0.3);
+            border-radius: 5px;
+            padding: 6px 12px;
+            margin-bottom: 3px;
+            transition: all 0.15s;
+            break-inside: avoid;
+        }
+        .challenger-card .name-row { display: flex; align-items: center; gap: 8px; }
+        .challenger-card .pos { font-size: 0.75rem; color: #ef4444; min-width: 18px; font-weight: 500; }
+        .challenger-card .name { font-size: 0.85rem; font-weight: 600; color: #fff; }
+        .challenger-card .tag { font-size: 0.55rem; color: #ef4444; background: rgba(239,68,68,0.15); padding: 2px 6px; border-radius: 3px; margin-left: auto; text-transform: uppercase; letter-spacing: 0.5px; }
+        .challenger-card .hint { font-size: 0.55rem; color: #444; margin-top: 2px; margin-left: 26px; }
+        .hint { font-size: 0.6rem; color: #444; }
+        
+        .shot-caller-section.swiping { transition: none; }
+        .shot-caller-section.swipe-left { background: rgba(239,68,68,0.1); }
+        .shot-caller-section.swipe-right { background: rgba(34,197,94,0.1); }
+        .challenger-card.swiping { cursor: grabbing; }
+        .challenger-card.swipe-left, .challenger-card.swipe-right { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.4); }
+        
+        .empty-slot { padding: 14px 16px; color: #333; font-size: 0.9rem; }
+        
+        /* Queue Items */
+        .queue-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 10px;
+            background: #141414;
+            border-radius: 5px;
+            margin-bottom: 3px;
+            break-inside: avoid;
+        }
+        .queue-item .pos { font-size: 0.75rem; color: #444; min-width: 18px; font-weight: 500; }
+        .queue-item .name { font-size: 0.8rem; color: #aaa; flex: 1; }
+        .queue-item .confirm-status { font-size: 0.65rem; opacity: 0.9; padding: 2px 6px; border-radius: 4px; }
+        .queue-item .confirm-status.confirmed { color: #22c55e; background: rgba(34,197,94,0.15); }
+        .queue-item.needs-confirm { border-left: 2px solid #eab308; }
+        .queue-item.needs-confirm .confirm-status { color: #eab308; background: rgba(234,179,8,0.15); }
+        
+        /* Footer */
+        .footer {
+            height: 70px;
+            background: #0a0a0a;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+        
+        .footer-btn {
+            position: absolute; bottom: 12px;
+            padding: 6px 14px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 4px;
+            color: #555;
+            font-size: 0.7rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .footer-btn:hover { border-color: #fff; color: #fff; }
+        .footer-btn.disabled { opacity: 0.3; cursor: default; }
+        .undo-btn { left: 12px; }
+        .redo-btn { right: 12px; }
+        
+        .ad-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; background: #0a0a0a; opacity: 0; transition: opacity 0.5s; }
+        .ad-image.active { opacity: 1; }
+        
+        /* Confirm Dialog */
+        .confirm-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 100; justify-content: center; align-items: center; }
+        .confirm-overlay.show { display: flex; }
+        .confirm-box { background: #1a1a1a; border: 1px solid rgba(255,255,255,0.1); padding: 24px 32px; border-radius: 12px; text-align: center; }
+        .confirm-box p { font-size: 1.1rem; color: #fff; margin-bottom: 20px; }
+        .confirm-buttons { display: flex; gap: 12px; justify-content: center; }
+        .confirm-buttons button { padding: 12px 28px; border: none; border-radius: 6px; font-family: inherit; font-size: 0.9rem; font-weight: 500; cursor: pointer; }
+        .confirm-yes { background: #fff; color: #0c0c0c; }
+        .confirm-no { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #888; }
+        
+        .dev-link { position: fixed; top: 8px; left: 8px; padding: 6px 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: #888; font-size: 0.65rem; text-decoration: none; z-index: 1000; }
+        
+        /* Soft refresh transition */
+        #board-content { transition: opacity 0.15s ease-in-out; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+    </style>
+</head>
+<body>
+    <a href="/master" class="dev-link">← Dashboard</a>
+    <div class="frame">
+    <div class="board">
+        <div id="board-content">
+        <div class="header">
+            <div class="shot-caller-section swipeable" data-role="king" {% if king %}data-id="{{ king.id }}"{% endif %}>
+                {% if avg_game_time and avg_game_time > 0 %}<div class="meta">~{{ (avg_game_time / 60)|int }}m avg</div>{% endif %}
+                <div class="meta">Shot Caller</div>
+                {% if king %}
+                <div class="shot-caller-name">{{ king.nickname }}{% if king.partner_name and king.partner_name.strip() %} & {{ king.partner_name }}{% endif %}</div>
+                <div class="win-streak">
+                    <span class="win-count">{{ king.wins_on_table or 0 }}</span>
+                    <span class="win-label">wins</span>
+                </div>
+                <div class="hint" style="margin-top:8px;">← swipe off if lost →</div>
+                {% else %}
+                <div class="shot-caller-name empty">Table Open</div>
+                {% endif %}
+                <div class="rules">
+                    <span class="rule-tag">{{ rules.game_type|default('singles')|capitalize }}</span>
+                    <span class="rule-tag">{{ rules.rule_type|default('bar_rules')|replace('_', ' ')|title }}</span>
+                    {% if ranked_status and ranked_status.is_ranked %}
+                    <span class="rule-tag" style="background:rgba(168,85,247,0.2);color:#a855f7;border:1px solid rgba(168,85,247,0.3);">🏆 Ranked</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="qr-section">
+                <div class="qr-box">
+                    {% if table_token %}
+                    <img src="{{ url_for('display.qr_code', table_token=table_token) }}" class="qr-code" alt="QR">
+                    {% else %}
+                    <img src="{{ url_for('display.qr_code', bar_id=bar_id) }}" class="qr-code" alt="QR">
+                    {% endif %}
+                </div>
+                <div class="qr-label">Scan to Join{% if table_name %} - {{ table_name }}{% endif %}</div>
+            </div>
+        </div>
+
+        <div class="main">
+            <!-- Challenger = Position 2 -->
+            {% if challenger %}
+            <div class="challenger-card swipeable" data-id="{{ challenger.id }}" data-role="challenger">
+                <div class="name-row">
+                    <span class="pos">2</span>
+                    <span class="name">{{ challenger.nickname }}{% if challenger.partner_name and challenger.partner_name.strip() %} & {{ challenger.partner_name }}{% endif %}</span>
+                </div>
+                <div class="hint">← swipe if lost →</div>
+            </div>
+            {% endif %}
+            
+            <!-- Queue flows naturally: down column 1, then column 2, then column 3 -->
+            {% for player in queue_list %}
+            <div class="queue-item {% if loop.index == 1 and not player.confirmed %}needs-confirm{% endif %}">
+                <span class="pos">{{ loop.index + 2 }}</span>
+                <span class="name">{{ player.nickname }}{% if player.partner_name and player.partner_name.strip() %} & {{ player.partner_name }}{% endif %}</span>
+                {% if loop.index == 1 %}
+                    {% if player.confirmed %}
+                    <span class="confirm-status confirmed">✓ Ready</span>
+                    {% else %}
+                    <span class="confirm-status">⏳ Waiting</span>
+                    {% endif %}
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        </div><!-- end board-content -->
+
+        <div class="footer">
+            <button class="footer-btn undo-btn" id="undoBtn" onclick="confirmAction('undo')">↩ Undo</button>
+            {% if ads %}{% for ad in ads %}<img src="{{ url_for('display.serve_ad', filename=ad) }}" class="ad-image {% if loop.first %}active{% endif %}" alt="">{% endfor %}{% endif %}
+            <button class="footer-btn redo-btn" id="redoBtn" onclick="confirmAction('redo')">Redo ↪</button>
+        </div>
+    </div>
+    </div>
+
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-box">
+            <p id="confirmMessage">Restore player?</p>
+            <div class="confirm-buttons">
+                <button class="confirm-no" onclick="hideConfirm()">Cancel</button>
+                <button class="confirm-yes" onclick="executeAction()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pendingAction = null, canUndo = false, lastRemoved = null;
+        const AD_MS = {{ ad_rotation|default(10) }} * 1000;
+        let adIndex = 0;
+        const ads = document.querySelectorAll('.ad-image');
+        const BAR_ID = {{ bar_id|default(1) }};
+        const TABLE_ID = {{ table_id|default('null') }};
+        
+        // Ad impression tracking
+        function logAdImpression(adFilename) {
+            fetch('/ad/impression', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ad_filename: adFilename,
+                    placement: 'board_main',
+                    bar_id: BAR_ID,
+                    table_id: TABLE_ID
+                })
+            }).catch(err => console.log('Ad impression log error:', err));
+        }
+        
+        // Extract filename from src URL
+        function getAdFilename(imgElement) {
+            const src = imgElement.getAttribute('src');
+            return src.split('/').pop();
+        }
+        
+        // Log first ad impression on page load
+        if (ads.length > 0) {
+            logAdImpression(getAdFilename(ads[0]));
+        }
+        
+        // Rotate ads and log impressions
+        if (ads.length > 1) {
+            setInterval(() => {
+                ads[adIndex].classList.remove('active');
+                adIndex = (adIndex + 1) % ads.length;
+                ads[adIndex].classList.add('active');
+                // Log impression for the newly displayed ad
+                logAdImpression(getAdFilename(ads[adIndex]));
+            }, AD_MS);
+        }
+
+        // Soft refresh - pause during user interaction
+        let softRefreshPaused = false;
+        let softRefreshInterval = null;
+        const REFRESH_INTERVAL_MS = {{ settings.display_refresh_ms or 2000 }};
+        
+        function pauseRefresh() { softRefreshPaused = true; }
+        function resumeRefresh() { softRefreshPaused = false; }
+
+        // Build HTML for board content from JSON data
+        function renderBoardContent(data) {
+            const king = data.king;
+            const challenger = data.challenger;
+            const queue_list = data.queue_list || [];
+            const rules = data.rules || {};
+            const avg_game_time = data.avg_game_time;
+            const ranked_status = data.ranked_status || {};
+            
+            let html = `
+        <div class="header">
+            <div class="shot-caller-section swipeable" data-role="king" ${king ? `data-id="${king.id}"` : ''}>
+                ${avg_game_time && avg_game_time > 0 ? `<div class="meta">~${Math.floor(avg_game_time / 60)}m avg</div>` : ''}
+                <div class="meta">Shot Caller</div>
+                ${king ? `
+                <div class="shot-caller-name">${king.nickname}${(king.partner_name && king.partner_name.trim()) ? ` & ${king.partner_name}` : ''}</div>
+                <div class="win-streak">
+                    <span class="win-count">${king.wins_on_table || 0}</span>
+                    <span class="win-label">wins</span>
+                </div>
+                <div class="hint" style="margin-top:8px;">← swipe off if lost →</div>
+                ` : `
+                <div class="shot-caller-name empty">Table Open</div>
+                `}
+                <div class="rules">
+                    <span class="rule-tag">${(rules.game_type || 'singles').charAt(0).toUpperCase() + (rules.game_type || 'singles').slice(1)}</span>
+                    <span class="rule-tag">${(rules.rule_type || 'bar_rules').replace(/_/g, ' ').replace(/\\b\\w/g, l => l.toUpperCase())}</span>
+                    ${ranked_status.is_ranked ? `<span class="rule-tag" style="background:rgba(168,85,247,0.2);color:#a855f7;border:1px solid rgba(168,85,247,0.3);">🏆 Ranked</span>` : ''}
+                </div>
+            </div>
+            <div class="qr-section">
+                <div class="qr-box">
+                    <img src="/qr_code?bar_id=${BAR_ID}" class="qr-code" alt="QR">
+                </div>
+                <div class="qr-label">Scan to Join</div>
+            </div>
+        </div>
+
+        <div class="main">
+            <!-- Challenger = Position 2 -->
+            ${challenger ? `
+            <div class="challenger-card swipeable" data-id="${challenger.id}" data-role="challenger">
+                <div class="name-row">
+                    <span class="pos">2</span>
+                    <span class="name">${challenger.nickname}${(challenger.partner_name && challenger.partner_name.trim()) ? ` & ${challenger.partner_name}` : ''}</span>
+                </div>
+                <div class="hint">← swipe if lost →</div>
+            </div>
+            ` : ''}
+            
+            <!-- Queue flows naturally: down column 1, then column 2, then column 3 -->
+            ${queue_list.map((player, i) => `
+            <div class="queue-item ${i === 0 && !player.confirmed ? 'needs-confirm' : ''}">
+                <span class="pos">${i + 3}</span>
+                <span class="name">${player.nickname}${(player.partner_name && player.partner_name.trim()) ? ` & ${player.partner_name}` : ''}</span>
+                ${i === 0 ? (player.confirmed ? '<span class="confirm-status confirmed">✓ Ready</span>' : '<span class="confirm-status">⏳ Waiting</span>') : ''}
+            </div>
+            `).join('')}
+        </div>`;
+            
+            return html;
+        }
+        
+        // Soft refresh function - fetches data and updates DOM
+        function softRefresh() {
+            if (softRefreshPaused) return;
+            
+            fetch(`/api/board-data?bar_id=${BAR_ID}`)
+                .then(r => r.json())
+                .then(data => {
+                    const container = document.getElementById('board-content');
+                    if (container) {
+                        container.innerHTML = renderBoardContent(data);
+                        // Re-attach swipe handlers to new elements
+                        attachSwipeHandlers();
+                    }
+                })
+                .catch(err => {
+                    console.error('Soft refresh error:', err);
+                });
+        }
+        
+        // Start soft refresh interval
+        softRefreshInterval = setInterval(softRefresh, REFRESH_INTERVAL_MS);
+
+        fetch('/api/queue-status').then(r => r.json()).then(data => {
+            canUndo = data.can_undo; lastRemoved = data.last_removed;
+            document.getElementById('undoBtn').classList.toggle('disabled', !canUndo);
+            document.getElementById('redoBtn').classList.add('disabled');
+        }).catch(() => {});
+
+        function confirmAction(action) { if (action === 'undo' && !canUndo) return; if (action === 'redo') return; pendingAction = action; document.getElementById('confirmMessage').textContent = `Restore ${lastRemoved}?`; document.getElementById('confirmOverlay').classList.add('show'); }
+        function hideConfirm() { document.getElementById('confirmOverlay').classList.remove('show'); pendingAction = null; }
+        function executeAction() { if (pendingAction === 'undo') fetch('/api/undo', { method: 'POST' }).then(() => softRefresh()); hideConfirm(); }
+
+        let startX, currentEl; 
+        const THRESHOLD = 60;
+        
+        function attachSwipeHandlers() {
+            document.querySelectorAll('.swipeable').forEach(el => {
+                // Touch events
+                el.addEventListener('touchstart', e => { 
+                    pauseRefresh();
+                    startX = e.touches[0].clientX; 
+                    currentEl = e.currentTarget; 
+                    currentEl.classList.add('swiping'); 
+                }, { passive: true });
+                
+                el.addEventListener('touchmove', e => { 
+                    if (!currentEl) return; 
+                    e.preventDefault(); 
+                    const diffX = e.touches[0].clientX - startX; 
+                    currentEl.style.transform = `translateX(${diffX}px)`; 
+                    currentEl.style.opacity = Math.max(0.4, 1 - Math.abs(diffX) / 250); 
+                    currentEl.classList.toggle('swipe-left', diffX < -30); 
+                    currentEl.classList.toggle('swipe-right', diffX > 30); 
+                }, { passive: false });
+                
+                el.addEventListener('touchend', e => { 
+                    if (!currentEl) return; 
+                    handleSwipe(e.changedTouches[0].clientX - startX); 
+                });
+                
+                // Mouse events
+                el.addEventListener('mousedown', e => { 
+                    pauseRefresh();
+                    startX = e.clientX; 
+                    currentEl = e.currentTarget; 
+                    currentEl.classList.add('swiping'); 
+                    document.addEventListener('mousemove', onMouseMove); 
+                    document.addEventListener('mouseup', onMouseUp); 
+                });
+            });
+        }
+        
+        function onMouseMove(e) { 
+            if (!currentEl) return; 
+            const diffX = e.clientX - startX; 
+            currentEl.style.transform = `translateX(${diffX}px)`; 
+            currentEl.style.opacity = Math.max(0.4, 1 - Math.abs(diffX) / 250); 
+            currentEl.classList.toggle('swipe-left', diffX < -30); 
+            currentEl.classList.toggle('swipe-right', diffX > 30); 
+        }
+        
+        function onMouseUp(e) { 
+            document.removeEventListener('mousemove', onMouseMove); 
+            document.removeEventListener('mouseup', onMouseUp); 
+            if (currentEl) handleSwipe(e.clientX - startX); 
+        }
+        
+        function handleSwipe(diffX) { 
+            if (!currentEl) return;
+            currentEl.classList.remove('swiping', 'swipe-left', 'swipe-right'); 
+            
+            if (Math.abs(diffX) > THRESHOLD) { 
+                const role = currentEl.dataset.role; 
+                const endpoint = role === 'challenger' ? '/api/king-wins' : '/api/challenger-wins'; 
+                
+                console.log('Swipe detected:', role, 'calling', endpoint);
+                
+                currentEl.style.transform = `translateX(${diffX < 0 ? '-100vw' : '100vw'})`; 
+                currentEl.style.opacity = '0'; 
+                
+                fetch(endpoint, { method: 'POST' })
+                    .then(r => r.json())
+                    .then(data => {
+                        console.log('API response:', data);
+                        // Use soft refresh instead of full page reload
+                        setTimeout(() => {
+                            softRefresh();
+                            resumeRefresh();
+                        }, 350);
+                    })
+                    .catch(err => {
+                        console.error('API error:', err);
+                        setTimeout(() => {
+                            softRefresh();
+                            resumeRefresh();
+                        }, 350);
+                    });
+            } else { 
+                currentEl.style.transform = ''; 
+                currentEl.style.opacity = ''; 
+                resumeRefresh();
+            } 
+            currentEl = null; 
+        }
+        
+        // Initial attach of swipe handlers
+        attachSwipeHandlers();
+        
+        // Check for confirmation timeouts every 5 seconds
+        setInterval(() => {
+            fetch('/api/queue/check-timeouts', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.actions_taken > 0) {
+                        console.log('Timeout actions:', data.actions);
+                        // Use soft refresh instead of full page reload
+                        softRefresh();
+                    }
+                })
+                .catch(err => console.error('Timeout check error:', err));
+        }, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a0a0a">
+    <title>Pool Cue Apps</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #0a0a0a;
+            --card: #141414;
+            --border: #252525;
+            --text: #f2f2f2;
+            --muted: #888;
+            --accent: #f5c518;
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+        .title {
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: var(--muted);
+            font-size: 1rem;
+        }
+        
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            max-width: 600px;
+            width: 100%;
+        }
+        @media (max-width: 500px) {
+            .apps-grid { grid-template-columns: 1fr; gap: 16px; }
+        }
+        
+        .app-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px 24px;
+            text-align: center;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .app-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--app-color);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .app-card:hover::before { opacity: 1; }
+        
+        .app-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            margin: 0 auto 20px;
+            background: var(--app-color);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+        
+        .app-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .app-desc {
+            font-size: 0.8rem;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+        
+        .app-card.board { --app-color: #f5c518; }
+        .app-card.player { --app-color: #22c55e; }
+        .app-card.bar { --app-color: #3b82f6; }
+        .app-card.analytics { --app-color: #a855f7; }
+        
+        .app-card.board .app-icon { color: #111; }
+        .app-card.player .app-icon { color: #fff; }
+        .app-card.bar .app-icon { color: #fff; }
+        .app-card.analytics .app-icon { color: #fff; }
+        
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+        }
+        .dev-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: all 0.15s;
+        }
+        .dev-link:hover {
+            border-color: var(--text);
+            color: var(--text);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🎱</div>
+        <h1 class="title">Pool Cue</h1>
+        <p class="subtitle">Smart Pool Hall Management System</p>
+    </div>
+    
+    <div class="apps-grid">
+        <a href="/app/board" class="app-card board">
+            <div class="app-icon">📺</div>
+            <div class="app-name">Board</div>
+            <div class="app-desc">Queue display for TV screens</div>
+        </a>
+        
+        <a href="/app/player" class="app-card player">
+            <div class="app-icon">🎱</div>
+            <div class="app-name">Player</div>
+            <div class="app-desc">Join queues, track stats, earn rewards</div>
+        </a>
+        
+        <a href="/app/bar" class="app-card bar">
+            <div class="app-icon">🍺</div>
+            <div class="app-name">Bar Manager</div>
+            <div class="app-desc">Manage queue, set rules, control table</div>
+        </a>
+        
+        <a href="/app/analytics" class="app-card analytics">
+            <div class="app-icon">📊</div>
+            <div class="app-name">Analytics</div>
+            <div class="app-desc">Data, reports, ads management</div>
+        </a>
+    </div>
+    
+    <div class="footer">
+        <a href="/master" class="dev-link">
+            <span>🔧</span>
+            <span>Developer Dashboard</span>
+        </a>
+    </div>
+</body>
+</html>

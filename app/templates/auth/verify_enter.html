@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#111111">
+    <title>Enter Code - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;  --border: rgba(255,255,255,0.1);
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555; --accent: #f5c518; --success: #22c55e;
+            --error: #ef4444;
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary); color: var(--text-primary);
+            min-height: 100vh; padding: 40px 24px;
+        }
+        .logo { text-align: center; margin-bottom: 32px; }
+        .logo h1 { font-size: 2rem; color: var(--accent); }
+        .logo p { color: var(--text-secondary); margin-top: 8px; font-size: 0.95rem; }
+        
+        .card {
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: 16px; padding: 24px; margin-bottom: 20px;
+        }
+        
+        .icon-header { text-align: center; margin-bottom: 20px; }
+        .icon-header .icon { font-size: 3rem; margin-bottom: 12px; }
+        .icon-header h2 { font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; }
+        .icon-header p { color: var(--text-secondary); font-size: 0.9rem; }
+        .icon-header .destination { color: var(--accent); font-weight: 500; }
+        
+        .error-msg {
+            background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3);
+            color: var(--error); padding: 12px 16px; border-radius: 10px;
+            margin-bottom: 20px; font-size: 0.9rem;
+        }
+        
+        .beta-notice {
+            background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3);
+            color: var(--success); padding: 12px 16px; border-radius: 10px;
+            margin-bottom: 20px; font-size: 0.9rem; text-align: center;
+        }
+        
+        .code-input-group { margin-bottom: 20px; }
+        .code-input {
+            width: 100%; padding: 18px 16px;
+            background: var(--bg-primary); border: 1px solid var(--border); border-radius: 12px;
+            color: var(--text-primary); font-size: 1.8rem; font-family: monospace;
+            text-align: center; letter-spacing: 8px;
+        }
+        .code-input:focus { outline: none; border-color: var(--accent); }
+        .code-input::placeholder { letter-spacing: normal; font-size: 1rem; }
+        
+        .btn {
+            width: 100%; padding: 16px; border: none; border-radius: 12px;
+            font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit;
+        }
+        .btn-primary { background: var(--accent); color: #111; margin-bottom: 12px; }
+        .btn-secondary { 
+            background: transparent; color: var(--text-secondary); border: 1px solid var(--border);
+        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .resend-section { text-align: center; margin-top: 20px; }
+        .resend-text { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 12px; }
+        .resend-btn {
+            background: none; border: none; color: var(--accent);
+            font-size: 0.9rem; cursor: pointer; font-family: inherit;
+            text-decoration: underline;
+        }
+        .resend-btn:disabled { color: var(--text-secondary); text-decoration: none; cursor: not-allowed; }
+        
+        .timer { color: var(--text-secondary); font-size: 0.85rem; }
+        
+        .back-link {
+            display: block; text-align: center; margin-top: 24px;
+            color: var(--text-secondary); font-size: 0.9rem; text-decoration: none;
+        }
+        .back-link:hover { color: var(--text-primary); }
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <h1>🎱 Pool Cue</h1>
+        <p>Verify your {{ channel }}</p>
+    </div>
+    
+    <div class="card">
+        <div class="icon-header">
+            <div class="icon">{% if channel == 'phone' %}📱{% else %}📧{% endif %}</div>
+            <h2>Enter verification code</h2>
+            <p>We sent a 6-digit code to<br><span class="destination">{{ destination }}</span></p>
+        </div>
+        
+        {% if beta_mode %}
+        <div class="beta-notice">
+            ✨ <strong>Beta Mode:</strong> Code auto-filled for easy testing
+        </div>
+        {% elif beta_show_code and beta_code %}
+        <div class="beta-notice" style="background: rgba(245,197,24,0.15); border-color: rgba(245,197,24,0.3); color: #f5c518;">
+            🧪 <strong>Beta Testing:</strong> Your verification code is <strong style="font-family: monospace; font-size: 1.2em; letter-spacing: 2px;">{{ beta_code }}</strong><br>
+            <small style="opacity: 0.8;">(Enter it below to continue - SMS not configured)</small>
+        </div>
+        {% endif %}
+        
+        {% if error %}
+        <div class="error-msg">{{ error }}</div>
+        {% endif %}
+        
+        <form method="POST" id="verifyForm">
+            <div class="code-input-group">
+                <input type="text" name="code" id="codeInput" class="code-input" 
+                       placeholder="000000" maxlength="6" pattern="[0-9]{6}"
+                       inputmode="numeric" autocomplete="one-time-code" autofocus
+                       {% if beta_mode and beta_code %}value="{{ beta_code }}"{% endif %}>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" id="verifyBtn">
+                {% if beta_mode %}Continue →{% else %}Verify Code{% endif %}
+            </button>
+        </form>
+        
+        {% if not beta_mode %}
+        <div class="resend-section">
+            <p class="resend-text">Didn't receive the code?</p>
+            <button type="button" class="resend-btn" id="resendBtn" 
+                    onclick="resendCode()" {% if not can_resend %}disabled{% endif %}>
+                {% if can_resend %}
+                Resend Code
+                {% else %}
+                <span class="timer" id="timer">Wait {{ wait_seconds }}s</span>
+                {% endif %}
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    
+    <a href="{{ url_for('auth.verify_choose') }}" class="back-link">← Try a different method</a>
+    <a href="{{ url_for('auth.verify_skip') }}" class="back-link" style="margin-top:12px;">Skip for now →</a>
+    
+    <script>
+        // Beta mode: auto-submit after short delay
+        {% if beta_mode and beta_code %}
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.getElementById('verifyForm').submit();
+            }, 800); // Brief pause so user sees the beta notice
+        });
+        {% endif %}
+        
+        let waitSeconds = {{ wait_seconds }};
+        const resendBtn = document.getElementById('resendBtn');
+        const timerSpan = document.getElementById('timer');
+        
+        function startCountdown() {
+            if (waitSeconds > 0 && resendBtn) {
+                resendBtn.disabled = true;
+                const interval = setInterval(() => {
+                    waitSeconds--;
+                    if (timerSpan) timerSpan.textContent = `Wait ${waitSeconds}s`;
+                    
+                    if (waitSeconds <= 0) {
+                        clearInterval(interval);
+                        resendBtn.disabled = false;
+                        resendBtn.innerHTML = 'Resend Code';
+                    }
+                }, 1000);
+            }
+        }
+        
+        async function resendCode() {
+            if (!resendBtn) return;
+            resendBtn.disabled = true;
+            resendBtn.textContent = 'Sending...';
+            
+            try {
+                const res = await fetch('{{ url_for("auth.verify_resend", channel=channel) }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    resendBtn.innerHTML = '✓ Code sent!';
+                    waitSeconds = 60;
+                    setTimeout(() => {
+                        resendBtn.innerHTML = '<span class="timer" id="timer">Wait 60s</span>';
+                        startCountdown();
+                    }, 2000);
+                } else {
+                    if (data.wait) {
+                        waitSeconds = data.wait;
+                        resendBtn.innerHTML = `<span class="timer" id="timer">Wait ${waitSeconds}s</span>`;
+                        startCountdown();
+                    } else {
+                        resendBtn.textContent = data.error || 'Error';
+                        setTimeout(() => {
+                            resendBtn.textContent = 'Resend Code';
+                            resendBtn.disabled = false;
+                        }, 3000);
+                    }
+                }
+            } catch (e) {
+                resendBtn.textContent = 'Error - try again';
+                setTimeout(() => {
+                    resendBtn.textContent = 'Resend Code';
+                    resendBtn.disabled = false;
+                }, 3000);
+            }
+        }
+        
+        // Start countdown if needed
+        if (waitSeconds > 0) {
+            startCountdown();
+        }
+        
+        // Auto-format code input
+        document.querySelector('.code-input').addEventListener('input', function(e) {
+            this.value = this.value.replace(/\D/g, '').substring(0, 6);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <title>Pool Nights - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --bg-primary: #111111;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #222222;
+            --text-primary: #f2f2f2;
+            --text-secondary: #888888;
+            --text-muted: #555555;
+            --accent: #f5c518;
+            --purple: #a78bfa;
+            --purple-dim: rgba(139,92,246,0.15);
+            --success: #22c55e;
+            --border: rgba(255,255,255,0.08);
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg-primary);
+            z-index: 100;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .back-btn {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 1.3rem;
+        }
+        .header h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .host-btn {
+            padding: 10px 18px;
+            background: var(--purple);
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        /* Info Banner */
+        .info-banner {
+            margin: 20px;
+            padding: 16px;
+            background: var(--purple-dim);
+            border: 1px solid rgba(139,92,246,0.25);
+            border-radius: 10px;
+        }
+        .info-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .info-text {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 8px;
+            padding: 0 20px 16px;
+            overflow-x: auto;
+        }
+        .filter-btn {
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 500;
+            font-family: inherit;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .filter-btn.active {
+            background: var(--text-primary);
+            border-color: var(--text-primary);
+            color: var(--bg-primary);
+        }
+        
+        /* Section */
+        .section-title {
+            padding: 16px 20px 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Event Cards */
+        .events-list { padding: 0 20px; }
+        
+        .event-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .event-card.featured {
+            border-color: rgba(139,92,246,0.3);
+        }
+        
+        .event-header {
+            padding: 16px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .event-time {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 50px;
+            padding: 10px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-right: 14px;
+        }
+        .event-day {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        .event-date {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        .event-month {
+            font-size: 0.65rem;
+            color: var(--purple);
+            text-transform: uppercase;
+        }
+        
+        .event-info { flex: 1; }
+        .event-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .event-bar {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .event-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .meta-item {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .meta-item.highlight {
+            color: var(--success);
+        }
+        
+        .event-host {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 18px;
+            background: rgba(0,0,0,0.2);
+            border-top: 1px solid var(--border);
+        }
+        .host-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+        .host-info { flex: 1; }
+        .host-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+        .host-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .host-rank {
+            font-size: 0.75rem;
+            color: var(--accent);
+        }
+        
+        .event-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            border-top: 1px solid var(--border);
+        }
+        .rsvp-count {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .rsvp-count strong {
+            color: var(--text-primary);
+        }
+        .rsvp-btn {
+            padding: 10px 20px;
+            background: var(--purple);
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .rsvp-btn.joined {
+            background: var(--success);
+        }
+        .rsvp-btn.full {
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+        
+        /* Rules */
+        .event-rules {
+            padding: 12px 18px;
+            background: rgba(0,0,0,0.2);
+            border-top: 1px solid var(--border);
+        }
+        .rules-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .rules-list {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .rule-tag {
+            padding: 4px 10px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 0 22px;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            padding: 8px 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.6rem;
+        }
+        .nav-item .icon { font-size: 1.25rem; }
+        .nav-item.active { color: var(--text-primary); }
+    </style>
+</head>
+<body>
+    <a href="/master" class="dev-link" style="position:fixed;top:8px;right:8px;padding:6px 12px;background:#1a1a1a;border:1px solid #252525;border-radius:4px;color:#888;font-size:0.65rem;text-decoration:none;z-index:1000;">← Dashboard</a>
+    <div class="header">
+        <div class="header-left">
+            <a href="/player/home" class="back-btn">←</a>
+            <h1>Pool Nights</h1>
+        </div>
+        <a href="/player/host-night" class="host-btn">+ Host Night</a>
+    </div>
+    
+    <div class="info-banner">
+        <div class="info-title">🌙 What are Pool Nights?</div>
+        <div class="info-text">Organized sessions hosted by players where everyone plays ranked matches. RSVP to reserve your spot and show up ready to compete. The host sets the rules.</div>
+    </div>
+    
+    <!-- Wallet Balance Banner -->
+    <div id="walletBanner" style="margin: 0 20px 16px; padding: 14px 16px; background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(34,197,94,0.05)); border: 1px solid rgba(34,197,94,0.25); border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Wallet Balance</div>
+            <div style="font-size: 1.3rem; font-weight: 700; color: var(--success);">$<span id="walletBalance">0.00</span></div>
+        </div>
+        <a href="/player/wallet" style="padding: 10px 16px; background: var(--success); border-radius: 8px; color: #111; font-size: 0.8rem; font-weight: 600; text-decoration: none;">+ Add Funds</a>
+    </div>
+    
+    <!-- Your RSVP Stats -->
+    <div id="rsvpStatsSection" style="margin: 0 20px 16px; padding: 16px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Your RSVP Stats</span>
+            <span id="reliabilityBadge" style="padding: 4px 10px; background: rgba(34,197,94,0.15); border-radius: 20px; font-size: 0.75rem; color: var(--success); font-weight: 600;">✓ Reliable Player</span>
+        </div>
+        <div style="display: flex; gap: 16px;">
+            <div style="flex: 1; text-align: center;">
+                <div id="statRsvps" style="font-size: 1.3rem; font-weight: 800; color: var(--accent);">0</div>
+                <div style="font-size: 0.65rem; color: var(--text-muted);">RSVPs</div>
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <div id="statAttended" style="font-size: 1.3rem; font-weight: 800; color: var(--success);">0</div>
+                <div style="font-size: 0.65rem; color: var(--text-muted);">Attended</div>
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <div id="statNoShows" style="font-size: 1.3rem; font-weight: 800; color: var(--text-secondary);">0</div>
+                <div style="font-size: 0.65rem; color: var(--text-muted);">No-Shows</div>
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <div id="statShowRate" style="font-size: 1.3rem; font-weight: 800; color: var(--purple);">--</div>
+                <div style="font-size: 0.65rem; color: var(--text-muted);">Show Rate</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="filters">
+        <button class="filter-btn" data-filter="all" onclick="setFilter('all')">All</button>
+        <button class="filter-btn" data-filter="tonight" onclick="setFilter('tonight')">Tonight</button>
+        <button class="filter-btn" data-filter="this_week" onclick="setFilter('this_week')">This Week</button>
+        <button class="filter-btn" data-filter="near_me" onclick="setFilter('near_me')">Near Me</button>
+        <button class="filter-btn" data-filter="my_rsvps" onclick="setFilter('my_rsvps')">My RSVPs</button>
+    </div>
+    
+    <div class="section-title">🌙 Upcoming Events</div>
+    <div class="events-list" id="eventsList">
+        <div style="padding:20px;text-align:center;color:var(--text-muted);">Loading events...</div>
+    </div>
+    
+    <!-- RSVP Modal -->
+    <div id="rsvpModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;padding:20px;">
+        <div style="background:var(--bg-secondary);border-radius:16px;width:100%;max-width:400px;padding:24px;">
+            <div style="font-size:1.2rem;font-weight:700;margin-bottom:8px;" id="modalTitle">Confirm RSVP</div>
+            <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:20px;" id="modalSubtitle"></div>
+            
+            <div id="entryFeeSection" style="display:none;background:var(--bg-tertiary);border-radius:10px;padding:16px;margin-bottom:16px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <span style="color:var(--text-secondary);font-size:0.9rem;">Entry Fee</span>
+                    <span style="font-size:1.2rem;font-weight:700;color:var(--accent);" id="modalEntryFee">$0.00</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--border);">
+                    <span style="color:var(--text-secondary);font-size:0.85rem;">Your Balance</span>
+                    <span style="font-size:1rem;font-weight:600;" id="modalBalance">$0.00</span>
+                </div>
+            </div>
+            
+            <div id="insufficientFunds" style="display:none;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:14px;margin-bottom:16px;">
+                <div style="font-weight:600;color:#ef4444;margin-bottom:6px;">⚠️ Insufficient Funds</div>
+                <div style="font-size:0.85rem;color:var(--text-secondary);" id="shortfallMsg">You need to add funds to join this event.</div>
+                <a href="/player/wallet" style="display:inline-block;margin-top:10px;padding:10px 16px;background:#ef4444;border-radius:8px;color:white;font-size:0.85rem;font-weight:600;text-decoration:none;">+ Add Funds</a>
+            </div>
+            
+            <div style="display:flex;gap:12px;">
+                <button onclick="closeRsvpModal()" style="flex:1;padding:14px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:10px;color:var(--text-primary);font-size:0.95rem;cursor:pointer;font-family:inherit;">Cancel</button>
+                <button id="confirmRsvpBtn" onclick="confirmRsvp()" style="flex:1;padding:14px;background:var(--purple);border:none;border-radius:10px;color:white;font-size:0.95rem;font-weight:600;cursor:pointer;font-family:inherit;">Confirm RSVP</button>
+            </div>
+        </div>
+    </div>
+    
+        <nav class="bottom-nav">
+        <a href="{% if demo_mode %}/player/demo/home{% else %}/player/home{% endif %}" class="nav-item active"><div class="icon">🎱</div><div>Home</div></a>
+        <a href="{% if demo_mode %}/player/demo/friends{% else %}/player/friends{% endif %}" class="nav-item"><div class="icon">👥</div><div>Friends</div></a>
+        <a href="{% if demo_mode %}/player/demo/challenges{% else %}/player/challenges{% endif %}" class="nav-item"><div class="icon">⚔️</div><div>Challenges</div></a>
+        <a href="{% if demo_mode %}/player/demo/leaderboards{% else %}/player/leaderboard{% endif %}" class="nav-item"><div class="icon">🏆</div><div>Rankings</div></a>
+        <a href="{% if demo_mode %}/player/demo/profile{% else %}/player/profile{% endif %}" class="nav-item"><div class="icon">👤</div><div>Profile</div></a>
+    </nav>
+    
+    <script>
+        let walletBalance = 0;
+        let selectedNightId = null;
+        let selectedEntryFee = 0;
+        let currentFilter = 'all';
+        
+        // Set filter and reload
+        function setFilter(filter) {
+            currentFilter = filter;
+            // Update active state
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === filter);
+            });
+            loadPoolNights();
+        }
+        
+        // Load wallet balance
+        async function loadWalletBalance() {
+            try {
+                const res = await fetch('/player/api/wallet');
+                const data = await res.json();
+                if (!data.error) {
+                    walletBalance = parseFloat(data.balance || 0);
+                    document.getElementById('walletBalance').textContent = walletBalance.toFixed(2);
+                }
+            } catch (e) {
+                console.error('Failed to load wallet:', e);
+            }
+        }
+        
+        // Load pool nights
+        async function loadPoolNights() {
+            document.getElementById('eventsList').innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">Loading events...</div>';
+            
+            try {
+                const res = await fetch(`/player/api/pool-nights?filter=${currentFilter}`);
+                const data = await res.json();
+                
+                if (!data.success) {
+                    document.getElementById('eventsList').innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">Failed to load events</div>';
+                    return;
+                }
+                
+                walletBalance = data.wallet_balance || 0;
+                document.getElementById('walletBalance').textContent = walletBalance.toFixed(2);
+                
+                const nights = data.nights || [];
+                
+                if (nights.length === 0) {
+                    let emptyMsg = 'No upcoming pool nights';
+                    if (currentFilter === 'tonight') emptyMsg = 'No pool nights tonight';
+                    else if (currentFilter === 'this_week') emptyMsg = 'No pool nights this week';
+                    else if (currentFilter === 'near_me') emptyMsg = 'No pool nights near you. Set your home bar in profile settings.';
+                    else if (currentFilter === 'my_rsvps') emptyMsg = "You haven't RSVP'd to any upcoming events";
+                    
+                    document.getElementById('eventsList').innerHTML = `<div style="padding:30px;text-align:center;color:var(--text-muted);font-size:0.9rem;">${emptyMsg}</div>`;
+                    return;
+                }
+                
+                document.getElementById('eventsList').innerHTML = nights.map(night => renderEventCard(night)).join('');
+                
+            } catch (e) {
+                console.error('Failed to load pool nights:', e);
+                document.getElementById('eventsList').innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">Failed to load events</div>';
+            }
+        }
+        
+        function renderEventCard(night) {
+            const date = new Date(night.event_date);
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            const hasRsvp = night.my_rsvp && night.my_rsvp.status === 'going';
+            const hasPaid = night.my_rsvp && night.my_rsvp.paid;
+            const entryFee = night.entry_fee || 0;
+            const canAfford = night.can_afford;
+            const isTournament = night.format === 'tournament';
+            
+            let rsvpBtn;
+            if (isTournament && night.bracket_generated) {
+                rsvpBtn = `<a href="/player/tournament/${night.id}" class="rsvp-btn" style="text-decoration:none;display:inline-block">🏆 View Bracket</a>`;
+            } else if (hasRsvp) {
+                rsvpBtn = `<button class="rsvp-btn joined" onclick="cancelRsvp(${night.id})">✓ ${isTournament ? 'Registered' : 'Joined'}${hasPaid ? ' (Paid)' : ''}</button>`;
+            } else if (entryFee > 0 && !canAfford) {
+                rsvpBtn = `<button class="rsvp-btn" style="background:var(--bg-tertiary);color:var(--text-muted);" onclick="showRsvpModal(${night.id}, '${night.title}', ${entryFee})">💵 $${entryFee.toFixed(2)} Entry</button>`;
+            } else {
+                rsvpBtn = `<button class="rsvp-btn" onclick="showRsvpModal(${night.id}, '${night.title}', ${entryFee})">${entryFee > 0 ? '💵 $' + entryFee.toFixed(2) + ' - ' : ''}${isTournament ? 'Register' : 'RSVP'}</button>`;
+            }
+            
+            const entryFeeTag = entryFee > 0 ? 
+                `<span class="meta-item" style="color:var(--success);">💵 $${entryFee.toFixed(2)}</span>` : '';
+            
+            const tournamentBadge = isTournament ? 
+                `<span class="meta-item" style="background:rgba(168,85,247,0.15);color:#a78bfa;padding:2px 6px;border-radius:4px;font-size:0.65rem;font-weight:600;">🏆 TOURNAMENT</span>` : '';
+            
+            const tournamentInfo = isTournament ? 
+                `<span class="meta-item">${(night.elimination_type || 'single').charAt(0).toUpperCase() + (night.elimination_type || 'single').slice(1)} Elim</span>` : '';
+            
+            return `
+                <div class="event-card" ${isTournament ? 'style="border-left:3px solid #a78bfa;"' : ''}>
+                    <div class="event-header">
+                        <div class="event-time">
+                            <span class="event-day">${dayNames[date.getDay()]}</span>
+                            <span class="event-date">${date.getDate()}</span>
+                            <span class="event-month">${monthNames[date.getMonth()]}</span>
+                        </div>
+                        <div class="event-info">
+                            <div class="event-title">${tournamentBadge} ${night.title || 'Pool Night'}</div>
+                            <div class="event-bar">📍 ${night.bar_name || 'TBD'} • ${night.start_time || 'TBD'}</div>
+                            <div class="event-meta">
+                                <span class="meta-item">${night.game_type || 'Singles'}</span>
+                                ${tournamentInfo}
+                                ${night.ranked_required ? '<span class="meta-item highlight">🏆 Ranked</span>' : ''}
+                                ${entryFeeTag}
+                                <span class="meta-item">👥 ${night.rsvp_count || 0}${night.max_players ? '/' + night.max_players : ''} ${isTournament ? 'registered' : 'spots'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="event-host">
+                        <div class="host-avatar">${(night.host_name || '?')[0].toUpperCase()}</div>
+                        <div class="host-info">
+                            <div class="host-label">Hosted by</div>
+                            <div class="host-name">${night.host_name || 'Unknown'}</div>
+                        </div>
+                    </div>
+                    <div class="event-footer">
+                        <span class="rsvp-count"><strong>${night.rsvp_count || 0}</strong> ${isTournament ? 'registered' : 'going'}</span>
+                        ${rsvpBtn}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function showRsvpModal(nightId, title, entryFee) {
+            selectedNightId = nightId;
+            selectedEntryFee = entryFee;
+            
+            document.getElementById('modalTitle').textContent = 'Join ' + title;
+            document.getElementById('modalSubtitle').textContent = entryFee > 0 ? 'This event has an entry fee' : 'Confirm your RSVP';
+            
+            if (entryFee > 0) {
+                document.getElementById('entryFeeSection').style.display = 'block';
+                document.getElementById('modalEntryFee').textContent = '$' + entryFee.toFixed(2);
+                document.getElementById('modalBalance').textContent = '$' + walletBalance.toFixed(2);
+                document.getElementById('modalBalance').style.color = walletBalance >= entryFee ? 'var(--success)' : '#ef4444';
+                
+                if (walletBalance < entryFee) {
+                    document.getElementById('insufficientFunds').style.display = 'block';
+                    document.getElementById('shortfallMsg').textContent = `You need $${(entryFee - walletBalance).toFixed(2)} more to join.`;
+                    document.getElementById('confirmRsvpBtn').disabled = true;
+                    document.getElementById('confirmRsvpBtn').style.opacity = '0.5';
+                } else {
+                    document.getElementById('insufficientFunds').style.display = 'none';
+                    document.getElementById('confirmRsvpBtn').disabled = false;
+                    document.getElementById('confirmRsvpBtn').style.opacity = '1';
+                }
+            } else {
+                document.getElementById('entryFeeSection').style.display = 'none';
+                document.getElementById('insufficientFunds').style.display = 'none';
+                document.getElementById('confirmRsvpBtn').disabled = false;
+                document.getElementById('confirmRsvpBtn').style.opacity = '1';
+            }
+            
+            document.getElementById('rsvpModal').style.display = 'flex';
+        }
+        
+        function closeRsvpModal() {
+            document.getElementById('rsvpModal').style.display = 'none';
+            selectedNightId = null;
+            selectedEntryFee = 0;
+        }
+        
+        async function confirmRsvp() {
+            if (!selectedNightId) return;
+            
+            try {
+                const res = await fetch(`/player/api/pool-night/${selectedNightId}/rsvp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'going' })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    closeRsvpModal();
+                    if (data.payment) {
+                        walletBalance = data.payment.new_balance;
+                        document.getElementById('walletBalance').textContent = walletBalance.toFixed(2);
+                        showToast(`✓ Joined! $${data.entry_fee.toFixed(2)} entry fee paid`, 'success');
+                    } else {
+                        showToast('✓ RSVP confirmed!', 'success');
+                    }
+                    loadPoolNights();
+                } else {
+                    if (data.error === 'insufficient_funds') {
+                        showToast('Not enough funds in wallet', 'error');
+                    } else {
+                        showToast(data.message || 'Failed to RSVP', 'error');
+                    }
+                }
+            } catch (e) {
+                showToast('Connection error', 'error');
+            }
+        }
+        
+        async function cancelRsvp(nightId) {
+            if (!confirm('Cancel your RSVP? If you paid an entry fee, it will be refunded.')) return;
+            
+            try {
+                const res = await fetch(`/player/api/pool-night/${nightId}/cancel-rsvp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    if (data.refund && data.refund.refunded) {
+                        walletBalance = data.refund.new_balance;
+                        document.getElementById('walletBalance').textContent = walletBalance.toFixed(2);
+                        showToast(`RSVP cancelled. $${data.refund.amount.toFixed(2)} refunded.`, 'success');
+                    } else {
+                        showToast('RSVP cancelled', 'success');
+                    }
+                    loadPoolNights();
+                } else {
+                    showToast(data.error || 'Failed to cancel', 'error');
+                }
+            } catch (e) {
+                showToast('Connection error', 'error');
+            }
+        }
+        
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position:fixed; top:80px; left:50%; transform:translateX(-50%); z-index:9999;
+                padding:14px 24px; border-radius:10px; font-weight:600;
+                background:${type === 'success' ? 'rgba(34,197,94,0.95)' : 'rgba(239,68,68,0.95)'};
+                color:white; box-shadow:0 8px 32px rgba(0,0,0,0.3);
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        // Load RSVP stats for logged-in player
+        async function loadRsvpStats() {
+            try {
+                const res = await fetch('/player/api/rsvp-stats/me');
+                const data = await res.json();
+                
+                if (data.success && data.stats) {
+                    const stats = data.stats;
+                    document.getElementById('statRsvps').textContent = stats.total_rsvps || 0;
+                    document.getElementById('statAttended').textContent = stats.total_attended || 0;
+                    document.getElementById('statNoShows').textContent = stats.total_no_shows || 0;
+                    
+                    // Use server-calculated show_rate, or calculate correctly
+                    let showRate = 0;
+                    if (stats.show_rate !== undefined) {
+                        showRate = stats.show_rate;
+                    } else if (stats.total_rsvps > 0) {
+                        showRate = Math.round((stats.total_attended / stats.total_rsvps) * 100);
+                    }
+                    // 0% when no attended, not default 100%
+                    document.getElementById('statShowRate').textContent = showRate + '%';
+                    
+                    // Update reliability badge based on show rate
+                    const badge = document.getElementById('reliabilityBadge');
+                    if (stats.total_rsvps === 0) {
+                        badge.textContent = '🆕 New Player';
+                        badge.style.background = 'rgba(139,92,246,0.15)';
+                        badge.style.color = 'var(--purple)';
+                    } else if (showRate >= 80) {
+                        badge.textContent = '✓ Reliable Player';
+                        badge.style.background = 'rgba(34,197,94,0.15)';
+                        badge.style.color = 'var(--success)';
+                    } else if (showRate >= 50) {
+                        badge.textContent = '⚠️ Mixed Record';
+                        badge.style.background = 'rgba(249,115,22,0.15)';
+                        badge.style.color = '#f97316';
+                    } else {
+                        badge.textContent = '⚠️ Low Reliability';
+                        badge.style.background = 'rgba(239,68,68,0.15)';
+                        badge.style.color = '#ef4444';
+                    }
+                    
+                    // Show upcoming RSVPs count if any
+                    if (stats.upcoming_rsvps && stats.upcoming_rsvps > 0) {
+                        document.getElementById('statRsvps').innerHTML = `${stats.total_rsvps || 0} <span style="font-size:0.6rem;color:var(--purple)">(${stats.upcoming_rsvps} upcoming)</span>`;
+                    }
+                } else {
+                    // Hide stats section if not logged in
+                    document.getElementById('rsvpStatsSection').style.display = 'none';
+                }
+            } catch (e) {
+                console.error('Failed to load RSVP stats:', e);
+            }
+        }
+        
+        // Initialize with "all" filter active
+        document.querySelector('.filter-btn[data-filter="all"]').classList.add('active');
+        
+        // Load data on page load
+        loadPoolNights();
+        loadRsvpStats();
+    </script>
+</body>
+</html>

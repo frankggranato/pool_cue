@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pending Campaigns - Pool Cue</title>
+    <link rel="stylesheet" href="/static/css/master-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.05);--t1:#e4e4e7;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--red:#ef4444}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:11px}
+        .p{padding:12px 16px}
+        .hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+        .hdr h1{font-size:0.95rem;font-weight:600}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:12px}
+        .card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+        .campaign-name{font-size:0.9rem;font-weight:600}
+        .campaign-meta{font-size:0.7rem;color:var(--t3);margin-top:4px}
+        .badge{padding:3px 8px;border-radius:4px;font-size:0.6rem;font-weight:600;text-transform:uppercase}
+        .badge-gold{background:rgba(234,179,8,0.15);color:var(--gold)}
+        .details{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:12px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:12px 0}
+        .detail{text-align:center}
+        .detail-value{font-size:0.9rem;font-weight:600;color:var(--gold)}
+        .detail-label{font-size:0.55rem;color:var(--t3);text-transform:uppercase;margin-top:2px}
+        .creatives{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+        .creative{width:80px;height:45px;background:#1a1a1a;border-radius:4px;overflow:hidden}
+        .creative img{width:100%;height:100%;object-fit:cover}
+        .actions{display:flex;gap:8px;margin-top:12px}
+        .btn{padding:8px 16px;border-radius:5px;font-size:0.7rem;font-weight:500;cursor:pointer;border:none;font-family:inherit}
+        .btn-approve{background:var(--green);color:#fff}
+        .btn-approve:hover{background:#16a34a}
+        .btn-reject{background:transparent;border:1px solid var(--red);color:var(--red)}
+        .btn-reject:hover{background:rgba(239,68,68,0.1)}
+        .empty{text-align:center;padding:60px;color:var(--t3)}
+        .empty-icon{font-size:3rem;margin-bottom:12px}
+    </style>
+</head>
+<body>
+    {% include 'master/_nav.html' %}
+    <div class="p">
+        <div class="hdr">
+            <h1>📋 Pending Campaign Approvals</h1>
+            <a href="/master/advertisers" style="color:var(--t2);text-decoration:none;font-size:0.7rem">← Back to Advertisers</a>
+        </div>
+        
+        {% if campaigns %}
+        {% for camp in campaigns %}
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <div class="campaign-name">{{ camp.name }}</div>
+                    <div class="campaign-meta">{{ camp.advertiser_name }} · {{ camp.contact_email }}</div>
+                </div>
+                <span class="badge badge-gold">Pending Review</span>
+            </div>
+            
+            <div class="details">
+                <div class="detail">
+                    <div class="detail-value">{{ camp.creative_count }}</div>
+                    <div class="detail-label">Creatives</div>
+                </div>
+                <div class="detail">
+                    <div class="detail-value">{{ camp.start_date or 'ASAP' }}</div>
+                    <div class="detail-label">Start</div>
+                </div>
+                <div class="detail">
+                    <div class="detail-value">{{ camp.end_date or 'Ongoing' }}</div>
+                    <div class="detail-label">End</div>
+                </div>
+                <div class="detail">
+                    <div class="detail-value">${{ '%.0f'|format(camp.budget or 0) }}</div>
+                    <div class="detail-label">Budget</div>
+                </div>
+            </div>
+            
+            <div style="font-size:0.7rem;color:var(--t2);margin-bottom:8px">
+                Submitted: {{ camp.submitted_at }}
+            </div>
+            
+            <div class="actions">
+                <form action="/master/campaign/{{ camp.id }}/approve" method="POST" style="display:inline">
+                    <button type="submit" class="btn btn-approve">✓ Approve</button>
+                </form>
+                <form action="/master/campaign/{{ camp.id }}/reject" method="POST" style="display:inline" onsubmit="return confirm('Reject this campaign?')">
+                    <input type="hidden" name="reason" value="Did not meet content guidelines">
+                    <button type="submit" class="btn btn-reject">✕ Reject</button>
+                </form>
+                <a href="/master/advertiser/{{ camp.advertiser_id }}" style="margin-left:auto;color:var(--t2);font-size:0.7rem;text-decoration:none">View Advertiser →</a>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty">
+            <div class="empty-icon">✅</div>
+            <div style="font-size:0.9rem;font-weight:500;margin-bottom:4px">All Caught Up!</div>
+            <div>No campaigns pending review</div>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

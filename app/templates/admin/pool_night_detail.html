@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <title>{{ night.title or 'Pool Night' }} - Bar Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555;
+            --accent: #f5c518; --success: #22c55e; --danger: #ef4444; --warning: #f97316;
+            --purple: #a855f7; --border: rgba(255,255,255,0.08);
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--border); }
+        .logo { font-size: 1.2rem; font-weight: 800; display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+        .logo-mark { width: 28px; height: 28px; background: var(--accent); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: #111; }
+        .nav { display: flex; gap: 6px; }
+        .nav-link { padding: 8px 16px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); text-decoration: none; font-size: 0.8rem; font-weight: 500; }
+        .nav-link:hover { border-color: rgba(255,255,255,0.2); color: var(--text-primary); }
+        .nav-link.active { background: var(--text-primary); border-color: var(--text-primary); color: var(--bg-primary); }
+        
+        .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+        .back-link { display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; margin-bottom: 16px; }
+        .back-link:hover { color: var(--text-primary); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/master" class="logo"><div class="logo-mark">🎱</div>Pool Cue</a>
+        <nav class="nav">
+            <a href="/admin" class="nav-link">Queue</a>
+            <a href="/admin/pool-nights" class="nav-link active">🌙 Pool Nights</a>
+            <a href="/admin/settings" class="nav-link">Settings</a>
+        </nav>
+    </div>
+    
+    <div class="container">
+        <a href="/admin/pool-nights" class="back-link">← Back to Pool Nights</a>
+        
+        <!-- Event Header -->
+        <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:20px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+                <div>
+                    <h1 style="font-size:1.4rem;font-weight:700;margin-bottom:8px;">{{ night.title or 'Pool Night' }}</h1>
+                    <div style="display:flex;gap:16px;font-size:0.85rem;color:var(--text-secondary);">
+                        <span>📅 {{ night.event_date }}</span>
+                        <span>🕐 {{ night.start_time or 'TBD' }}{% if night.end_time %} - {{ night.end_time }}{% endif %}</span>
+                    </div>
+                </div>
+                <div>
+                    {% if night.status == 'pending' %}
+                    <span style="padding:8px 16px;background:rgba(249,115,22,0.15);color:var(--warning);border-radius:20px;font-size:0.8rem;font-weight:600;">⏳ Pending Approval</span>
+                    {% elif night.status == 'approved' %}
+                    <span style="padding:8px 16px;background:rgba(34,197,94,0.15);color:var(--success);border-radius:20px;font-size:0.8rem;font-weight:600;">✓ Approved</span>
+                    {% elif night.status == 'cancelled' %}
+                    <span style="padding:8px 16px;background:rgba(255,255,255,0.08);color:var(--text-muted);border-radius:20px;font-size:0.8rem;font-weight:600;">✗ Cancelled</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+                <div style="background:var(--bg-tertiary);border-radius:8px;padding:14px;text-align:center;">
+                    <div style="font-size:1.2rem;font-weight:700;color:var(--accent);">{{ rsvps|length }}</div>
+                    <div style="font-size:0.7rem;color:var(--text-muted);">RSVPs</div>
+                </div>
+                <div style="background:var(--bg-tertiary);border-radius:8px;padding:14px;text-align:center;">
+                    <div style="font-size:1.2rem;font-weight:700;{% if night.entry_fee and night.entry_fee > 0 %}color:var(--success);{% else %}color:var(--text-muted);{% endif %}">${{ "%.2f"|format(night.entry_fee or 0) }}</div>
+                    <div style="font-size:0.7rem;color:var(--text-muted);">Entry Fee</div>
+                </div>
+                <div style="background:var(--bg-tertiary);border-radius:8px;padding:14px;text-align:center;">
+                    <div style="font-size:1.2rem;font-weight:700;">{{ night.max_players or '∞' }}</div>
+                    <div style="font-size:0.7rem;color:var(--text-muted);">Max Players</div>
+                </div>
+                <div style="background:var(--bg-tertiary);border-radius:8px;padding:14px;text-align:center;">
+                    <div style="font-size:1.2rem;font-weight:700;{% if night.ranked_required %}color:var(--accent);{% else %}color:var(--text-muted);{% endif %}">{% if night.ranked_required %}🏆 Yes{% else %}No{% endif %}</div>
+                    <div style="font-size:0.7rem;color:var(--text-muted);">Ranked</div>
+                </div>
+            </div>
+            
+            {% if night.description %}
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+                <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;">Description</div>
+                <div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.5;">{{ night.description }}</div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- RSVPs List -->
+        <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+            <div style="padding:14px 18px;border-bottom:1px solid var(--border);">
+                <span style="font-size:0.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">👥 Registered Players ({{ rsvps|length }})</span>
+            </div>
+            
+            {% if rsvps %}
+            <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="background:var(--bg-tertiary);">
+                        <th style="text-align:left;padding:10px 18px;font-size:0.7rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;">#</th>
+                        <th style="text-align:left;padding:10px 18px;font-size:0.7rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;">Player</th>
+                        <th style="text-align:left;padding:10px 18px;font-size:0.7rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;">RSVP Date</th>
+                        <th style="text-align:center;padding:10px 18px;font-size:0.7rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;">Paid</th>
+                        <th style="text-align:center;padding:10px 18px;font-size:0.7rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;">Checked In</th>
+                        <th style="text-align:center;padding:10px 18px;font-size:0.7rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;">Reliability</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rsvp in rsvps %}
+                    <tr style="border-bottom:1px solid var(--border);">
+                        <td style="padding:12px 18px;font-size:0.85rem;color:var(--text-muted);">{{ loop.index }}</td>
+                        <td style="padding:12px 18px;">
+                            <div style="font-weight:500;">{{ rsvp.nickname }}</div>
+                            {% if rsvp.email %}<div style="font-size:0.7rem;color:var(--text-muted);">{{ rsvp.email }}</div>{% endif %}
+                        </td>
+                        <td style="padding:12px 18px;font-size:0.8rem;color:var(--text-secondary);">{{ rsvp.rsvp_at[:16] if rsvp.rsvp_at else 'N/A' }}</td>
+                        <td style="padding:12px 18px;text-align:center;">
+                            {% if rsvp.paid %}
+                            <span style="color:var(--success);">✓ Paid</span>
+                            {% else %}
+                            <span style="color:var(--text-muted);">-</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding:12px 18px;text-align:center;">
+                            {% if rsvp.checked_in %}
+                            <span style="color:var(--success);">✓</span>
+                            {% else %}
+                            <span style="color:var(--text-muted);">-</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding:12px 18px;text-align:center;">
+                            {% if rsvp.show_rate %}
+                            <span style="{% if rsvp.show_rate >= 80 %}color:var(--success);{% elif rsvp.show_rate >= 50 %}color:var(--warning);{% else %}color:var(--danger);{% endif %}">{{ "%.0f"|format(rsvp.show_rate) }}%</span>
+                            {% else %}
+                            <span style="color:var(--text-muted);">New</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="padding:40px;text-align:center;">
+                <div style="font-size:2rem;margin-bottom:12px;">👥</div>
+                <div style="font-weight:600;margin-bottom:8px;">No RSVPs Yet</div>
+                <div style="color:var(--text-muted);font-size:0.85rem;">Players will appear here once they RSVP.</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

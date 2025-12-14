@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheduled Rules - Pool Cue</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root { --bg: #111; --card: #1a1a1a; --border: rgba(255,255,255,0.08); --text: #f2f2f2; --muted: #888; --accent: #f5c518; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        h1 { font-size: 1.4rem; }
+        .back { color: var(--muted); text-decoration: none; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .card h2 { font-size: 1rem; margin-bottom: 16px; color: var(--muted); }
+        .form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+        select, input { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 0.9rem; }
+        select { min-width: 140px; }
+        input[type="time"] { width: 120px; }
+        .btn { background: var(--accent); border: none; border-radius: 8px; padding: 12px 24px; color: #111; font-weight: 600; cursor: pointer; }
+        .btn-delete { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 6px 12px; font-size: 0.8rem; }
+        .rule-list { margin-top: 20px; }
+        .rule-item { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: var(--bg); border-radius: 8px; margin-bottom: 8px; }
+        .rule-info { display: flex; gap: 16px; flex-wrap: wrap; }
+        .rule-tag { background: rgba(245,197,24,0.15); color: var(--accent); padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; }
+        .rule-time { color: var(--muted); font-size: 0.85rem; }
+        .empty { text-align: center; padding: 40px; color: var(--muted); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/admin" class="back">← Back</a>
+        <h1>⏰ Scheduled Rules</h1>
+    </div>
+    
+    <div class="card">
+        <h2>Add New Scheduled Rule</h2>
+        <form action="/admin/scheduled-rules/add" method="POST">
+            <div class="form-row">
+                <select name="day_of_week">
+                    {% for i in range(7) %}
+                    <option value="{{ i }}">{{ days[i] }}</option>
+                    {% endfor %}
+                </select>
+                <input type="time" name="start_time" value="19:00" required>
+                <span style="color:var(--muted);align-self:center;">to</span>
+                <input type="time" name="end_time" value="04:00" required>
+            </div>
+            <div class="form-row">
+                <select name="game_type">
+                    <option value="singles">Singles Only</option>
+                    <option value="doubles">Doubles Only</option>
+                </select>
+                <select name="rule_type">
+                    <option value="bar_rules">Bar Rules</option>
+                    <option value="apa">APA Rules</option>
+                    <option value="bca">BCA Rules</option>
+                </select>
+                <button type="submit" class="btn">Add Rule</button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="card">
+        <h2>Active Scheduled Rules</h2>
+        <div class="rule-list">
+            {% for rule in rules %}
+            <div class="rule-item">
+                <div class="rule-info">
+                    <span class="rule-tag">{{ days[rule.day_of_week] }}</span>
+                    <span class="rule-time">{{ rule.start_time }} - {{ rule.end_time }}</span>
+                    <span class="rule-tag">{{ rule.game_type|title }}</span>
+                    <span style="color:var(--muted);">{{ rule.rule_type|replace('_', ' ')|title }}</span>
+                </div>
+                <form action="/admin/scheduled-rules/delete/{{ rule.id }}" method="POST" style="margin:0;">
+                    <button type="submit" class="btn btn-delete">Delete</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="empty">No scheduled rules yet. Add one above.</div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <p style="color:var(--muted);font-size:0.85rem;margin-top:20px;">
+        💡 Scheduled rules automatically override default rules during the specified times. 
+        For overnight rules (e.g., 7pm-4am), the end time will be interpreted as the next day.
+    </p>
+</body>
+</html>

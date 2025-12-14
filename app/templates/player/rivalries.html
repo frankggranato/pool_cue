@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <title>Rivalries - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555;
+            --accent: #f5c518; --success: #22c55e; --danger: #ef4444; --border: rgba(255,255,255,0.08);
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding-bottom: 80px; }
+        .dev-link { position: fixed; top: 8px; right: 8px; padding: 6px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-muted); font-size: 0.65rem; text-decoration: none; z-index: 1000; }
+        
+        .header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+        .header-content { flex: 1; }
+        .header h1 { font-size: 1.25rem; font-weight: 700; }
+        .header p { font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; }
+        .back-btn { color: var(--text-secondary); font-size: 1rem; text-decoration: none; }
+        .back-btn:hover { color: var(--text-primary); }
+        
+        .top-rivalry { background: linear-gradient(135deg, rgba(245,197,24,0.1), rgba(245,197,24,0.02)); border: 1px solid rgba(245,197,24,0.15); margin: 16px; border-radius: 12px; padding: 20px; text-align: center; }
+        .top-rivalry .label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+        .rivalry-vs { display: flex; align-items: center; justify-content: center; gap: 20px; }
+        .rivalry-player { text-align: center; }
+        .rivalry-player .avatar { width: 56px; height: 56px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin: 0 auto 8px; }
+        .rivalry-player .name { font-weight: 500; font-size: 0.9rem; }
+        .rivalry-player .record { font-size: 1.5rem; font-weight: 700; margin-top: 4px; }
+        .rivalry-player.you .record { color: var(--success); }
+        .rivalry-player.them .record { color: var(--danger); }
+        .vs-badge { background: var(--bg-tertiary); padding: 10px 14px; border-radius: 50%; font-weight: 700; font-size: 0.85rem; color: var(--text-secondary); }
+        .rivalry-stats { display: flex; justify-content: center; gap: 30px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+        .rivalry-stat { text-align: center; }
+        .rivalry-stat .value { font-size: 1.1rem; font-weight: 600; }
+        .rivalry-stat .label { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+        
+        .section-title { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; padding: 16px 20px 10px; }
+        .rivalry-list { padding: 0 16px; }
+        .rivalry-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; }
+        .rivalry-card.hot { border-color: rgba(239,68,68,0.2); }
+        .rivalry-card .avatar { width: 46px; height: 46px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .rivalry-card .info { flex: 1; }
+        .rivalry-card .name { font-weight: 500; }
+        .rivalry-card .meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+        .rivalry-card .score-box { text-align: center; }
+        .rivalry-card .score { font-size: 1rem; font-weight: 700; }
+        .rivalry-card .score .wins { color: var(--success); }
+        .rivalry-card .score .losses { color: var(--danger); }
+        .rivalry-card .intensity { font-size: 0.65rem; padding: 3px 8px; border-radius: 4px; margin-top: 4px; display: inline-block; }
+        .intensity-hot { background: rgba(239,68,68,0.15); color: var(--danger); }
+        .intensity-warm { background: rgba(245,197,24,0.15); color: var(--accent); }
+        .intensity-chill { background: rgba(100,150,255,0.15); color: #74c0fc; }
+        .challenge-btn { padding: 8px 14px; background: rgba(245,197,24,0.1); border: 1px solid rgba(245,197,24,0.2); border-radius: 6px; color: var(--accent); font-size: 0.8rem; cursor: pointer; font-family: inherit; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-primary); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 6px 0 22px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 14px; color: var(--text-muted); text-decoration: none; font-size: 0.6rem; }
+        .nav-item .icon { font-size: 1.25rem; }
+        .nav-item.active { color: var(--text-primary); }
+    </style>
+</head>
+<body>
+    <a href="/master" class="dev-link">← Dashboard</a>
+    <div class="header">
+        <a href="/player/profile" class="back-btn">←</a>
+        <div class="header-content">
+            <h1>🔥 Rivalries</h1>
+            <p>Players you've battled the most</p>
+        </div>
+    </div>
+    
+    <div class="top-rivalry">
+        <div class="label">🏆 Your Top Rivalry</div>
+        <div class="rivalry-vs">
+            <div class="rivalry-player you">
+                <div class="avatar">😎</div>
+                <div class="name">You</div>
+                <div class="record">7</div>
+            </div>
+            <div class="vs-badge">VS</div>
+            <div class="rivalry-player them">
+                <div class="avatar">🎱</div>
+                <div class="name">Mike</div>
+                <div class="record">5</div>
+            </div>
+        </div>
+        <div class="rivalry-stats">
+            <div class="rivalry-stat"><div class="value">12</div><div class="label">Total Games</div></div>
+            <div class="rivalry-stat"><div class="value">🔥 85</div><div class="label">Intensity</div></div>
+            <div class="rivalry-stat"><div class="value">3 days</div><div class="label">Last Match</div></div>
+        </div>
+    </div>
+    
+    <div class="section-title">All Rivalries</div>
+    
+    <div class="rivalry-list">
+        <div class="rivalry-card hot">
+            <div class="avatar">🎱</div>
+            <div class="info"><div class="name">Mike</div><div class="meta">12 games • Last played 3 days ago</div></div>
+            <div class="score-box"><div class="score"><span class="wins">7</span> - <span class="losses">5</span></div><div class="intensity intensity-hot">🔥 Hot</div></div>
+            <button class="challenge-btn">⚔️</button>
+        </div>
+        <div class="rivalry-card hot">
+            <div class="avatar">🎱</div>
+            <div class="info"><div class="name">Steve</div><div class="meta">8 games • Last played 1 week ago</div></div>
+            <div class="score-box"><div class="score"><span class="wins">4</span> - <span class="losses">4</span></div><div class="intensity intensity-hot">🔥 Hot</div></div>
+            <button class="challenge-btn">⚔️</button>
+        </div>
+        <div class="rivalry-card">
+            <div class="avatar">🎱</div>
+            <div class="info"><div class="name">Jake</div><div class="meta">6 games • Last played 2 weeks ago</div></div>
+            <div class="score-box"><div class="score"><span class="wins">2</span> - <span class="losses">4</span></div><div class="intensity intensity-warm">⚡ Warm</div></div>
+            <button class="challenge-btn">⚔️</button>
+        </div>
+        <div class="rivalry-card">
+            <div class="avatar">🎱</div>
+            <div class="info"><div class="name">Tony</div><div class="meta">4 games • Last played 3 weeks ago</div></div>
+            <div class="score-box"><div class="score"><span class="wins">3</span> - <span class="losses">1</span></div><div class="intensity intensity-chill">❄️ Chill</div></div>
+            <button class="challenge-btn">⚔️</button>
+        </div>
+    </div>
+    
+        <nav class="bottom-nav">
+        <a href="{% if demo_mode %}/player/demo/home{% else %}/player/home{% endif %}" class="nav-item"><div class="icon">🎱</div><div>Home</div></a>
+        <a href="{% if demo_mode %}/player/demo/friends{% else %}/player/friends{% endif %}" class="nav-item"><div class="icon">👥</div><div>Friends</div></a>
+        <a href="{% if demo_mode %}/player/demo/challenges{% else %}/player/challenges{% endif %}" class="nav-item"><div class="icon">⚔️</div><div>Challenges</div></a>
+        <a href="{% if demo_mode %}/player/demo/leaderboards{% else %}/player/leaderboard{% endif %}" class="nav-item active"><div class="icon">🏆</div><div>Rankings</div></a>
+        <a href="{% if demo_mode %}/player/demo/profile{% else %}/player/profile{% endif %}" class="nav-item"><div class="icon">👤</div><div>Profile</div></a>
+    </nav>
+</body>
+</html>

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pool Nights - Pool Cue</title>
+    <link rel="stylesheet" href="/static/css/master-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.05);--t1:#e4e4e7;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;--orange:#f97316;--cyan:#06b6d4}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:11px;line-height:1.3}
+        .p{padding:12px 16px}
+        .hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+        .hdr h1{font-size:0.85rem;font-weight:600}
+        .btn{padding:5px 12px;border-radius:4px;font-size:0.65rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:0;color:var(--t2);text-decoration:none}
+        .btn:hover{border-color:var(--gold);color:var(--gold)}.btn-p{background:var(--gold);border-color:var(--gold);color:#000}
+        .btn-green{background:var(--green);border-color:var(--green);color:#000}
+        .btn-green:hover{background:#16a34a;border-color:#16a34a}
+        .btn-red{background:transparent;border-color:var(--red);color:var(--red)}
+        .btn-red:hover{background:var(--red);color:#000}
+        .kpi{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:12px}
+        .k{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:10px;text-align:center}
+        .k-v{font-size:1.1rem;font-weight:600;color:var(--gold)}.k-l{font-size:0.5rem;color:var(--t3);text-transform:uppercase;margin-top:2px}
+        .k.pending .k-v{color:var(--orange)}.k.accepted .k-v{color:var(--green)}.k.rejected .k-v{color:var(--red)}.k.cancelled .k-v{color:var(--t3)}
+        .tabs{display:flex;gap:4px;margin-bottom:12px}
+        .tab{padding:6px 14px;border-radius:4px;font-size:0.65rem;font-weight:500;background:var(--card);border:1px solid var(--border);color:var(--t2);cursor:pointer;display:flex;align-items:center;gap:6px;text-decoration:none}
+        .tab:hover{border-color:rgba(255,255,255,0.1);color:var(--t1)}
+        .tab.active{background:var(--gold);border-color:var(--gold);color:#000}
+        .tab-count{padding:2px 6px;border-radius:10px;font-size:0.55rem;background:rgba(0,0,0,0.2)}
+        .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px}
+        .c{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+        .c-status{padding:3px 8px;font-size:0.5rem;font-weight:600;text-transform:uppercase;border-radius:3px}
+        .c-status.pending{background:rgba(249,115,22,0.15);color:var(--orange)}
+        .c-status.accepted,.c-status.approved{background:rgba(34,197,94,0.15);color:var(--green)}
+        .c-status.rejected{background:rgba(239,68,68,0.15);color:var(--red)}
+        .c-status.cancelled{background:rgba(113,113,122,0.15);color:var(--t3)}
+        .c-status.upcoming{background:rgba(6,182,212,0.15);color:var(--cyan)}
+        .c-header{padding:12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start}
+        .c-title{font-size:0.8rem;font-weight:600;margin-bottom:4px}
+        .c-meta{font-size:0.6rem;color:var(--t3)}
+        .c-body{padding:12px}
+        .c-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.7rem}
+        .c-row:last-child{border:0}.c-row-l{color:var(--t3)}.c-row-v{font-weight:500}
+        .c-badges{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+        .c-badge{padding:3px 8px;border-radius:3px;font-size:0.5rem;font-weight:600;text-transform:uppercase}
+        .c-badge.ranked{background:rgba(168,85,247,0.15);color:var(--purple)}
+        .c-badge.unranked{background:rgba(255,255,255,0.08);color:var(--t3)}
+        .c-badge.sponsored{background:rgba(234,179,8,0.15);color:var(--gold)}
+        .c-section{margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+        .c-section-t{font-size:0.55rem;color:var(--t3);text-transform:uppercase;margin-bottom:6px}
+        .c-terms{font-size:0.65rem;color:var(--t2);line-height:1.5;background:rgba(0,0,0,0.2);padding:8px;border-radius:4px}
+        .c-sponsor{display:flex;align-items:center;gap:8px;padding:8px;background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.2);border-radius:4px;margin-top:8px}
+        .c-sponsor-logo{width:32px;height:32px;background:var(--card);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:1rem}
+        .c-sponsor-info{flex:1}.c-sponsor-name{font-weight:600;font-size:0.7rem;color:var(--gold)}.c-sponsor-type{font-size:0.55rem;color:var(--t3)}
+        .c-footer{padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:6px;justify-content:space-between;align-items:center}
+        .c-footer-actions{display:flex;gap:6px}.c-footer-status{font-size:0.6rem;display:flex;align-items:center;gap:4px}
+        .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto}
+        .modal-bg.show{display:flex}
+        .modal{background:var(--card);border:1px solid var(--border);border-radius:8px;width:100%;max-width:650px}
+        .modal-h{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+        .modal-t{font-size:0.85rem;font-weight:600}.modal-x{background:0;border:0;color:var(--t3);font-size:1.4rem;cursor:pointer}
+        .modal-b{padding:16px;max-height:65vh;overflow-y:auto}.modal-f{padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+        .form-g{margin-bottom:14px}.form-l{display:block;font-size:0.6rem;color:var(--t2);margin-bottom:4px;font-weight:500}
+        .form-c{width:100%;padding:8px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.75rem;font-family:inherit}
+        .form-c:focus{outline:none;border-color:var(--gold)}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .form-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+        .form-row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+        .form-hint{font-size:0.55rem;color:var(--t3);margin-top:3px}
+        .form-section{margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+        .form-section-t{font-size:0.65rem;font-weight:600;color:var(--t2);text-transform:uppercase;margin-bottom:10px}
+        .radio-group{display:flex;gap:12px}
+        .radio-option{display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:4px;cursor:pointer;flex:1}
+        .radio-option:hover{border-color:rgba(255,255,255,0.1)}
+        .radio-option.selected{border-color:var(--gold);background:rgba(234,179,8,0.1)}
+        .radio-option input{display:none}
+        .radio-dot{width:14px;height:14px;border:2px solid var(--t3);border-radius:50%;position:relative}
+        .radio-option.selected .radio-dot{border-color:var(--gold)}
+        .radio-option.selected .radio-dot::after{content:'';position:absolute;inset:2px;background:var(--gold);border-radius:50%}
+        .radio-label{font-size:0.7rem;font-weight:500}.radio-desc{font-size:0.55rem;color:var(--t3)}
+        a{color:var(--gold);text-decoration:none}
+    </style>
+</head>
+<body>
+    {% include 'master/_nav.html' %}
+    <div class="p">
+        <div class="hdr">
+            <h1>🌙 Pool Nights</h1>
+            <button class="btn btn-p" onclick="openCreateModal()">+ Create Pool Night</button>
+        </div>
+        
+        <div class="kpi">
+            <div class="k"><div class="k-v" style="color:var(--cyan)">{{ upcoming_count }}</div><div class="k-l">Upcoming</div></div>
+            <div class="k pending"><div class="k-v">{{ pending_count }}</div><div class="k-l">Pending</div></div>
+            <div class="k cancelled"><div class="k-v">{{ cancelled_count or 0 }}</div><div class="k-l">Cancelled</div></div>
+            <div class="k accepted"><div class="k-v">{{ accepted_count }}</div><div class="k-l">Accepted</div></div>
+            <div class="k rejected"><div class="k-v">{{ rejected_count }}</div><div class="k-l">Rejected</div></div>
+            <div class="k"><div class="k-v">{{ total_nights }}</div><div class="k-l">Total</div></div>
+        </div>
+        
+        <div class="tabs">
+            <a href="/master/pool-nights?status=upcoming" class="tab {% if current_filter == 'upcoming' %}active{% endif %}">📅 Upcoming <span class="tab-count">{{ upcoming_count }}</span></a>
+            <a href="/master/pool-nights?status=pending" class="tab {% if current_filter == 'pending' %}active{% endif %}">🟠 Pending <span class="tab-count">{{ pending_count }}</span></a>
+            <a href="/master/pool-nights?status=cancelled" class="tab {% if current_filter == 'cancelled' %}active{% endif %}">⚫ Cancelled <span class="tab-count">{{ cancelled_count or 0 }}</span></a>
+            <a href="/master/pool-nights?status=approved" class="tab {% if current_filter == 'approved' %}active{% endif %}">🟢 Accepted <span class="tab-count">{{ accepted_count }}</span></a>
+            <a href="/master/pool-nights?status=rejected" class="tab {% if current_filter == 'rejected' %}active{% endif %}">🔴 Rejected <span class="tab-count">{{ rejected_count }}</span></a>
+            <a href="/master/pool-nights?status=all" class="tab {% if current_filter == 'all' %}active{% endif %}">All <span class="tab-count">{{ total_nights }}</span></a>
+        </div>
+        
+        <div class="grid">
+            {% if events and events|length > 0 %}
+            {% for event in events %}
+            <div class="c" data-status="{{ event.status }}">
+                <div class="c-header">
+                    <div>
+                        <div class="c-title">{% if event.format == 'tournament' %}🏆{% elif event.game_type == 'ranked' %}🎱{% else %}🎱{% endif %} {{ event.title or 'Pool Night' }}</div>
+                        <div class="c-meta">{{ event.bar_name or 'Unknown Bar' }} · {{ event.created_at[:10] if event.created_at else 'N/A' }}</div>
+                    </div>
+                    <div style="display:flex;gap:4px;align-items:center">
+                        {% if event.format == 'tournament' %}
+                        <span class="c-status" style="background:rgba(168,85,247,0.15);color:#a855f7">Tournament</span>
+                        {% endif %}
+                        {% if current_filter == 'upcoming' %}
+                        <span class="c-status upcoming">📅 Upcoming</span>
+                        {% else %}
+                        <span class="c-status {{ event.status }}">{{ event.status|title }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="c-body">
+                    <div class="c-row"><span class="c-row-l">Bar</span><span class="c-row-v"><a href="/master/bar/{{ event.bar_id }}">{{ event.bar_name or 'Unknown' }}</a></span></div>
+                    <div class="c-row"><span class="c-row-l">Date & Time</span><span class="c-row-v">{{ event.event_date }} {% if event.start_time %}· {{ event.start_time }}{% endif %}</span></div>
+                    <div class="c-row"><span class="c-row-l">Type</span><span class="c-row-v">{% if event.format == 'tournament' %}Tournament ({{ event.elimination_type|default('single')|title }} Elim){% else %}{{ event.game_type|title if event.game_type else 'Open' }}{% endif %}</span></div>
+                    {% if event.max_players %}
+                    <div class="c-row"><span class="c-row-l">Max Players</span><span class="c-row-v">{{ event.max_players }}</span></div>
+                    {% endif %}
+                    <div class="c-badges">
+                        {% if event.ranked_required or event.game_type == 'ranked' %}
+                        <span class="c-badge ranked">🏆 Ranked</span>
+                        {% else %}
+                        <span class="c-badge unranked">Unranked</span>
+                        {% endif %}
+                        {% if event.format == 'tournament' %}
+                        <span class="c-badge" style="background:rgba(168,85,247,0.15);color:#a855f7">{{ event.seeding_method|default('random')|title }} Seeding</span>
+                        {% endif %}
+                    </div>
+                    {% if event.description %}
+                    <div class="c-section">
+                        <div class="c-section-t">Description</div>
+                        <div class="c-terms">{{ event.description }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="c-footer">
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        {% if event.format == 'tournament' %}
+                        <a href="{{ url_for('master.tournament_detail', night_id=event.id) }}" class="btn" style="border-color:#a855f7;color:#a855f7">🏆 Manage Tournament</a>
+                        {% else %}
+                        <a href="{{ url_for('master.pool_night_detail', night_id=event.id) }}" class="btn">View Details</a>
+                        {% endif %}
+                        {% if event.status == 'approved' and event.format != 'tournament' %}
+                        <form action="/master/pool-nights/{{ event.id }}/set-ranked" method="POST" style="display:inline">
+                            <input type="hidden" name="ranked" value="{% if event.ranked_required %}0{% else %}1{% endif %}">
+                            <button type="submit" class="btn {% if event.ranked_required %}btn-green{% endif %}" style="font-size:0.55rem;padding:4px 8px;">
+                                🏆 {% if event.ranked_required %}Ranked ✓{% else %}Set Ranked{% endif %}
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    {% if event.status == 'pending' %}
+                    <div class="c-footer-actions">
+                        <form action="/master/pool-nights/{{ event.id }}/reject" method="POST" style="display:inline"><button type="submit" class="btn btn-red">✗ Reject</button></form>
+                        <form action="/master/pool-nights/{{ event.id }}/accept" method="POST" style="display:inline"><button type="submit" class="btn btn-green">✓ Accept</button></form>
+                    </div>
+                    {% elif event.status == 'approved' %}
+                    <div class="c-footer-actions">
+                        <span class="c-footer-status" style="color:var(--green)">✓ Accepted {{ event.approved_at[:10] if event.approved_at else '' }}</span>
+                        <form action="/master/pool-nights/{{ event.id }}/cancel" method="POST" style="display:inline" onsubmit="return confirm('Cancel this pool night?')"><button type="submit" class="btn" style="color:var(--t3);border-color:var(--t3)">Cancel Event</button></form>
+                    </div>
+                    {% elif event.status == 'rejected' %}
+                    <span class="c-footer-status" style="color:var(--red)">✗ Rejected</span>
+                    {% elif event.status == 'cancelled' %}
+                    <span class="c-footer-status" style="color:var(--t3)">⚫ Cancelled {{ event.cancelled_at[:10] if event.cancelled_at else '' }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <!-- Empty State -->
+            <div class="c" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                <div style="font-size: 2rem; margin-bottom: 12px;">🌙</div>
+                {% if current_filter == 'upcoming' %}
+                <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 8px;">No Upcoming Pool Nights</div>
+                <div style="color: var(--t3); font-size: 0.75rem; margin-bottom: 16px;">Create a new pool night event or approve pending submissions</div>
+                {% elif current_filter == 'pending' %}
+                <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 8px;">No Pending Submissions</div>
+                <div style="color: var(--t3); font-size: 0.75rem; margin-bottom: 16px;">All submissions have been reviewed</div>
+                {% elif current_filter == 'cancelled' %}
+                <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 8px;">No Cancelled Events</div>
+                <div style="color: var(--t3); font-size: 0.75rem; margin-bottom: 16px;">No pool nights have been cancelled</div>
+                {% elif current_filter == 'approved' %}
+                <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 8px;">No Accepted Events</div>
+                <div style="color: var(--t3); font-size: 0.75rem; margin-bottom: 16px;">Approve pending submissions to see them here</div>
+                {% elif current_filter == 'rejected' %}
+                <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 8px;">No Rejected Events</div>
+                <div style="color: var(--t3); font-size: 0.75rem; margin-bottom: 16px;">No submissions have been rejected</div>
+                {% else %}
+                <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 8px;">No Pool Nights Yet</div>
+                <div style="color: var(--t3); font-size: 0.75rem; margin-bottom: 16px;">Create your first pool night event to get started</div>
+                {% endif %}
+                <button class="btn btn-p" onclick="openCreateModal()">+ Create Pool Night</button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Create Modal -->
+    <div class="modal-bg" id="createModal">
+        <div class="modal">
+            <div class="modal-h"><span class="modal-t">Create Pool Night</span><button class="modal-x" onclick="closeCreateModal()">&times;</button></div>
+            <form action="/master/pool-nights/create" method="POST">
+                <div class="modal-b">
+                    <div class="form-g">
+                        <label class="form-l">Event Name *</label>
+                        <input type="text" name="name" class="form-c" required placeholder="e.g. Friday Night Tournament">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-g">
+                            <label class="form-l">Host Bar *</label>
+                            <select name="bar_id" class="form-c" required>
+                                <option value="">Select bar...</option>
+                                {% for bar in bars %}
+                                <option value="{{ bar.id }}">{{ bar.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-g">
+                            <label class="form-l">Date *</label>
+                            <input type="date" name="event_date" class="form-c" required>
+                        </div>
+                    </div>
+                    <div class="form-row4">
+                        <div class="form-g">
+                            <label class="form-l">Start Time *</label>
+                            <input type="time" name="start_time" class="form-c" required value="19:00">
+                        </div>
+                        <div class="form-g">
+                            <label class="form-l">Event Style *</label>
+                            <select name="event_style" id="eventStyle" class="form-c" required onchange="toggleTournamentOptions()">
+                                <option value="casual">Casual Night</option>
+                                <option value="tournament">Tournament</option>
+                            </select>
+                        </div>
+                        <div class="form-g">
+                            <label class="form-l">Game Type</label>
+                            <select name="game_type" class="form-c">
+                                <option value="8ball">8-Ball</option>
+                                <option value="9ball">9-Ball</option>
+                                <option value="10ball">10-Ball</option>
+                                <option value="straight">Straight Pool</option>
+                            </select>
+                        </div>
+                        <div class="form-g">
+                            <label class="form-l">Race To</label>
+                            <input type="number" name="race_to" class="form-c" placeholder="3" min="1" max="11" value="3">
+                        </div>
+                    </div>
+                    
+                    <!-- Tournament Options (hidden by default) -->
+                    <div class="form-section" id="tournamentOptions" style="display:none;">
+                        <div class="form-section-t">🏆 Tournament Settings</div>
+                        <div class="form-row3">
+                            <div class="form-g">
+                                <label class="form-l">Elimination Type *</label>
+                                <select name="elimination_type" class="form-c">
+                                    <option value="single">Single Elimination</option>
+                                    <option value="double">Double Elimination</option>
+                                </select>
+                            </div>
+                            <div class="form-g">
+                                <label class="form-l">Seeding Method *</label>
+                                <select name="seeding_method" class="form-c">
+                                    <option value="random">Random</option>
+                                    <option value="rating">By Rating</option>
+                                </select>
+                            </div>
+                            <div class="form-g">
+                                <label class="form-l">Max Players</label>
+                                <select name="bracket_size" class="form-c">
+                                    <option value="">Auto (based on signups)</option>
+                                    <option value="8">8 Players</option>
+                                    <option value="16">16 Players</option>
+                                    <option value="32">32 Players</option>
+                                    <option value="64">64 Players</option>
+                                </select>
+                                <div class="form-hint">Leave empty to auto-size bracket</div>
+                            </div>
+                        </div>
+                        <div class="form-g">
+                            <label class="form-l">Registration Deadline</label>
+                            <input type="datetime-local" name="registration_deadline" class="form-c">
+                            <div class="form-hint">When registration closes (bracket generated after)</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Ranked/Unranked Selection -->
+                    <div class="form-section">
+                        <div class="form-section-t">Event Type</div>
+                        <div class="form-g">
+                            <label class="form-l">Ranking Impact *</label>
+                            <div class="radio-group">
+                                <label class="radio-option selected" onclick="selectRadio(this)">
+                                    <input type="radio" name="is_ranked" value="1" checked>
+                                    <span class="radio-dot"></span>
+                                    <div>
+                                        <div class="radio-label">🏆 Ranked</div>
+                                        <div class="radio-desc">Results affect player rankings</div>
+                                    </div>
+                                </label>
+                                <label class="radio-option" onclick="selectRadio(this)">
+                                    <input type="radio" name="is_ranked" value="0">
+                                    <span class="radio-dot"></span>
+                                    <div>
+                                        <div class="radio-label">🎱 Unranked</div>
+                                        <div class="radio-desc">Casual event, no ranking impact</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Entry & Prizes -->
+                    <div class="form-section">
+                        <div class="form-section-t">Entry & Prizes</div>
+                        <div class="form-row3">
+                            <div class="form-g">
+                                <label class="form-l">Entry Fee ($)</label>
+                                <input type="number" name="entry_fee" class="form-c" placeholder="20" min="0">
+                            </div>
+                            <div class="form-g">
+                                <label class="form-l">Max Players</label>
+                                <input type="number" name="max_players" class="form-c" placeholder="16" min="2">
+                            </div>
+                            <div class="form-g">
+                                <label class="form-l">Prize Pool ($)</label>
+                                <input type="number" name="prize_pool" class="form-c" placeholder="250" min="0">
+                            </div>
+                        </div>
+                        <div class="form-g">
+                            <label class="form-l">Prize Structure</label>
+                            <input type="text" name="prizes" class="form-c" placeholder="e.g. 1st: $150, 2nd: $75, 3rd: $25">
+                        </div>
+                    </div>
+                    
+                    <!-- Sponsor Section -->
+                    <div class="form-section">
+                        <div class="form-section-t">Sponsor (Optional)</div>
+                        <div class="form-g">
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:12px">
+                                <input type="checkbox" name="has_sponsor" id="hasSponsor" onchange="toggleSponsorFields()">
+                                <span class="form-l" style="margin:0">This event has a sponsor</span>
+                            </label>
+                        </div>
+                        <div id="sponsorFields" style="display:none">
+                            <div class="form-row">
+                                <div class="form-g">
+                                    <label class="form-l">Sponsor Name *</label>
+                                    <input type="text" name="sponsor_name" class="form-c" placeholder="e.g. Modelo, Jameson">
+                                </div>
+                                <div class="form-g">
+                                    <label class="form-l">Sponsor Type</label>
+                                    <select name="sponsor_type" class="form-c">
+                                        <option value="title">Title Sponsor</option>
+                                        <option value="prize">Prize Sponsor</option>
+                                        <option value="drink">Drink Sponsor</option>
+                                        <option value="venue">Venue Sponsor</option>
+                                        <option value="media">Media Sponsor</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-g">
+                                    <label class="form-l">Sponsor Contribution ($)</label>
+                                    <input type="number" name="sponsor_amount" class="form-c" placeholder="200" min="0">
+                                </div>
+                                <div class="form-g">
+                                    <label class="form-l">Sponsor Perks</label>
+                                    <input type="text" name="sponsor_perks" class="form-c" placeholder="e.g. Logo on screen, free drinks">
+                                </div>
+                            </div>
+                            <div class="form-g">
+                                <label class="form-l">Sponsor Contact Email</label>
+                                <input type="email" name="sponsor_email" class="form-c" placeholder="sponsor@brand.com">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Rules & Terms -->
+                    <div class="form-section">
+                        <div class="form-section-t">Rules & Terms</div>
+                        <div class="form-g">
+                            <label class="form-l">Rules & Terms *</label>
+                            <textarea name="rules" class="form-c" rows="4" required placeholder="Standard rules, time limits, coaching policy, etc."></textarea>
+                        </div>
+                        <div class="form-g">
+                            <label class="form-l">Special Notes</label>
+                            <textarea name="notes" class="form-c" rows="2" placeholder="Drink specials, food deals, etc."></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Options -->
+                    <div class="form-section">
+                        <div class="form-section-t">Options</div>
+                        <div class="form-row">
+                            <div class="form-g">
+                                <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                                    <input type="checkbox" name="recurring" value="1">
+                                    <span class="form-l" style="margin:0">Recurring Event</span>
+                                </label>
+                                <div class="form-hint">This event repeats weekly</div>
+                            </div>
+                            <div class="form-g">
+                                <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                                    <input type="checkbox" name="featured" value="1">
+                                    <span class="form-l" style="margin:0">Feature on App</span>
+                                </label>
+                                <div class="form-hint">Highlight in player app</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-f">
+                    <button type="button" class="btn" onclick="closeCreateModal()">Cancel</button>
+                    <button type="submit" class="btn btn-p">Create Pool Night</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // Modal functions
+        function openCreateModal() { document.getElementById('createModal').classList.add('show'); }
+        function closeCreateModal() { document.getElementById('createModal').classList.remove('show'); }
+        
+        // Close on background click
+        document.getElementById('createModal').addEventListener('click', e => {
+            if (e.target.id === 'createModal') closeCreateModal();
+        });
+        
+        // Radio selection for ranked/unranked
+        function selectRadio(element) {
+            const group = element.closest('.radio-group');
+            group.querySelectorAll('.radio-option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            element.querySelector('input').checked = true;
+        }
+        
+        // Toggle sponsor fields
+        function toggleSponsorFields() {
+            const checkbox = document.getElementById('hasSponsor');
+            const fields = document.getElementById('sponsorFields');
+            fields.style.display = checkbox.checked ? 'block' : 'none';
+        }
+        
+        // Toggle tournament options
+        function toggleTournamentOptions() {
+            const style = document.getElementById('eventStyle').value;
+            const options = document.getElementById('tournamentOptions');
+            options.style.display = style === 'tournament' ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>

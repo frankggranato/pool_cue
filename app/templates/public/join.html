@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Pool Cue">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+    <title>Join Queue - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555;
+            --accent: #f5c518; --success: #22c55e; --border: rgba(255,255,255,0.08);
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; }
+        
+        .header { padding: 16px 20px; text-align: center; border-bottom: 1px solid var(--border); }
+        .logo { font-size: 1.3rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; color: var(--text-primary); }
+        .logo:hover { opacity: 0.8; }
+        .logo-mark { width: 28px; height: 28px; background: var(--accent); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: #111; }
+        
+        .tabs { display: flex; border-bottom: 1px solid var(--border); }
+        .tab { flex: 1; padding: 16px; background: transparent; border: none; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; font-family: inherit; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
+        .tab.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+        .tab:hover:not(.active) { color: var(--text-secondary); }
+        
+        .tab-content { display: none; flex: 1; padding: 24px 20px; }
+        .tab-content.active { display: flex; flex-direction: column; align-items: center; }
+        
+        .bar-info { text-align: center; margin-bottom: 24px; }
+        .bar-name { font-size: 1.6rem; font-weight: 700; margin-bottom: 10px; }
+        .queue-status { display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; }
+        .queue-count { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+        .queue-label { font-size: 0.85rem; color: var(--text-secondary); }
+        
+        .current-rules { width: 100%; max-width: 360px; margin-bottom: 20px; padding: 14px 18px; background: rgba(245,197,24,0.1); border: 1px solid rgba(245,197,24,0.25); border-radius: 8px; text-align: center; }
+        .rules-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .rules-value { font-size: 1rem; font-weight: 600; color: var(--accent); }
+        
+        .join-form { width: 100%; max-width: 360px; }
+        .form-group { margin-bottom: 18px; }
+        .form-label { display: block; font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .form-input { width: 100%; padding: 16px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 1rem; font-family: inherit; }
+        .form-input:focus { outline: none; border-color: var(--text-primary); }
+        .form-input::placeholder { color: var(--text-muted); }
+        
+        .partner-field { display: none; margin-bottom: 18px; }
+        .partner-field.show { display: block; }
+        
+        .submit-btn { width: 100%; padding: 18px; background: var(--text-primary); border: none; border-radius: 12px; color: var(--bg-primary); font-size: 1rem; font-weight: 600; font-family: inherit; cursor: pointer; margin-top: 10px; }
+        .submit-btn:hover { background: #e5e5e5; }
+        
+        .ad-banner { width: 100%; max-width: 360px; margin-top: 24px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+        .ad-content { display: block; text-decoration: none; color: inherit; }
+        .ad-image { width: 100%; height: 100px; object-fit: cover; display: block; }
+        .ad-fallback { padding: 24px 20px; text-align: center; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+        .ad-sponsor { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .ad-title { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+        .ad-sub { font-size: 0.8rem; color: var(--text-secondary); }
+        
+        .download-section { width: 100%; max-width: 360px; margin-top: 20px; padding: 20px; background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary)); border: 1px solid rgba(245,197,24,0.2); border-radius: 10px; text-align: center; }
+        .download-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+        .download-text { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 14px; }
+        .download-features { display: flex; justify-content: center; gap: 16px; margin-bottom: 16px; }
+        .download-feature { font-size: 0.75rem; color: var(--accent); }
+        .download-btn { display: inline-block; padding: 12px 24px; background: var(--accent); border-radius: 6px; color: #111; font-size: 0.85rem; font-weight: 600; text-decoration: none; }
+        
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+    <a href="#" onclick="goBack(); return false;" class="dev-link" style="position:fixed;top:8px;left:8px;padding:6px 12px;background:#1a1a1a;border:1px solid #252525;border-radius:4px;color:#888;font-size:0.65rem;text-decoration:none;z-index:1000;">← Back</a>
+    <a href="/master" class="dev-link" style="position:fixed;top:8px;right:8px;padding:6px 12px;background:#1a1a1a;border:1px solid #252525;border-radius:4px;color:#888;font-size:0.65rem;text-decoration:none;z-index:1000;">Dashboard</a>
+    <div class="header">
+        <a href="/player/home" class="logo"><div class="logo-mark">🎱</div><span>Pool Cue</span></a>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab active" onclick="showTab('join')">Join Queue</button>
+        {% if is_shot_caller %}
+        <button class="tab" onclick="showTab('shotcaller')">Shot Caller</button>
+        {% endif %}
+    </div>
+    
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div style="padding:12px 20px;">
+        {% for category, message in messages %}
+        <div style="padding:12px 16px;border-radius:8px;margin-bottom:8px;font-size:0.9rem;
+            {% if category == 'error' %}background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#ef4444;
+            {% elif category == 'success' %}background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:#22c55e;
+            {% else %}background:rgba(245,197,24,0.15);border:1px solid rgba(245,197,24,0.3);color:#f5c518;{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+    
+    <!-- JOIN QUEUE TAB -->
+    <div id="join-tab" class="tab-content active">
+        <div class="bar-info">
+            <h1 class="bar-name">{{ bar_name or 'The Corner Pocket' }}</h1>
+            <div class="queue-status">
+                <span class="queue-count">{{ queue_count or 0 }}</span>
+                <span class="queue-label">in queue</span>
+            </div>
+        </div>
+        
+        <div class="current-rules">
+            <div class="rules-label">Current Table Rules</div>
+            <div class="rules-value" id="tableRules">{{ table_rules or 'Singles' }}</div>
+        </div>
+        
+        {% if logged_in_player %}
+        <!-- LOGGED IN USER -->
+        <div style="width:100%;max-width:360px;margin-bottom:20px;padding:16px 20px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:10px;text-align:center;">
+            <div style="font-size:0.75rem;color:var(--success);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Welcome back!</div>
+            <div style="font-size:1.3rem;font-weight:700;">{{ logged_in_player.nickname }}</div>
+        </div>
+        
+        <form class="join-form" action="{{ url_for('public.join_post') }}" method="POST">
+            <input type="hidden" name="nickname" value="{{ logged_in_player.nickname }}">
+            <input type="hidden" name="player_id" value="{{ logged_in_player.id }}">
+            <input type="hidden" name="game_type" class="gameTypeInput" value="{{ table_rules|lower or 'singles' }}">
+            
+            <div class="partner-field partnerFieldDiv">
+                <label class="form-label">Partner's Name</label>
+                <input type="text" name="partner_name" class="form-input partnerNameInput" placeholder="Enter partner's name">
+            </div>
+            
+            <button type="submit" class="submit-btn">Join Queue</button>
+        </form>
+        
+        <div style="text-align:center;margin-top:16px;">
+            <a href="/player/home" style="color:var(--accent);font-size:0.85rem;text-decoration:none;">View My Profile →</a>
+            <span style="color:var(--text-muted);margin:0 10px;">|</span>
+            <a href="/auth/logout" style="color:var(--text-muted);font-size:0.85rem;text-decoration:none;">Not you? Log out</a>
+        </div>
+        
+        {% else %}
+        <!-- GUEST USER -->
+        <form class="join-form" action="{{ url_for('public.join_post') }}" method="POST">
+            <div class="form-group">
+                <label class="form-label">Your Name</label>
+                <input type="text" name="nickname" class="form-input" placeholder="Enter your name" required>
+            </div>
+            
+            <input type="hidden" name="game_type" class="gameTypeInput" value="{{ table_rules|lower or 'singles' }}">
+            
+            <div class="partner-field partnerFieldDiv">
+                <label class="form-label">Partner's Name</label>
+                <input type="text" name="partner_name" class="form-input partnerNameInput" placeholder="Enter partner's name">
+            </div>
+            
+            <button type="submit" class="submit-btn">Join Queue</button>
+        </form>
+        
+        <div style="text-align:center;margin-top:20px;padding-top:20px;border-top:1px solid var(--border);width:100%;max-width:360px;">
+            <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:12px;">Want to track your stats & earn rewards?</p>
+            <a href="/auth/signup" style="display:inline-block;padding:14px 28px;background:var(--accent);border-radius:8px;color:#111;font-size:0.95rem;font-weight:600;text-decoration:none;">Create Account</a>
+            <p style="margin-top:12px;"><a href="/auth/login" style="color:var(--text-muted);font-size:0.8rem;text-decoration:none;">Already have an account? Log in</a></p>
+        </div>
+        {% endif %}
+        
+        <!-- Join Queue Banner Ad -->
+        <div class="ad-banner" id="joinAdBanner">
+            {% if join_ad %}
+            <a href="#" class="ad-content">
+                <img src="/admin/ads/image/join/{{ join_ad }}" class="ad-image" alt="Sponsor">
+            </a>
+            {% else %}
+            <a href="#" class="ad-content">
+                <div class="ad-fallback">
+                    <div class="ad-sponsor">Sponsored</div>
+                    <div class="ad-title">Your Ad Here</div>
+                    <div class="ad-sub">Reach local pool players</div>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+        
+        <div class="download-section">
+            <div class="download-title">📱 Get the Pool Cue App</div>
+            <div class="download-text">Track stats, earn rewards, find tables</div>
+            <div class="download-features">
+                <span class="download-feature">📊 Stats</span>
+                <span class="download-feature">🪙 Rewards</span>
+                <span class="download-feature">🏆 Rankings</span>
+            </div>
+            <a href="/player/home" class="download-btn">Download App</a>
+        </div>
+    </div>
+
+    <!-- SHOT CALLER TAB -->
+    {% if is_shot_caller %}
+    <div id="shotcaller-tab" class="tab-content">
+        <div style="width:100%;max-width:400px;">
+            <div style="padding:16px 20px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-left:3px solid var(--success);border-radius:8px;display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+                <div style="width:10px;height:10px;background:var(--success);border-radius:50%;animation:pulse 2s infinite;"></div>
+                <span style="font-size:0.9rem;font-weight:500;">You're the Shot Caller - You control the rules</span>
+            </div>
+            
+            <div style="margin-bottom:24px;">
+                <div style="font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">🎯 Current Rules</div>
+                <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:18px;">
+                    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-secondary);">Game Type</span><span style="font-weight:600;" id="currentType">{{ table_rules or 'Singles' }}</span></div>
+                    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-secondary);">Rules</span><span style="font-weight:600;" id="currentRules">Bar Rules</span></div>
+                    <div style="display:flex;justify-content:space-between;padding:10px 0;"><span style="color:var(--text-secondary);">Game</span><span style="font-weight:600;">8-Ball</span></div>
+                </div>
+                
+                <!-- Rules Selection -->
+                <div style="margin-top:16px;">
+                    <div style="font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Select Rules</div>
+                    <div style="display:flex;gap:8px;">
+                        <button onclick="setRulesType('bar')" id="barRulesBtn" style="flex:1;padding:14px;background:var(--accent);border:1px solid var(--accent);border-radius:8px;color:#111;font-size:0.8rem;font-weight:600;font-family:inherit;cursor:pointer;">Bar Rules</button>
+                        <button onclick="setRulesType('apa')" id="apaBtn" style="flex:1;padding:14px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:8px;color:var(--text-secondary);font-size:0.8rem;font-weight:600;font-family:inherit;cursor:pointer;">APA</button>
+                        <button onclick="setRulesType('bca')" id="bcaBtn" style="flex:1;padding:14px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:8px;color:var(--text-secondary);font-size:0.8rem;font-weight:600;font-family:inherit;cursor:pointer;">BCA</button>
+                    </div>
+                </div>
+                
+                <!-- Game Type Selection -->
+                <div style="margin-top:16px;">
+                    <div style="font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Game Type</div>
+                    <div style="display:flex;gap:8px;">
+                        <button class="rule-btn" onclick="setRule('singles')" id="singlesBtn" style="flex:1;padding:14px;background:var(--accent);border:1px solid var(--accent);border-radius:8px;color:#111;font-size:0.85rem;font-weight:500;font-family:inherit;cursor:pointer;">Singles</button>
+                        <button class="rule-btn" onclick="setRule('doubles')" id="doublesBtn" style="flex:1;padding:14px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:8px;color:var(--text-secondary);font-size:0.85rem;font-weight:500;font-family:inherit;cursor:pointer;">Doubles</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-bottom:24px;">
+                <div style="font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">👥 Queue</div>
+                <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;overflow:hidden;" id="queueList">
+                    {% for player in queue[:4] %}
+                    <div style="display:flex;align-items:center;padding:14px 16px;{% if not loop.last %}border-bottom:1px solid var(--border);{% endif %}">
+                        <span style="width:28px;height:28px;background:var(--bg-tertiary);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:600;margin-right:12px;">{{ loop.index + 1 }}</span>
+                        <span style="flex:1;font-weight:500;">{{ player.nickname }}{% if player.partner_name %} & {{ player.partner_name }}{% endif %}</span>
+                        <button style="padding:8px 14px;background:transparent;border:1px solid var(--success);border-radius:6px;color:var(--success);font-size:0.75rem;font-weight:600;cursor:pointer;">Give Table</button>
+                    </div>
+                    {% else %}
+                    <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:0.85rem;">No one in queue yet</div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div style="margin-bottom:24px;">
+                <div style="font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">🏆 Ranked Match</div>
+                <div id="rankedSection" style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:18px;">
+                    {% if ranked_status and ranked_status.is_event_ranked %}
+                    <!-- Auto-ranked by event/window -->
+                    <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);border-radius:8px;">
+                        <span style="font-size:1.5rem;">🏆</span>
+                        <div>
+                            <div style="font-weight:600;color:var(--purple);margin-bottom:2px;">Ranked Match Active</div>
+                            <div style="font-size:0.75rem;color:var(--text-secondary);">{{ ranked_status.ranked_info or 'All matches are ranked during this event' }}</div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Player-initiated ranked -->
+                    <div id="rankedOff" style="{% if shot_caller_entry and shot_caller_entry.ranked_request %}display:none;{% endif %}">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <div>
+                                <div style="font-weight:500;margin-bottom:4px;">Request Ranked Match</div>
+                                <div style="font-size:0.75rem;color:var(--text-muted);">Affects ELO ratings for both players</div>
+                            </div>
+                            <button onclick="requestRanked()" id="requestRankedBtn" style="padding:10px 18px;background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.3);border-radius:8px;color:#a855f7;font-weight:600;font-size:0.85rem;cursor:pointer;font-family:inherit;">Request</button>
+                        </div>
+                        <div style="margin-top:12px;padding:10px;background:rgba(0,0,0,0.2);border-radius:6px;font-size:0.7rem;color:var(--text-muted);">
+                            ℹ️ If your opponent has an account, they must accept for this to be ranked. Guests cannot play ranked matches.
+                        </div>
+                    </div>
+                    <div id="rankedPending" style="{% if not (shot_caller_entry and shot_caller_entry.ranked_request and shot_caller_entry.ranked_accepted is none) %}display:none;{% endif %}">
+                        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:8px;">
+                            <span style="font-size:1.3rem;">⏳</span>
+                            <div style="flex:1;">
+                                <div style="font-weight:600;color:var(--warning);margin-bottom:2px;">Waiting for Opponent</div>
+                                <div style="font-size:0.75rem;color:var(--text-secondary);">Opponent must accept for ranked play</div>
+                            </div>
+                            <button onclick="cancelRankedRequest()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);font-size:0.7rem;cursor:pointer;font-family:inherit;">Cancel</button>
+                        </div>
+                    </div>
+                    <div id="rankedAccepted" style="{% if not (shot_caller_entry and shot_caller_entry.ranked_request and shot_caller_entry.ranked_accepted == 1) %}display:none;{% endif %}">
+                        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:8px;">
+                            <span style="font-size:1.3rem;">🏆</span>
+                            <div>
+                                <div style="font-weight:600;color:var(--success);margin-bottom:2px;">Ranked Match Confirmed!</div>
+                                <div style="font-size:0.75rem;color:var(--text-secondary);">This game will affect ELO ratings</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="rankedDeclined" style="{% if not (shot_caller_entry and shot_caller_entry.ranked_request and shot_caller_entry.ranked_accepted == 0) %}display:none;{% endif %}">
+                        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;">
+                            <span style="font-size:1.3rem;">🎱</span>
+                            <div style="flex:1;">
+                                <div style="font-weight:500;margin-bottom:2px;">Playing Unranked</div>
+                                <div style="font-size:0.75rem;color:var(--text-muted);">Opponent declined ranked play</div>
+                            </div>
+                            <button onclick="requestRanked()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);font-size:0.7rem;cursor:pointer;font-family:inherit;">Try Again</button>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Shot Caller Banner Ad -->
+            <div class="ad-banner" id="shotCallerAdBanner">
+                {% if shotcaller_ad %}
+                <a href="#" class="ad-content">
+                    <img src="/admin/ads/image/shotcaller/{{ shotcaller_ad }}" class="ad-image" alt="Sponsor">
+                </a>
+                {% else %}
+                <a href="#" class="ad-content">
+                    <div class="ad-fallback">
+                        <div class="ad-sponsor">Sponsored</div>
+                        <div class="ad-title">Your Ad Here</div>
+                        <div class="ad-sub">Reach local pool players</div>
+                    </div>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div style="padding:20px;text-align:center;">
+        <a href="/display" style="color:var(--text-muted);font-size:0.8rem;text-decoration:none;">← View Queue Board</a>
+    </div>
+    
+    <script>
+        // Back button - go to previous page or player home
+        const isLoggedIn = {{ 'true' if logged_in_player else 'false' }};
+        
+        function goBack() {
+            if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
+                window.history.back();
+            } else if (isLoggedIn) {
+                window.location.href = '/player/home';
+            } else {
+                window.location.href = '/display';
+            }
+        }
+        
+        let currentTableRules = '{{ table_rules|lower or "singles" }}';
+        
+        // Initialize buttons based on current rules
+        document.addEventListener('DOMContentLoaded', function() {
+            updateRuleButtons();
+            updateJoinForm();
+        });
+        
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tab + '-tab').classList.add('active');
+        }
+        
+        function updateRuleButtons() {
+            const singlesBtn = document.getElementById('singlesBtn');
+            const doublesBtn = document.getElementById('doublesBtn');
+            const isDoubles = currentTableRules === 'doubles';
+            
+            if (isDoubles) {
+                doublesBtn.style.background = 'var(--accent)';
+                doublesBtn.style.borderColor = 'var(--accent)';
+                doublesBtn.style.color = '#111';
+                singlesBtn.style.background = 'var(--bg-tertiary)';
+                singlesBtn.style.borderColor = 'var(--border)';
+                singlesBtn.style.color = 'var(--text-secondary)';
+            } else {
+                singlesBtn.style.background = 'var(--accent)';
+                singlesBtn.style.borderColor = 'var(--accent)';
+                singlesBtn.style.color = '#111';
+                doublesBtn.style.background = 'var(--bg-tertiary)';
+                doublesBtn.style.borderColor = 'var(--border)';
+                doublesBtn.style.color = 'var(--text-secondary)';
+            }
+        }
+        
+        function updateJoinForm() {
+            const isDoubles = currentTableRules === 'doubles';
+            // Update all game type inputs (both forms)
+            document.querySelectorAll('.gameTypeInput').forEach(el => el.value = currentTableRules);
+            document.querySelectorAll('.partnerFieldDiv').forEach(el => el.classList.toggle('show', isDoubles));
+            const tableRulesEl = document.getElementById('tableRules');
+            const currentTypeEl = document.getElementById('currentType');
+            if (tableRulesEl) tableRulesEl.textContent = isDoubles ? 'Doubles' : 'Singles';
+            if (currentTypeEl) currentTypeEl.textContent = isDoubles ? 'Doubles' : 'Singles';
+            document.querySelectorAll('.partnerNameInput').forEach(el => {
+                if (isDoubles) {
+                    el.setAttribute('required', 'required');
+                } else {
+                    el.removeAttribute('required');
+                    el.value = '';
+                }
+            });
+        }
+        
+        function setRule(type) {
+            const oldRules = currentTableRules;
+            
+            if (oldRules === 'doubles' && type === 'singles') {
+                if (!confirm('Switching to singles will drop partners from all queued teams. Continue?')) {
+                    return;
+                }
+            }
+            
+            currentTableRules = type;
+            updateRuleButtons();
+            updateJoinForm();
+            
+            fetch('/api/table/rules', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rules: type, rulesType: currentRulesType })
+            }).catch(() => {});
+        }
+        
+        // Rules type (APA, BCA, Bar Rules)
+        let currentRulesType = 'bar';
+        
+        function setRulesType(type) {
+            currentRulesType = type;
+            updateRulesTypeButtons();
+            
+            // Update display
+            const rulesNames = { bar: 'Bar Rules', apa: 'APA', bca: 'BCA' };
+            document.getElementById('currentRules').textContent = rulesNames[type];
+            
+            // Send to backend
+            fetch('/api/table/rules', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rules: currentTableRules, rulesType: type })
+            }).catch(() => {});
+        }
+        
+        function updateRulesTypeButtons() {
+            const barBtn = document.getElementById('barRulesBtn');
+            const apaBtn = document.getElementById('apaBtn');
+            const bcaBtn = document.getElementById('bcaBtn');
+            
+            // Reset all buttons
+            [barBtn, apaBtn, bcaBtn].forEach(btn => {
+                btn.style.background = 'var(--bg-tertiary)';
+                btn.style.borderColor = 'var(--border)';
+                btn.style.color = 'var(--text-secondary)';
+            });
+            
+            // Highlight active button
+            const activeBtn = currentRulesType === 'bar' ? barBtn : currentRulesType === 'apa' ? apaBtn : bcaBtn;
+            activeBtn.style.background = 'var(--accent)';
+            activeBtn.style.borderColor = 'var(--accent)';
+            activeBtn.style.color = '#111';
+        }
+        
+        // Ranked match functions
+        function requestRanked() {
+            const btn = document.getElementById('requestRankedBtn');
+            if (btn) btn.disabled = true;
+            
+            fetch('/api/request-ranked', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.auto_ranked) {
+                        // Already auto-ranked by event
+                        alert(data.message);
+                    } else if (data.pending) {
+                        // Show pending state
+                        document.getElementById('rankedOff').style.display = 'none';
+                        document.getElementById('rankedPending').style.display = 'block';
+                    }
+                } else {
+                    alert(data.message || 'Could not request ranked match');
+                    if (btn) btn.disabled = false;
+                }
+            })
+            .catch(() => {
+                alert('Error requesting ranked match');
+                if (btn) btn.disabled = false;
+            });
+        }
+        
+        function cancelRankedRequest() {
+            fetch('/api/request-ranked', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('rankedPending').style.display = 'none';
+                    document.getElementById('rankedOff').style.display = 'block';
+                }
+            });
+        }
+        
+        // Poll for ranked status updates when pending
+        {% if is_shot_caller and shot_caller_entry and shot_caller_entry.ranked_request and shot_caller_entry.ranked_accepted is none %}
+        setInterval(function() {
+            fetch('/api/ranked-status')
+            .then(r => r.json())
+            .then(data => {
+                if (data.my_request_accepted === true) {
+                    document.getElementById('rankedPending').style.display = 'none';
+                    document.getElementById('rankedAccepted').style.display = 'block';
+                } else if (data.my_request_accepted === false) {
+                    document.getElementById('rankedPending').style.display = 'none';
+                    document.getElementById('rankedDeclined').style.display = 'block';
+                }
+            });
+        }, 3000);
+        {% endif %}
+        
+        // Poll for game type changes (sync with Shot Caller tab)
+        setInterval(function() {
+            fetch('/api/queue')
+            .then(r => r.json())
+            .then(data => {
+                if (data.rules && data.rules.game_type) {
+                    const newRules = data.rules.game_type.toLowerCase();
+                    if (newRules !== currentTableRules) {
+                        currentTableRules = newRules;
+                        updateRuleButtons();
+                        updateJoinForm();
+                    }
+                }
+            })
+            .catch(() => {});
+        }, 3000);
+    </script>
+</body>
+</html>

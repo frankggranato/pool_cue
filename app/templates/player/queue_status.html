@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <meta http-equiv="refresh" content="10">
+    <title>Queue Status - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555;
+            --accent: #f5c518; --danger: #ef4444; --success: #22c55e; --border: rgba(255,255,255,0.08);
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding: 20px; padding-bottom: 100px; }
+        .dev-link { position: fixed; top: 8px; right: 8px; padding: 6px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-muted); font-size: 0.65rem; text-decoration: none; z-index: 1000; }
+        
+        .back { color: var(--text-secondary); text-decoration: none; display: inline-block; margin-bottom: 20px; }
+        .position-card { background: linear-gradient(135deg, rgba(245,197,24,0.15), rgba(245,197,24,0.05)); border: 1px solid rgba(245,197,24,0.2); border-radius: 16px; padding: 30px; text-align: center; margin-bottom: 20px; }
+        .position-label { color: var(--text-secondary); font-size: 0.9rem; }
+        .position-number { font-size: 4rem; font-weight: 700; color: var(--accent); }
+        .position-text { font-size: 1.1rem; margin-top: 5px; }
+        .wait-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; padding: 25px; text-align: center; margin-bottom: 20px; }
+        .wait-time { font-size: 2.5rem; font-weight: 700; color: var(--accent); }
+        .wait-label { color: var(--text-secondary); margin-top: 5px; }
+        .info-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: var(--text-secondary); }
+        .now-playing { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); border-radius: 12px; padding: 15px; margin-bottom: 20px; }
+        .now-playing .label { font-size: 0.8rem; color: var(--success); margin-bottom: 8px; }
+        .now-playing .players { font-size: 1.1rem; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-size: 1rem; cursor: pointer; font-family: inherit; font-weight: 500; }
+        .btn-danger { background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.2); }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-primary); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 6px 0 22px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 14px; color: var(--text-muted); text-decoration: none; font-size: 0.6rem; }
+        .nav-item .icon { font-size: 1.25rem; }
+        .nav-item.active { color: var(--text-primary); }
+    </style>
+</head>
+<body>
+    <a href="/master" class="dev-link">← Dashboard</a>
+    <a href="/player/bar/{{ bar.id }}" class="back">← {{ bar.name }}</a>
+    
+    <div class="position-card">
+        <div class="position-label">Your Position</div>
+        <div class="position-number">#5</div>
+        <div class="position-text">3 games until you play</div>
+    </div>
+    
+    <div class="wait-card">
+        <div class="wait-time">~15 min</div>
+        <div class="wait-label">estimated wait</div>
+    </div>
+    
+    <div class="now-playing">
+        <div class="label">🎱 NOW PLAYING</div>
+        <div class="players"><strong>Mike & Dave</strong> vs <strong>Steve & Tommy</strong></div>
+    </div>
+    
+    <div class="info-card">
+        <div class="info-row"><span class="info-label">Game Mode</span><span>Casual</span></div>
+        <div class="info-row"><span class="info-label">Rules</span><span>Bar Rules</span></div>
+        <div class="info-row"><span class="info-label">Joined At</span><span>7:45 PM</span></div>
+    </div>
+    
+    <button class="btn btn-danger" onclick="confirm('Leave the queue?') && location.href='/player/home'">
+        Leave Queue
+    </button>
+    
+        <nav class="bottom-nav">
+        <a href="{% if demo_mode %}/player/demo/home{% else %}/player/home{% endif %}" class="nav-item active"><div class="icon">🎱</div><div>Home</div></a>
+        <a href="{% if demo_mode %}/player/demo/friends{% else %}/player/friends{% endif %}" class="nav-item"><div class="icon">👥</div><div>Friends</div></a>
+        <a href="{% if demo_mode %}/player/demo/challenges{% else %}/player/challenges{% endif %}" class="nav-item"><div class="icon">⚔️</div><div>Challenges</div></a>
+        <a href="{% if demo_mode %}/player/demo/leaderboards{% else %}/player/leaderboard{% endif %}" class="nav-item"><div class="icon">🏆</div><div>Rankings</div></a>
+        <a href="{% if demo_mode %}/player/demo/profile{% else %}/player/profile{% endif %}" class="nav-item"><div class="icon">👤</div><div>Profile</div></a>
+    </nav>
+</body>
+</html>

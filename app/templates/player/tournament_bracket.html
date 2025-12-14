@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <title>🏆 {{ night.title or 'Tournament' }} - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #222222;
+            --text-primary: #f2f2f2;
+            --text-secondary: #888888;
+            --text-muted: #555555;
+            --accent: #f5c518;
+            --purple: #a78bfa;
+            --success: #22c55e;
+            --red: #ef4444;
+            --border: rgba(255,255,255,0.08);
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg-primary);
+            z-index: 100;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .back-btn {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 1.3rem;
+        }
+        .header h1 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-purple { background: rgba(167,139,250,0.15); color: var(--purple); }
+        .badge-green { background: rgba(34,197,94,0.15); color: var(--success); }
+        .badge-gold { background: rgba(245,197,24,0.15); color: var(--accent); }
+        
+        /* Status Banner */
+        .my-status {
+            margin: 16px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            border-left: 4px solid var(--purple);
+        }
+        .my-status-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .my-status-match {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 8px;
+        }
+        .my-status-match .round {
+            font-size: 0.7rem;
+            color: var(--purple);
+            margin-bottom: 6px;
+        }
+        .my-status-match .opponent {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .my-status-match .vs {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        /* Bracket */
+        .bracket-section {
+            margin: 16px;
+        }
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .bracket-container {
+            overflow-x: auto;
+            padding-bottom: 16px;
+        }
+        .bracket {
+            display: flex;
+            gap: 24px;
+            min-width: max-content;
+        }
+        .round {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-width: 160px;
+        }
+        .round-title {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--purple);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+        .match {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .match.completed {
+            border-color: var(--success);
+        }
+        .match.my-match {
+            border-color: var(--purple);
+            box-shadow: 0 0 0 2px rgba(167,139,250,0.2);
+        }
+        .match-player {
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .match-player:last-child {
+            border: 0;
+        }
+        .match-player.winner {
+            background: rgba(34,197,94,0.1);
+        }
+        .match-player.loser {
+            opacity: 0.5;
+        }
+        .match-player.me {
+            background: rgba(167,139,250,0.1);
+        }
+        .match-player .seed {
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            margin-right: 6px;
+        }
+        .match-player .name {
+            flex: 1;
+            font-weight: 500;
+        }
+        .match-player .score {
+            font-weight: 600;
+            color: var(--accent);
+        }
+        .match-player.bye {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+        
+        /* Participants */
+        .participants-section {
+            margin: 16px;
+        }
+        .participants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 8px;
+        }
+        .participant {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .participant.me {
+            border-color: var(--purple);
+        }
+        .participant.eliminated {
+            opacity: 0.5;
+        }
+        .participant .seed-num {
+            width: 22px;
+            height: 22px;
+            background: var(--accent);
+            color: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.65rem;
+        }
+        .participant .name {
+            flex: 1;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        /* Info Section */
+        .info-section {
+            margin: 16px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+        }
+        .info-row:last-child {
+            border: 0;
+        }
+        .info-label {
+            color: var(--text-muted);
+        }
+        .info-value {
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <a href="/player/pool-nights" class="back-btn">←</a>
+            <h1>🏆 {{ night.title or 'Tournament' }}</h1>
+        </div>
+        <span class="badge badge-{% if night.tournament_status == 'completed' %}gold{% elif night.tournament_status == 'in_progress' %}green{% else %}purple{% endif %}">
+            {% if night.tournament_status == 'completed' %}Complete
+            {% elif night.tournament_status == 'in_progress' %}Live
+            {% elif night.bracket_generated %}Ready
+            {% else %}Registration{% endif %}
+        </span>
+    </div>
+
+    <!-- Registration / My Status -->
+    {% if not night.bracket_generated %}
+    <!-- Registration Open -->
+    {% if not my_status or not my_status.registered %}
+    <div style="margin:16px;padding:16px;background:linear-gradient(135deg, rgba(167,139,250,0.15), rgba(139,92,246,0.1));border:1px solid rgba(167,139,250,0.3);border-radius:10px;text-align:center;">
+        <div style="font-size:1rem;font-weight:600;margin-bottom:8px;">🎱 Registration Open!</div>
+        <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:16px;">Join this tournament to compete</div>
+        <form action="{{ url_for('player.register_for_tournament', night_id=night.id) }}" method="POST">
+            <button type="submit" style="padding:12px 28px;background:var(--purple);border:none;border-radius:6px;color:#fff;font-size:0.9rem;font-weight:600;cursor:pointer;">
+                ✨ Register Now
+            </button>
+        </form>
+    </div>
+    {% else %}
+    <div style="margin:16px;padding:16px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:10px;text-align:center;">
+        <div style="font-size:1rem;font-weight:600;color:var(--success);margin-bottom:4px;">✓ You're Registered!</div>
+        <div style="font-size:0.75rem;color:var(--text-secondary);">Seed #{{ my_status.seed }} · Waiting for bracket</div>
+    </div>
+    {% endif %}
+    {% else %}
+    <!-- Tournament Started - Show My Status -->
+    {% if my_status and my_status.registered %}
+    <div class="my-status">
+        <div class="my-status-title">Your Tournament Status</div>
+        {% if my_status.eliminated %}
+        <div style="color:var(--red);font-weight:600;">
+            ❌ Eliminated in Round {{ my_status.eliminated_round }}
+            {% if my_status.final_placement %}
+            <span style="color:var(--accent);margin-left:8px;">
+                {% if my_status.final_placement == 1 %}🏆 Champion!
+                {% elif my_status.final_placement == 2 %}🥈 Runner-up
+                {% elif my_status.final_placement == 3 %}🥉 3rd Place
+                {% else %}Finished #{{ my_status.final_placement }}{% endif %}
+            </span>
+            {% endif %}
+        </div>
+        {% elif my_status.current_match %}
+        <div class="my-status-match">
+            <div class="round">Round {{ my_status.current_match.round_number }}</div>
+            <div class="vs">Your match:</div>
+            <div class="opponent">
+                vs {{ my_status.current_match.player2_name if my_status.current_match.player1_id == session.get('player_id') else my_status.current_match.player1_name }}
+            </div>
+            {% if my_status.current_match.status == 'scheduled' %}
+            <div style="margin-top:8px;font-size:0.75rem;color:var(--success);">Match is ready to play!</div>
+            {% endif %}
+        </div>
+        {% elif my_status.waiting %}
+        <div style="color:var(--purple);">
+            ⏳ Waiting for opponent (Seed #{{ my_status.seed }})
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% endif %}
+    
+    <!-- Tournament Info -->
+    <div class="info-section">
+        <div class="info-row">
+            <span class="info-label">📍 Venue</span>
+            <span class="info-value">{{ night.bar_name }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">📅 Date</span>
+            <span class="info-value">{{ night.event_date }} {% if night.start_time %}@ {{ night.start_time }}{% endif %}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">🎯 Format</span>
+            <span class="info-value">{{ night.elimination_type|default('single')|title }} Elimination</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">🎱 Race To</span>
+            <span class="info-value">{{ night.race_to or 1 }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">👥 Players</span>
+            <span class="info-value">{{ participants|length }}</span>
+        </div>
+        {% if night.entry_fee and night.entry_fee > 0 %}
+        <div class="info-row">
+            <span class="info-label">💵 Entry Fee</span>
+            <span class="info-value">${{ "%.2f"|format(night.entry_fee) }}</span>
+        </div>
+        {% endif %}
+        {% if night.prize_pool and night.prize_pool > 0 %}
+        <div class="info-row">
+            <span class="info-label">🏆 Prize Pool</span>
+            <span class="info-value">${{ "%.2f"|format(night.prize_pool) }}</span>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Bracket -->
+    {% if bracket.rounds %}
+    <div class="bracket-section">
+        <div class="section-title">🏆 Bracket</div>
+        <div class="bracket-container">
+            <div class="bracket">
+                {% for round_num in bracket.rounds|sort %}
+                <div class="round">
+                    <div class="round-title">
+                        {% if round_num == bracket.total_rounds %}Finals
+                        {% elif round_num == bracket.total_rounds - 1 %}Semis
+                        {% else %}Round {{ round_num }}{% endif %}
+                    </div>
+                    {% for match in bracket.rounds[round_num] %}
+                    <div class="match {% if match.status == 'completed' %}completed{% endif %} {% if (match.player1_id == session.get('player_id') or match.player2_id == session.get('player_id')) %}my-match{% endif %}">
+                        <div class="match-player {% if match.winner_id == match.player1_id %}winner{% elif match.winner_id and match.winner_id != match.player1_id %}loser{% endif %} {% if match.player1_id == session.get('player_id') %}me{% endif %} {% if not match.player1_id %}bye{% endif %}">
+                            {% if match.player1_seed %}<span class="seed">[{{ match.player1_seed }}]</span>{% endif %}
+                            <span class="name">{{ match.player1_name or ('TBD' if match.player1_id else 'BYE') }}</span>
+                            {% if match.status == 'completed' %}<span class="score">{{ match.player1_score }}</span>{% endif %}
+                        </div>
+                        <div class="match-player {% if match.winner_id == match.player2_id %}winner{% elif match.winner_id and match.winner_id != match.player2_id %}loser{% endif %} {% if match.player2_id == session.get('player_id') %}me{% endif %} {% if not match.player2_id %}bye{% endif %}">
+                            {% if match.player2_seed %}<span class="seed">[{{ match.player2_seed }}]</span>{% endif %}
+                            <span class="name">{{ match.player2_name or ('TBD' if match.player2_id else 'BYE') }}</span>
+                            {% if match.status == 'completed' %}<span class="score">{{ match.player2_score }}</span>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="bracket-section">
+        <div class="section-title">🏆 Bracket</div>
+        <div style="text-align:center;padding:30px;color:var(--text-muted);">
+            Bracket will be generated when registration closes
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Participants -->
+    <div class="participants-section">
+        <div class="section-title">👥 Participants ({{ participants|length }})</div>
+        {% if participants %}
+        <div class="participants-grid">
+            {% for p in participants %}
+            <div class="participant {% if p.player_id == session.get('player_id') %}me{% endif %} {% if p.eliminated %}eliminated{% endif %}">
+                <div class="seed-num">{{ p.seed or loop.index }}</div>
+                <div class="name">{{ p.nickname }}</div>
+                {% if p.final_placement == 1 %}🏆{% elif p.final_placement == 2 %}🥈{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:20px;color:var(--text-muted);">
+            No participants registered yet
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Auto refresh during active tournament -->
+    {% if night.tournament_status == 'in_progress' %}
+    <script>
+        // Auto-refresh every 15 seconds during active tournament
+        setTimeout(() => location.reload(), 15000);
+    </script>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaign Details - Pool Cue Advertiser</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.08);--t1:#f4f4f5;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--blue:#3b82f6}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);font-size:12px}
+        .nav{display:flex;align-items:center;gap:24px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--card)}
+        .nav-logo{font-weight:700;font-size:1rem;display:flex;align-items:center;gap:6px;color:var(--t1);text-decoration:none}
+        .nav-links{display:flex;gap:20px;margin-left:24px}
+        .nav-links a{color:var(--t2);text-decoration:none;font-size:0.8rem;font-weight:500}
+        .nav-links a:hover,.nav-links a.active{color:var(--gold)}
+        .nav-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+        .credits{background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);padding:4px 10px;border-radius:4px;font-size:0.7rem;color:var(--green);font-weight:600}
+        .btn{padding:8px 16px;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--t2);text-decoration:none}
+        .btn:hover{border-color:var(--gold);color:var(--gold)}
+        .container{max-width:1000px;margin:0 auto;padding:20px}
+        .back{color:var(--t3);text-decoration:none;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px;margin-bottom:16px}
+        .back:hover{color:var(--gold)}
+        .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+        .header h1{font-size:1.2rem;font-weight:600}
+        .badge{padding:4px 10px;border-radius:4px;font-size:0.65rem;font-weight:600;text-transform:uppercase}
+        .badge-active{background:rgba(34,197,94,0.15);color:var(--green)}
+        .badge-paused{background:rgba(234,179,8,0.15);color:var(--gold)}
+        .badge-pending{background:rgba(59,130,246,0.15);color:var(--blue)}
+        .badge-draft{background:rgba(255,255,255,0.08);color:var(--t3)}
+        .kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+        .kpi{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center}
+        .kpi-value{font-size:1.5rem;font-weight:700;color:var(--gold)}
+        .kpi-label{font-size:0.6rem;color:var(--t3);text-transform:uppercase;margin-top:4px}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:16px}
+        .card-title{font-size:0.7rem;color:var(--t3);text-transform:uppercase;margin-bottom:12px;font-weight:600}
+        table{width:100%;border-collapse:collapse}
+        th{text-align:left;padding:10px 12px;font-size:0.6rem;color:var(--t3);text-transform:uppercase;border-bottom:1px solid var(--border)}
+        td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:0.8rem}
+        tr:last-child td{border-bottom:none}
+        .empty{text-align:center;padding:32px;color:var(--t3);font-size:0.8rem}
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/market/dashboard" class="nav-logo">🎱 Pool Cue <span style="font-weight:400;color:var(--t3);margin-left:6px">Advertiser</span></a>
+        <div class="nav-links">
+            <a href="/market/dashboard">Dashboard</a>
+            <a href="/market/campaigns" class="active">Campaigns</a>
+            <a href="/market/billing">Billing</a>
+            <a href="/market/pricing">Pricing</a>
+        </div>
+        <div class="nav-right">
+            <span class="credits">${{ '%.2f'|format(marketer.credits_balance or 0) }} credits</span>
+            <a href="/market/logout" class="btn" style="padding:5px 10px">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a href="/market/campaigns" class="back">← Back to Campaigns</a>
+        
+        <div class="header">
+            <div>
+                <h1>{{ stats.campaign.name }}</h1>
+                <div style="font-size:0.75rem;color:var(--t3);margin-top:4px">
+                    {{ stats.campaign.start_date or 'No start' }} - {{ stats.campaign.end_date or 'Ongoing' }}
+                </div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center">
+                <span class="badge badge-{{ stats.campaign.status or 'draft' }}">{{ stats.campaign.status or 'Draft' }}</span>
+                <a href="/market/campaign/{{ stats.campaign.id }}/edit" class="btn">Edit</a>
+            </div>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi">
+                <div class="kpi-value">{{ stats.impressions or 0 }}</div>
+                <div class="kpi-label">Impressions</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-value">{{ stats.clicks or 0 }}</div>
+                <div class="kpi-label">Clicks</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-value" style="color:var(--green)">{{ stats.ctr or 0 }}%</div>
+                <div class="kpi-label">CTR</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-value" style="color:var(--blue)">{{ stats.unique_viewers or 0 }}</div>
+                <div class="kpi-label">Unique Viewers</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-value">${{ '%.2f'|format(stats.spent or 0) }}</div>
+                <div class="kpi-label">Spent</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Performance by Bar</div>
+            {% if stats.by_bar and stats.by_bar|length > 0 %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Bar</th>
+                        <th>Impressions</th>
+                        <th>Clicks</th>
+                        <th>CTR</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bar in stats.by_bar %}
+                    <tr>
+                        <td>{{ bar.name }}</td>
+                        <td>{{ bar.impressions }}</td>
+                        <td>{{ bar.clicks }}</td>
+                        <td style="color:var(--green)">{{ bar.ctr }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty">No performance data yet</div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-title">Performance by Placement</div>
+            {% if stats.by_placement and stats.by_placement|length > 0 %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Placement</th>
+                        <th>Impressions</th>
+                        <th>Clicks</th>
+                        <th>CTR</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in stats.by_placement %}
+                    <tr>
+                        <td>{{ p.name }}</td>
+                        <td>{{ p.impressions }}</td>
+                        <td>{{ p.clicks }}</td>
+                        <td style="color:var(--green)">{{ p.ctr }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty">No placement data yet</div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

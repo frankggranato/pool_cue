@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a0a0a">
+    <title>Pool Cue Apps</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #0a0a0a; --card: #141414; --border: #252525;
+            --text: #f2f2f2; --muted: #888; --accent: #f5c518;
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        
+        .header { text-align: center; margin-bottom: 50px; }
+        .header h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .header p { color: var(--muted); font-size: 1rem; }
+        
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        @media (max-width: 500px) {
+            .apps-grid { grid-template-columns: 1fr; gap: 20px; }
+        }
+        
+        .app-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px 24px;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .app-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 40px rgba(245,197,24,0.1);
+        }
+        
+        .app-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 16px;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .app-icon img { width: 100%; height: 100%; }
+        
+        .app-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+        .app-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
+        
+        .app-card.board { --app-color: #f5c518; }
+        .app-card.player { --app-color: #22c55e; }
+        .app-card.bar { --app-color: #3b82f6; }
+        .app-card.analytics { --app-color: #a855f7; }
+        
+        .app-card:hover .app-name { color: var(--app-color); }
+        
+        .dev-link {
+            margin-top: 40px;
+            padding: 12px 24px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.15s;
+        }
+        .dev-link:hover { border-color: var(--accent); color: var(--accent); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎱 Pool Cue</h1>
+        <p>Select an app to launch</p>
+    </div>
+    
+    <div class="apps-grid">
+        <a href="/app/board" class="app-card board">
+            <div class="app-icon">
+                <img src="/app/icons/board-app.png" alt="Board App">
+            </div>
+            <div class="app-name">Board</div>
+            <div class="app-desc">Display queue on TV/monitor for the bar</div>
+        </a>
+        
+        <a href="/app/player" class="app-card player">
+            <div class="app-icon">
+                <img src="/app/icons/player-app.png" alt="Player App">
+            </div>
+            <div class="app-name">Player</div>
+            <div class="app-desc">Track games, stats, join queues</div>
+        </a>
+        
+        <a href="/app/manager" class="app-card bar">
+            <div class="app-icon">
+                <img src="/app/icons/bar-manager-app.png" alt="Bar Manager App">
+            </div>
+            <div class="app-name">Bar Manager</div>
+            <div class="app-desc">Manage queue, rules, players</div>
+        </a>
+        
+        <a href="/app/analytics" class="app-card analytics">
+            <div class="app-icon">
+                <img src="/app/icons/analytics-app.png" alt="Analytics App">
+            </div>
+            <div class="app-name">Analytics</div>
+            <div class="app-desc">Data, ads, reports across all bars</div>
+        </a>
+    </div>
+</body>
+</html>

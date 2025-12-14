@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#111111">
+    <title>Cue Marketplace - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222; --border: rgba(255,255,255,0.1);
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555; --accent: #f5c518; --success: #22c55e;
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding-bottom: 100px; }
+        
+        .header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+        .back-btn { width: 36px; height: 36px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .header h1 { font-size: 1.2rem; font-weight: 600; flex: 1; }
+        .list-btn { padding: 10px 16px; background: var(--accent); color: #111; border: none; border-radius: 8px; font-weight: 600; font-size: 0.85rem; text-decoration: none; }
+        
+        .section { padding: 0 20px; margin: 20px 0; }
+        .section-title { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        
+        .listing-grid { display: grid; gap: 12px; }
+        .listing-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-decoration: none; color: inherit; display: block; transition: all 0.2s; }
+        .listing-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .listing-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .listing-title { font-weight: 600; font-size: 1rem; }
+        .listing-price { color: var(--accent); font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 4px; }
+        .listing-meta { display: flex; gap: 12px; font-size: 0.8rem; color: var(--text-secondary); }
+        .listing-badge { padding: 2px 8px; background: rgba(255,255,255,0.1); border-radius: 4px; font-size: 0.7rem; }
+        .listing-badge.sold { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .listing-badge.closed { background: rgba(136,136,136,0.15); color: var(--text-secondary); }
+        
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
+        .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+        
+        .tabs { display: flex; gap: 8px; padding: 0 20px; margin-top: 16px; }
+        .tab { flex: 1; padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; text-align: center; font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; }
+        .tab.active { border-color: var(--accent); color: var(--accent); }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-primary); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 6px 0 22px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 14px; color: var(--text-muted); text-decoration: none; font-size: 0.6rem; font-weight: 500; }
+        .nav-item .icon { font-size: 1.25rem; }
+        .nav-item.active { color: var(--text-primary); }
+        
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/player/tokens" class="back-btn">←</a>
+        <h1>🎱 Cue Marketplace</h1>
+        <a href="/player/tokens/marketplace/new" class="list-btn">+ List Your Cue</a>
+    </div>
+    
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('browse')">Browse</div>
+        <div class="tab" onclick="showTab('mine')">My Listings</div>
+    </div>
+    
+    <div id="browse-tab">
+        <div class="section">
+            <div class="section-title">🔥 Available Cues</div>
+            <div class="listing-grid">
+                {% if listings and listings|length > 0 %}
+                    {% for listing in listings %}
+                    <a href="/player/tokens/marketplace/{{ listing.id }}" class="listing-card">
+                        <div class="listing-top">
+                            <div class="listing-title">{{ listing.title }}</div>
+                            {% if listing.price_type == 'cash' %}
+                            <div class="listing-price" style="color:var(--success);">💵 ${{ "%.2f"|format(listing.price_cash or 0) }}</div>
+                            {% else %}
+                            <div class="listing-price">🪙 {{ listing.price_tokens }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="listing-meta">
+                            <span class="listing-badge">{{ listing.condition }}</span>
+                            <span>by {{ listing.seller_name or 'Player' }}</span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">🎱</div>
+                    <div>No cues for sale right now</div>
+                    <div style="font-size:0.85rem;margin-top:8px;">Be the first to list one!</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div id="mine-tab" style="display:none;">
+        <div class="section">
+            <div class="section-title">📦 My Listings</div>
+            <div class="listing-grid">
+                {% if my_listings and my_listings|length > 0 %}
+                    {% for listing in my_listings %}
+                    <a href="/player/tokens/marketplace/{{ listing.id }}" class="listing-card">
+                        <div class="listing-top">
+                            <div class="listing-title">{{ listing.title }}</div>
+                            {% if listing.price_type == 'cash' %}
+                            <div class="listing-price" style="color:var(--success);">💵 ${{ "%.2f"|format(listing.price_cash or 0) }}</div>
+                            {% else %}
+                            <div class="listing-price">🪙 {{ listing.price_tokens }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="listing-meta">
+                            <span class="listing-badge {{ listing.status }}">{{ listing.status|title }}</span>
+                            <span>{{ listing.condition }}</span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📦</div>
+                    <div>You haven't listed any cues</div>
+                    <a href="/player/tokens/marketplace/new" style="color:var(--accent);font-size:0.85rem;">List your first cue →</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+        <nav class="bottom-nav">
+        <a href="{% if demo_mode %}/player/demo/home{% else %}/player/home{% endif %}" class="nav-item"><div class="icon">🎱</div><div>Home</div></a>
+        <a href="{% if demo_mode %}/player/demo/friends{% else %}/player/friends{% endif %}" class="nav-item"><div class="icon">👥</div><div>Friends</div></a>
+        <a href="{% if demo_mode %}/player/demo/challenges{% else %}/player/challenges{% endif %}" class="nav-item"><div class="icon">⚔️</div><div>Challenges</div></a>
+        <a href="{% if demo_mode %}/player/demo/leaderboards{% else %}/player/leaderboard{% endif %}" class="nav-item"><div class="icon">🏆</div><div>Rankings</div></a>
+        <a href="{% if demo_mode %}/player/demo/profile{% else %}/player/profile{% endif %}" class="nav-item active"><div class="icon">👤</div><div>Profile</div></a>
+    </nav>
+    
+    <script>
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('browse-tab').style.display = tab === 'browse' ? 'block' : 'none';
+            document.getElementById('mine-tab').style.display = tab === 'mine' ? 'block' : 'none';
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

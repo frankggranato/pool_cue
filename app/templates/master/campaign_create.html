@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Campaign - Pool Cue</title>
+    <link rel="stylesheet" href="/static/css/master-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.05);--t1:#e4e4e7;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:11px}
+        .p{padding:12px 16px}
+        .back{display:inline-flex;align-items:center;gap:4px;color:var(--t3);text-decoration:none;font-size:0.65rem;margin-bottom:10px}
+        .back:hover{color:var(--gold)}
+        .hdr{margin-bottom:12px}
+        .hdr h1{font-size:0.95rem;font-weight:600;margin-bottom:2px}
+        .hdr-sub{font-size:0.7rem;color:var(--t3)}
+        .layout{display:grid;grid-template-columns:1fr 340px;gap:12px}
+        .c{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:14px;margin-bottom:10px}
+        .c-t{font-size:0.65rem;font-weight:600;color:var(--t2);text-transform:uppercase;margin-bottom:10px}
+        .form-g{margin-bottom:12px}
+        .form-l{display:block;font-size:0.6rem;color:var(--t2);margin-bottom:4px;font-weight:500}
+        .form-c{width:100%;padding:8px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.75rem;font-family:inherit}
+        .form-c:focus{outline:none;border-color:var(--gold)}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .form-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+        .form-hint{font-size:0.55rem;color:var(--t3);margin-top:3px}
+        .btn{padding:6px 14px;border-radius:4px;font-size:0.7rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:0;color:var(--t2);text-decoration:none}
+        .btn:hover{border-color:var(--gold);color:var(--gold)}.btn-p{background:var(--gold);border-color:var(--gold);color:#000}
+        .btn-lg{padding:10px 20px;font-size:0.75rem}
+        .actions{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
+        /* Placements */
+        .placements{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+        .placement{background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:6px;padding:12px;cursor:pointer;transition:all 0.15s}
+        .placement:hover{border-color:rgba(255,255,255,0.1)}
+        .placement.selected{border-color:var(--gold);background:rgba(234,179,8,0.08)}
+        .placement-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+        .placement-icon{font-size:1.2rem}
+        .placement-name{font-weight:600;font-size:0.72rem}
+        .placement-eff{margin-left:auto;font-size:0.55rem;padding:2px 6px;border-radius:3px;background:rgba(34,197,94,0.15);color:var(--green)}
+        .placement-desc{font-size:0.58rem;color:var(--t3);line-height:1.4}
+        .placement-check{display:none}
+        
+        /* Bars multi-select */
+        .bar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;max-height:200px;overflow-y:auto;padding:4px}
+        .bar-item{display:flex;align-items:center;gap:6px;padding:6px 8px;background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:0.68rem;transition:all 0.1s}
+        .bar-item:hover{border-color:rgba(255,255,255,0.1)}
+        .bar-item.selected{border-color:var(--gold);background:rgba(234,179,8,0.08)}
+        .bar-item input{display:none}
+        .bar-borough{font-size:0.5rem;color:var(--t3);margin-left:auto}
+        .bar-select-all{font-size:0.6rem;color:var(--gold);cursor:pointer;margin-bottom:6px}
+        
+        /* Drop Zone */
+        .dropzone{border:2px dashed var(--border);border-radius:6px;padding:20px;text-align:center;transition:all 0.15s;cursor:pointer;margin-top:8px}
+        .dropzone:hover,.dropzone.dragover{border-color:var(--gold);background:rgba(234,179,8,0.05)}
+        .dropzone-icon{font-size:1.8rem;margin-bottom:6px}
+        .dropzone-text{font-size:0.72rem;color:var(--t2);margin-bottom:3px}
+        .dropzone-hint{font-size:0.58rem;color:var(--t3)}
+        .dropzone input{display:none}
+        .dropzone.has-file{border-style:solid;border-color:var(--green);background:rgba(34,197,94,0.05)}
+        .dropzone.has-file .dropzone-icon{color:var(--green)}
+        
+        /* Preview */
+        .preview{background:#000;border-radius:8px;overflow:hidden;aspect-ratio:16/9;position:relative}
+        .preview-device{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+        .preview-screen{width:90%;height:85%;background:var(--card);border-radius:4px;overflow:hidden;position:relative}
+        .preview-ad{position:absolute;display:flex;align-items:center;justify-content:center;background:rgba(234,179,8,0.1);border:1px dashed var(--gold);inset:10px;border-radius:4px}
+        .preview-ad img{max-width:100%;max-height:100%;object-fit:contain}
+        .preview-placeholder{color:var(--t3);font-size:0.68rem;display:flex;flex-direction:column;align-items:center;gap:4px}
+        .preview-placeholder span{font-size:1.3rem}
+        
+        /* Questions */
+        .question-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+        .question-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:all 0.1s}
+        .question-item:hover{border-color:rgba(255,255,255,0.1)}
+        .question-item.selected{border-color:var(--gold);background:rgba(234,179,8,0.08)}
+        .question-item input{display:none}
+        .question-text{flex:1;font-size:0.68rem}
+        .question-eff{font-size:0.52rem;color:var(--green)}
+        
+        /* Sticky preview panel */
+        .preview-panel{position:sticky;top:60px}
+        
+        /* Objective cards */
+        .obj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+        .obj-card{padding:10px;background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:4px;cursor:pointer;text-align:center;transition:all 0.1s}
+        .obj-card:hover{border-color:rgba(255,255,255,0.1)}
+        .obj-card.selected{border-color:var(--gold);background:rgba(234,179,8,0.08)}
+        .obj-card input{display:none}
+        .obj-icon{font-size:1.2rem;margin-bottom:4px}
+        .obj-name{font-size:0.7rem;font-weight:600}
+        .obj-desc{font-size:0.52rem;color:var(--t3);margin-top:2px}
+    </style>
+</head>
+<body>
+    {% include 'master/_nav.html' %}
+    <div class="p">
+        <a href="{{ url_for('master.advertisers') }}" class="back">← Back to Advertisers</a>
+        
+        <div class="hdr">
+            <h1>Create Campaign</h1>
+            <div class="hdr-sub">{% if advertiser %}For {{ advertiser.name }}{% else %}Select advertiser and configure targeting{% endif %}</div>
+        </div>
+        
+        <form action="/master/campaign/create" method="POST" enctype="multipart/form-data" id="campaignForm">
+            {% if advertiser %}
+            <input type="hidden" name="advertiser_id" value="{{ advertiser.id }}">
+            {% endif %}
+            
+            <div class="layout">
+                <div class="form-col">
+                    <!-- Campaign Details -->
+                    <div class="c">
+                        <div class="c-t">Campaign Details</div>
+                        
+                        {% if not advertiser %}
+                        <div class="form-g">
+                            <label class="form-l">Advertiser *</label>
+                            <select name="advertiser_id" class="form-c" required>
+                                <option value="">Select advertiser...</option>
+                                {% for adv in all_advertisers %}
+                                <option value="{{ adv.id }}">{{ adv.company_name }}{% if adv.category %} ({{ adv.category }}){% endif %}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="form-g">
+                            <label class="form-l">Campaign Name *</label>
+                            <input type="text" name="name" class="form-c" required placeholder="e.g. Summer Modelo Push">
+                        </div>
+                        
+                        <div class="form-g">
+                            <label class="form-l">Objective</label>
+                            <div class="obj-grid">
+                                {% for obj in objectives %}
+                                <label class="obj-card{% if loop.first %} selected{% endif %}">
+                                    <input type="radio" name="objective" value="{{ obj.value }}"{% if loop.first %} checked{% endif %}>
+                                    <div class="obj-icon">{% if obj.value == 'awareness' %}👁️{% elif obj.value == 'clicks' %}🖱️{% else %}📊{% endif %}</div>
+                                    <div class="obj-name">{{ obj.label }}</div>
+                                    <div class="obj-desc">{{ obj.desc }}</div>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-g"><label class="form-l">Start Date</label><input type="date" name="start_date" class="form-c"></div>
+                            <div class="form-g"><label class="form-l">End Date</label><input type="date" name="end_date" class="form-c"><div class="form-hint">Leave blank for ongoing</div></div>
+                        </div>
+                        
+                        <div class="form-g">
+                            <label class="form-l">Budget ($)</label>
+                            <input type="number" name="budget" class="form-c" placeholder="1000" step="0.01">
+                            <div class="form-hint">Optional total campaign budget</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Targeting -->
+                    <div class="c">
+                        <div class="c-t">Targeting</div>
+                        
+                        <div class="form-g">
+                            <label class="form-l">Target Bars * <span class="bar-select-all" onclick="toggleAllBars()">(Select All)</span></label>
+                            <div class="bar-grid">
+                                {% for bar in bars %}
+                                <label class="bar-item" data-bar="{{ bar.id }}">
+                                    <input type="checkbox" name="target_bars" value="{{ bar.id }}">
+                                    <span>{{ bar.name }}</span>
+                                    {% if bar.borough %}<span class="bar-borough">{{ bar.borough }}</span>{% endif %}
+                                </label>
+                                {% endfor %}
+                            </div>
+                            {% if not bars %}
+                            <div class="form-hint" style="color:var(--gold)">No active bars found. Add bars first.</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-g">
+                            <label class="form-l">Placements *</label>
+                            <div class="placements">
+                                {% for code, info in placements.items() %}
+                                <label class="placement{% if loop.first %} selected{% endif %}" data-placement="{{ code }}">
+                                    <input type="checkbox" name="placements" value="{{ code }}" class="placement-check"{% if loop.first %} checked{% endif %}>
+                                    <div class="placement-h">
+                                        <span class="placement-icon">{{ info.icon }}</span>
+                                        <span class="placement-name">{{ info.name }}</span>
+                                        <span class="placement-eff">{{ efficiency.get(code, 50) }}% eff</span>
+                                    </div>
+                                    <div class="placement-desc">{{ info.description }}</div>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Creative -->
+                    <div class="c">
+                        <div class="c-t">Creative</div>
+                        
+                        <div class="dropzone" id="dropzone">
+                            <div class="dropzone-icon">📁</div>
+                            <div class="dropzone-text">Drag & drop your ad creative here</div>
+                            <div class="dropzone-hint">PNG, JPG, GIF or MP4 (max 10MB)</div>
+                            <input type="file" name="creative" id="creativeFile" accept="image/*,video/mp4">
+                        </div>
+                        
+                        <div class="form-row" style="margin-top:12px">
+                            <div class="form-g">
+                                <label class="form-l">Headline</label>
+                                <input type="text" name="headline" class="form-c" placeholder="e.g. Try Our New IPA" maxlength="50">
+                            </div>
+                            <div class="form-g">
+                                <label class="form-l">CTA Text</label>
+                                <input type="text" name="cta_text" class="form-c" placeholder="e.g. Learn More" maxlength="25">
+                            </div>
+                        </div>
+                        
+                        <div class="form-g">
+                            <label class="form-l">Click-through URL</label>
+                            <input type="url" name="click_url" class="form-c" placeholder="https://your-landing-page.com">
+                            <div class="form-hint">Where users go when they tap the ad</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Survey Questions -->
+                    <div class="c">
+                        <div class="c-t">Survey Questions (Optional)</div>
+                        <div class="form-hint" style="margin-bottom:8px">Add questions to gather brand insights</div>
+                        <div class="question-list">
+                            {% if suggested_questions %}
+                                {% for q in suggested_questions %}
+                                <label class="question-item">
+                                    <input type="checkbox" name="questions" value="{{ q.question }}">
+                                    <span class="question-text">{{ q.question }}</span>
+                                    <span class="question-eff">{{ q.effectiveness }}%</span>
+                                </label>
+                                {% endfor %}
+                            {% else %}
+                                <label class="question-item">
+                                    <input type="checkbox" name="questions" value="How likely are you to try this brand?">
+                                    <span class="question-text">How likely are you to try this brand?</span>
+                                    <span class="question-eff">85%</span>
+                                </label>
+                                <label class="question-item">
+                                    <input type="checkbox" name="questions" value="Have you purchased this brand in the last 30 days?">
+                                    <span class="question-text">Have you purchased this brand in the last 30 days?</span>
+                                    <span class="question-eff">78%</span>
+                                </label>
+                            {% endif %}
+                        </div>
+                        <div class="form-g" style="margin-top:10px">
+                            <label class="form-l">Custom Question</label>
+                            <input type="text" name="custom_question" class="form-c" placeholder="Add your own question...">
+                        </div>
+                    </div>
+                    
+                    <div class="actions">
+                        <a href="{{ url_for('master.advertisers') }}" class="btn">Cancel</a>
+                        <button type="submit" class="btn btn-p btn-lg">Create Campaign</button>
+                    </div>
+                </div>
+                
+                <!-- Preview Panel -->
+                <div class="preview-panel">
+                    <div class="c">
+                        <div class="c-t">Ad Preview</div>
+                        <div class="preview" id="previewContainer">
+                            <div class="preview-device">
+                                <div class="preview-screen">
+                                    <div class="preview-ad" id="previewAd">
+                                        <div class="preview-placeholder">
+                                            <span>📺</span>
+                                            <div>Upload an ad to preview</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="c">
+                        <div class="c-t">Estimated Reach 
+                            {% if estimates and estimates.data_quality != 'no_data' %}
+                            <span style="color:var(--green);font-size:0.5rem;margin-left:4px">● Real data</span>
+                            {% else %}
+                            <span style="color:var(--t3);font-size:0.5rem;margin-left:4px">● No data yet</span>
+                            {% endif %}
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+                            <div style="text-align:center;padding:12px;background:rgba(0,0,0,0.2);border-radius:4px">
+                                <div style="font-size:1.3rem;font-weight:600;color:var(--gold)" id="estImpressions">
+                                    {% if estimates and estimates.estimated_impressions_per_week > 0 %}{{ "%.1f"|format(estimates.estimated_impressions_per_week / 1000) }}K{% else %}--{% endif %}
+                                </div>
+                                <div style="font-size:0.52rem;color:var(--t3);text-transform:uppercase">Impressions/wk</div>
+                            </div>
+                            <div style="text-align:center;padding:12px;background:rgba(0,0,0,0.2);border-radius:4px">
+                                <div style="font-size:1.3rem;font-weight:600;color:var(--green)" id="estCTR">
+                                    {% if estimates and estimates.estimated_ctr > 0 %}{{ "%.1f"|format(estimates.estimated_ctr) }}%{% else %}--{% endif %}
+                                </div>
+                                <div style="font-size:0.52rem;color:var(--t3);text-transform:uppercase">Est. CTR</div>
+                            </div>
+                        </div>
+                        <div style="text-align:center;padding:12px;background:rgba(0,0,0,0.2);border-radius:4px;margin-top:8px">
+                            <div style="font-size:1.3rem;font-weight:600;color:var(--blue)" id="estReach">
+                                {% if estimates and estimates.estimated_unique_players > 0 %}{{ estimates.estimated_unique_players }}{% else %}--{% endif %}
+                            </div>
+                            <div style="font-size:0.52rem;color:var(--t3);text-transform:uppercase">Unique Players</div>
+                        </div>
+                        {% if estimates and estimates.based_on_days %}
+                        <div style="margin-top:8px;font-size:0.52rem;color:var(--t3);text-align:center">
+                            Based on {{ estimates.based_on_impressions|default(0) }} impressions over {{ estimates.based_on_days }} days
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="c">
+                        <div class="c-t">Campaign Summary</div>
+                        <div style="font-size:0.68rem;color:var(--t2);line-height:1.6">
+                            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                                <span>Selected Bars:</span>
+                                <span id="barCount" style="color:var(--gold)">0</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                                <span>Selected Placements:</span>
+                                <span id="placementCount" style="color:var(--gold)">1</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        // Bar selection
+        document.querySelectorAll('.bar-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                item.classList.toggle('selected');
+                item.querySelector('input').checked = item.classList.contains('selected');
+                updateCounts();
+            });
+        });
+        
+        function toggleAllBars() {
+            const items = document.querySelectorAll('.bar-item');
+            const allSelected = Array.from(items).every(i => i.classList.contains('selected'));
+            items.forEach(item => {
+                item.classList.toggle('selected', !allSelected);
+                item.querySelector('input').checked = !allSelected;
+            });
+            updateCounts();
+        }
+        
+        // Placement selection
+        document.querySelectorAll('.placement').forEach(p => {
+            p.addEventListener('click', (e) => {
+                e.preventDefault();
+                p.classList.toggle('selected');
+                p.querySelector('.placement-check').checked = p.classList.contains('selected');
+                updateCounts();
+            });
+        });
+        
+        // Objective selection
+        document.querySelectorAll('.obj-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.obj-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                card.querySelector('input').checked = true;
+            });
+        });
+        
+        // Question selection
+        document.querySelectorAll('.question-item').forEach(q => {
+            q.addEventListener('click', (e) => {
+                e.preventDefault();
+                q.classList.toggle('selected');
+                q.querySelector('input').checked = q.classList.contains('selected');
+            });
+        });
+        
+        // Update counts
+        function updateCounts() {
+            const barCount = document.querySelectorAll('.bar-item.selected').length;
+            const placementCount = document.querySelectorAll('.placement.selected').length;
+            document.getElementById('barCount').textContent = barCount;
+            document.getElementById('placementCount').textContent = placementCount;
+        }
+        
+        // File upload / drag & drop
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('creativeFile');
+        const previewAd = document.getElementById('previewAd');
+        
+        // Store current preview state
+        let previewState = {
+            imageData: null,
+            fileName: null,
+            isVideo: false
+        };
+        
+        dropzone.addEventListener('click', () => fileInput.click());
+        
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+        
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+        
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        
+        function handleFile(file) {
+            if (!file) return;
+            
+            dropzone.classList.add('has-file');
+            dropzone.querySelector('.dropzone-text').textContent = file.name;
+            dropzone.querySelector('.dropzone-hint').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+            
+            previewState.fileName = file.name;
+            
+            // Preview
+            if (file.type.startsWith('image/')) {
+                previewState.isVideo = false;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewState.imageData = e.target.result;
+                    updatePreview();
+                };
+                reader.readAsDataURL(file);
+            } else if (file.type.startsWith('video/')) {
+                previewState.isVideo = true;
+                previewState.imageData = null;
+                updatePreview();
+            }
+        }
+        
+        // Dynamic preview update function
+        function updatePreview() {
+            const headline = document.querySelector('input[name="headline"]').value.trim();
+            const ctaText = document.querySelector('input[name="cta_text"]').value.trim();
+            
+            if (!previewState.imageData && !previewState.isVideo) {
+                // No file uploaded yet - show placeholder with text if entered
+                if (headline || ctaText) {
+                    previewAd.innerHTML = `
+                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:20px;">
+                            <div class="preview-placeholder"><span>📺</span><div>Upload an image</div></div>
+                            ${headline ? `<div style="font-size:0.85rem;font-weight:600;color:var(--t1);margin-top:12px;">${headline}</div>` : ''}
+                            ${ctaText ? `<div style="margin-top:8px;padding:6px 14px;background:var(--gold);color:#000;border-radius:4px;font-size:0.7rem;font-weight:600;">${ctaText}</div>` : ''}
+                        </div>`;
+                } else {
+                    previewAd.innerHTML = `<div class="preview-placeholder"><span>📺</span><div>Upload an ad to preview</div></div>`;
+                }
+                return;
+            }
+            
+            if (previewState.isVideo) {
+                previewAd.innerHTML = `
+                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:20px;">
+                        <div class="preview-placeholder"><span>🎬</span><div>${previewState.fileName}</div></div>
+                        ${headline ? `<div style="font-size:0.85rem;font-weight:600;color:var(--t1);margin-top:12px;">${headline}</div>` : ''}
+                        ${ctaText ? `<div style="margin-top:8px;padding:6px 14px;background:var(--gold);color:#000;border-radius:4px;font-size:0.7rem;font-weight:600;">${ctaText}</div>` : ''}
+                    </div>`;
+                return;
+            }
+            
+            // Image with optional headline and CTA overlay
+            let overlayHtml = '';
+            if (headline || ctaText) {
+                overlayHtml = `
+                    <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.85));padding:12px;text-align:center;">
+                        ${headline ? `<div style="font-size:0.8rem;font-weight:600;color:#fff;margin-bottom:6px;text-shadow:0 1px 3px rgba(0,0,0,0.5);">${headline}</div>` : ''}
+                        ${ctaText ? `<div style="display:inline-block;padding:5px 12px;background:var(--gold);color:#000;border-radius:4px;font-size:0.65rem;font-weight:600;">${ctaText}</div>` : ''}
+                    </div>`;
+            }
+            
+            previewAd.innerHTML = `
+                <img src="${previewState.imageData}" alt="Preview" style="max-width:100%;max-height:100%;object-fit:contain;">
+                ${overlayHtml}`;
+        }
+        
+        // Add event listeners for headline and CTA to update preview live
+        document.querySelector('input[name="headline"]').addEventListener('input', updatePreview);
+        document.querySelector('input[name="cta_text"]').addEventListener('input', updatePreview);
+        
+        // Form validation
+        document.getElementById('campaignForm').addEventListener('submit', (e) => {
+            const bars = document.querySelectorAll('.bar-item.selected').length;
+            const placements = document.querySelectorAll('.placement.selected').length;
+            
+            if (bars === 0) {
+                e.preventDefault();
+                alert('Please select at least one bar');
+                return;
+            }
+            if (placements === 0) {
+                e.preventDefault();
+                alert('Please select at least one placement');
+                return;
+            }
+        });
+        
+        // Initialize counts
+        updateCounts();
+    </script>
+</body>
+</html>

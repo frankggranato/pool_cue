@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <title>Pool Nights - Bar Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555;
+            --accent: #f5c518; --success: #22c55e; --danger: #ef4444; --warning: #f97316;
+            --purple: #a855f7; --border: rgba(255,255,255,0.08);
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--border); }
+        .logo { font-size: 1.2rem; font-weight: 800; display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+        .logo-mark { width: 28px; height: 28px; background: var(--accent); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: #111; }
+        .nav { display: flex; gap: 6px; }
+        .nav-link { padding: 8px 16px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); text-decoration: none; font-size: 0.8rem; font-weight: 500; transition: all 0.15s; }
+        .nav-link:hover { border-color: rgba(255,255,255,0.2); color: var(--text-primary); }
+        .nav-link.active { background: var(--text-primary); border-color: var(--text-primary); color: var(--bg-primary); }
+        
+        .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+        .page-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+</style>
+</head>
+<body>
+    <div class="header">
+        <a href="/master" class="logo"><div class="logo-mark">🎱</div>Pool Cue</a>
+        <nav class="nav">
+            <a href="/admin" class="nav-link">Queue</a>
+            <a href="/admin/pool-nights" class="nav-link active">🌙 Pool Nights</a>
+            <a href="/admin/settings" class="nav-link">Settings</a>
+            <a href="/display" class="nav-link" target="_blank">📺 Board</a>
+        </nav>
+    </div>
+    
+    <div class="container">
+        <div class="page-title">
+            <span>🌙 Pool Nights</span>
+            <button onclick="openCreateModal()" style="padding:10px 20px;background:var(--purple);border:none;border-radius:8px;color:white;font-weight:600;cursor:pointer;font-size:0.85rem;">+ Host Pool Night</button>
+        </div>
+        
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div style="padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:0.85rem;{% if category == 'success' %}background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);color:var(--success);{% else %}background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:var(--danger);{% endif %}">{{ message }}</div>
+        {% endfor %}
+        {% endwith %}
+        
+        <!-- KPI Row -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;">
+            <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;">
+                <div style="font-size:1.6rem;font-weight:700;color:var(--accent);">{{ total_nights }}</div>
+                <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;">Total Events</div>
+            </div>
+            <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;">
+                <div style="font-size:1.6rem;font-weight:700;color:var(--warning);">{{ pending_count }}</div>
+                <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;">Pending Approval</div>
+            </div>
+            <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;">
+                <div style="font-size:1.6rem;font-weight:700;color:var(--success);">{{ approved_count }}</div>
+                <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;">Approved</div>
+            </div>
+            <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;">
+                <div style="font-size:1.6rem;font-weight:700;color:var(--purple);">{{ upcoming_count }}</div>
+                <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;">Upcoming</div>
+            </div>
+        </div>
+        
+        <!-- Pool Nights List -->
+        <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+            <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:0.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Your Pool Nights</span>
+            </div>
+            
+            {% if nights %}
+            {% for night in nights %}
+            <div style="display:flex;align-items:center;padding:16px 18px;border-bottom:1px solid var(--border);gap:16px;">
+                <!-- Date Box -->
+                <div style="min-width:50px;text-align:center;padding:8px;background:var(--bg-tertiary);border-radius:8px;">
+                    <div style="font-size:0.6rem;color:var(--text-muted);text-transform:uppercase;">{{ night.event_date[5:7] }}/{{ night.event_date[8:10] }}</div>
+                    <div style="font-size:1.2rem;font-weight:700;">{{ night.event_date[8:10] }}</div>
+                </div>
+                
+                <!-- Info -->
+                <div style="flex:1;">
+                    <div style="font-weight:600;margin-bottom:4px;">{{ night.title or 'Pool Night' }}</div>
+                    <div style="display:flex;gap:12px;font-size:0.75rem;color:var(--text-muted);">
+                        <span>🕐 {{ night.start_time or 'TBD' }}</span>
+                        {% if night.entry_fee and night.entry_fee > 0 %}
+                        <span style="color:var(--success);">💵 ${{ "%.2f"|format(night.entry_fee) }}</span>
+                        {% endif %}
+                        {% if night.ranked_required %}
+                        <span style="color:var(--accent);">🏆 Ranked</span>
+                        {% endif %}
+                        <span>👥 {{ night.rsvp_count or 0 }}{% if night.max_players %}/{{ night.max_players }}{% endif %}</span>
+                    </div>
+                </div>
+                
+                <!-- Status Badge -->
+                <div>
+                    {% if night.status == 'pending' %}
+                    <span style="padding:5px 12px;background:rgba(249,115,22,0.15);color:var(--warning);border-radius:20px;font-size:0.7rem;font-weight:600;">⏳ Pending</span>
+                    {% elif night.status == 'approved' %}
+                    <span style="padding:5px 12px;background:rgba(34,197,94,0.15);color:var(--success);border-radius:20px;font-size:0.7rem;font-weight:600;">✓ Approved</span>
+                    {% elif night.status == 'cancelled' %}
+                    <span style="padding:5px 12px;background:rgba(255,255,255,0.08);color:var(--text-muted);border-radius:20px;font-size:0.7rem;font-weight:600;">✗ Cancelled</span>
+                    {% elif night.status == 'rejected' %}
+                    <span style="padding:5px 12px;background:rgba(239,68,68,0.15);color:var(--danger);border-radius:20px;font-size:0.7rem;font-weight:600;">✗ Rejected</span>
+                    {% endif %}
+                </div>
+                
+                <!-- Actions -->
+                <div style="display:flex;gap:6px;">
+                    <a href="/admin/pool-nights/{{ night.id }}" style="padding:6px 12px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:6px;color:var(--text-secondary);text-decoration:none;font-size:0.75rem;">View</a>
+                    {% if night.status != 'cancelled' %}
+                    <form action="/admin/pool-nights/{{ night.id }}/cancel" method="POST" style="display:inline;" onsubmit="return confirm('Cancel this pool night?')">
+                        <button type="submit" style="padding:6px 12px;background:transparent;border:1px solid rgba(239,68,68,0.3);border-radius:6px;color:var(--danger);cursor:pointer;font-size:0.75rem;font-family:inherit;">Cancel</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div style="padding:40px;text-align:center;">
+                <div style="font-size:2rem;margin-bottom:12px;">🌙</div>
+                <div style="font-weight:600;margin-bottom:8px;">No Pool Nights Yet</div>
+                <div style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">Host your first pool night to attract players!</div>
+                <button onclick="openCreateModal()" style="padding:10px 20px;background:var(--purple);border:none;border-radius:8px;color:white;font-weight:600;cursor:pointer;font-size:0.85rem;">+ Host Pool Night</button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Create Pool Night Modal -->
+    <div id="createModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:1000;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;">
+        <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;width:100%;max-width:500px;">
+            <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:1rem;font-weight:600;">🌙 Host Pool Night</span>
+                <button onclick="closeCreateModal()" style="background:none;border:none;color:var(--text-muted);font-size:1.4rem;cursor:pointer;">&times;</button>
+            </div>
+            <form action="/admin/pool-nights/create" method="POST">
+                <div style="padding:20px;">
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block;font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Event Name *</label>
+                        <input type="text" name="title" required placeholder="e.g. Friday Night 8-Ball" style="width:100%;padding:12px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;font-family:inherit;">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+                        <div>
+                            <label style="display:block;font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Date *</label>
+                            <input type="date" name="event_date" required style="width:100%;padding:12px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;font-family:inherit;">
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Start Time *</label>
+                            <input type="time" name="start_time" value="19:00" required style="width:100%;padding:12px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;font-family:inherit;">
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+                        <div>
+                            <label style="display:block;font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">End Time</label>
+                            <input type="time" name="end_time" value="23:00" style="width:100%;padding:12px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;font-family:inherit;">
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Game Type</label>
+                            <select name="game_type" style="width:100%;padding:12px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;font-family:inherit;">
+                                <option value="singles">Singles</option>
+                                <option value="doubles">Doubles</option>
+                                <option value="tournament">Tournament</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+                        <div>
+                            <label style="display:block;font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Entry Fee ($)</label>
+                            <input type="number" name="entry_fee" min="0" step="0.01" placeholder="0.00" style="width:100%;padding:12px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;font-family:inherit;">
+                            <div style="font-size:0.65rem;color:var(--text-muted);margin-top:4px;">Fee collected via wallet balance</div>
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Max Players</label>
+                            <input type="number" name="max_players" min="2" max="64" placeholder="16" style="width:100%;padding:12px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;font-family:inherit;">
+                        </div>
+                    </div>
+                    <div style="margin-bottom:14px;">
+                        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:12px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:8px;">
+                            <input type="checkbox" name="ranked_required" value="1" style="width:18px;height:18px;accent-color:var(--accent);">
+                            <div>
+                                <span style="font-weight:500;">🏆 Ranked Games Required</span>
+                                <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">All matches will affect player rankings</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block;font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Description</label>
+                        <textarea name="description" rows="3" placeholder="Rules, prizes, format details..." style="width:100%;padding:12px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;font-family:inherit;resize:vertical;"></textarea>
+                    </div>
+                    <div style="padding:12px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.2);border-radius:8px;margin-bottom:14px;">
+                        <div style="font-size:0.8rem;color:var(--warning);font-weight:500;">⏳ Requires Approval</div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px;">Pool nights require master approval before they appear to players.</div>
+                    </div>
+                </div>
+                <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;">
+                    <button type="button" onclick="closeCreateModal()" style="padding:10px 20px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:8px;color:var(--text-secondary);cursor:pointer;font-size:0.85rem;font-family:inherit;">Cancel</button>
+                    <button type="submit" style="padding:10px 20px;background:var(--purple);border:none;border-radius:8px;color:white;font-weight:600;cursor:pointer;font-size:0.85rem;font-family:inherit;">Create Pool Night</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        function openCreateModal() { document.getElementById('createModal').style.display = 'flex'; }
+        function closeCreateModal() { document.getElementById('createModal').style.display = 'none'; }
+        document.getElementById('createModal').addEventListener('click', e => { if (e.target.id === 'createModal') closeCreateModal(); });
+    </script>
+</body>
+</html>

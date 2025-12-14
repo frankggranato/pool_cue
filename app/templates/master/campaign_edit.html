@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Campaign - Pool Cue</title>
+    <link rel="stylesheet" href="/static/css/master-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.05);--t1:#e4e4e7;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--red:#ef4444}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:11px}
+        .p{padding:12px 16px;max-width:800px;margin:0 auto}
+        .back{display:inline-flex;align-items:center;gap:4px;color:var(--t3);text-decoration:none;font-size:0.65rem;margin-bottom:10px}
+        .back:hover{color:var(--gold)}
+        .hdr{margin-bottom:12px}
+        .hdr h1{font-size:0.95rem;font-weight:600;margin-bottom:2px}
+        .hdr-sub{font-size:0.7rem;color:var(--t3)}
+        .c{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:14px;margin-bottom:10px}
+        .c-t{font-size:0.65rem;font-weight:600;color:var(--t2);text-transform:uppercase;margin-bottom:10px}
+        .form-g{margin-bottom:12px}
+        .form-l{display:block;font-size:0.6rem;color:var(--t2);margin-bottom:4px;font-weight:500}
+        .form-c{width:100%;padding:8px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.75rem;font-family:inherit}
+        .form-c:focus{outline:none;border-color:var(--gold)}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .btn{padding:6px 14px;border-radius:4px;font-size:0.7rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:0;color:var(--t2);text-decoration:none}
+        .btn:hover{border-color:var(--gold);color:var(--gold)}
+        .btn-p{background:var(--gold);border-color:var(--gold);color:#000}
+        .btn-red{border-color:var(--red);color:var(--red)}
+        .btn-red:hover{background:rgba(239,68,68,0.1)}
+        .actions{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
+        .bar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;max-height:200px;overflow-y:auto}
+        .bar-item{display:flex;align-items:center;gap:6px;padding:6px 8px;background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:0.68rem}
+        .bar-item:hover{border-color:rgba(255,255,255,0.1)}
+        .bar-item.selected{border-color:var(--gold);background:rgba(234,179,8,0.08)}
+        .bar-item input{display:none}
+        .placements{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+        .placement{background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:6px;padding:12px;cursor:pointer}
+        .placement:hover{border-color:rgba(255,255,255,0.1)}
+        .placement.selected{border-color:var(--gold);background:rgba(234,179,8,0.08)}
+        .placement-name{font-weight:600;font-size:0.72rem}
+        .placement input{display:none}
+        .badge{padding:3px 8px;border-radius:3px;font-size:0.55rem;font-weight:600;text-transform:uppercase}
+        .badge-green{background:rgba(34,197,94,0.15);color:var(--green)}
+        .badge-gold{background:rgba(234,179,8,0.15);color:var(--gold)}
+        .badge-gray{background:rgba(255,255,255,0.08);color:var(--t3)}
+        .badge-red{background:rgba(239,68,68,0.15);color:var(--red)}
+    </style>
+</head>
+<body>
+    {% include 'master/_nav.html' %}
+    <div class="p">
+        <a href="/master/advertiser/{{ campaign.advertiser_id }}" class="back">← Back to {{ campaign.advertiser_name }}</a>
+        
+        <div class="hdr">
+            <h1>Edit Campaign: {{ campaign.name }}</h1>
+            <div class="hdr-sub">
+                Status: 
+                <span class="badge {% if campaign.status == 'active' %}badge-green{% elif campaign.status == 'paused' %}badge-gold{% elif campaign.status == 'cancelled' %}badge-red{% else %}badge-gray{% endif %}">
+                    {{ campaign.status or 'draft' }}
+                </span>
+            </div>
+        </div>
+        
+        <form method="POST">
+            <div class="c">
+                <div class="c-t">Campaign Details</div>
+                
+                <div class="form-g">
+                    <label class="form-l">Campaign Name *</label>
+                    <input type="text" name="name" class="form-c" required value="{{ campaign.name }}">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-g">
+                        <label class="form-l">Start Date</label>
+                        <input type="date" name="start_date" class="form-c" value="{{ campaign.start_date or '' }}">
+                    </div>
+                    <div class="form-g">
+                        <label class="form-l">End Date</label>
+                        <input type="date" name="end_date" class="form-c" value="{{ campaign.end_date or '' }}">
+                    </div>
+                </div>
+                
+                <div class="form-g">
+                    <label class="form-l">Budget ($)</label>
+                    <input type="number" name="budget" class="form-c" step="0.01" value="{{ campaign.budget or '' }}">
+                </div>
+            </div>
+            
+            <div class="c">
+                <div class="c-t">Targeting</div>
+                
+                <div class="form-g">
+                    <label class="form-l">Target Bars</label>
+                    <div class="bar-grid">
+                        {% for bar in bars %}
+                        <label class="bar-item{% if bar.id|string in campaign.target_bars_list %} selected{% endif %}">
+                            <input type="checkbox" name="target_bars" value="{{ bar.id }}"{% if bar.id|string in campaign.target_bars_list %} checked{% endif %}>
+                            <span>{{ bar.name }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="form-g">
+                    <label class="form-l">Placements</label>
+                    <div class="placements">
+                        {% for code, info in placements.items() %}
+                        <label class="placement{% if code in campaign.target_placements_list %} selected{% endif %}">
+                            <input type="checkbox" name="placements" value="{{ code }}"{% if code in campaign.target_placements_list %} checked{% endif %}>
+                            <div class="placement-name">{{ info.icon }} {{ info.name }}</div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <div style="display:flex;gap:6px">
+                    <form action="/master/campaign/pause" method="POST" style="display:inline">
+                        <input type="hidden" name="campaign_id" value="{{ campaign.id }}">
+                        <input type="hidden" name="advertiser_id" value="{{ campaign.advertiser_id }}">
+                        <button type="submit" class="btn">{% if campaign.status == 'paused' %}▶ Resume{% else %}⏸ Pause{% endif %}</button>
+                    </form>
+                    <form action="/master/campaign/cancel" method="POST" style="display:inline" onsubmit="return confirm('Cancel this campaign? This cannot be undone.')">
+                        <input type="hidden" name="campaign_id" value="{{ campaign.id }}">
+                        <input type="hidden" name="advertiser_id" value="{{ campaign.advertiser_id }}">
+                        <button type="submit" class="btn btn-red">✕ Cancel Campaign</button>
+                    </form>
+                </div>
+                <button type="submit" class="btn btn-p">Save Changes</button>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        document.querySelectorAll('.bar-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                item.classList.toggle('selected');
+                item.querySelector('input').checked = item.classList.contains('selected');
+            });
+        });
+        document.querySelectorAll('.placement').forEach(p => {
+            p.addEventListener('click', (e) => {
+                e.preventDefault();
+                p.classList.toggle('selected');
+                p.querySelector('input').checked = p.classList.contains('selected');
+            });
+        });
+    </script>
+</body>
+</html>

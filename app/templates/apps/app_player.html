@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#22c55e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Pool Cue Player</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎱</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f1a0f 0%, #0a0a0a 50%, #0a1a0a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .desktop-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 16px;
+            padding: 0 10px;
+        }
+        .app-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #f2f2f2;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        .app-title img { width: 36px; height: 36px; border-radius: 10px; }
+        .back-btn {
+            padding: 8px 16px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.15s;
+        }
+        .back-btn:hover { border-color: #22c55e; color: #22c55e; }
+        
+        .main-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+        }
+        
+        /* Phone Frame */
+        .phone-frame {
+            width: 375px;
+            height: 750px;
+            background: #1a1a1a;
+            border-radius: 45px;
+            padding: 12px;
+            box-shadow: 0 0 0 3px #333, 0 20px 60px rgba(0,0,0,0.5), inset 0 0 0 2px #0a0a0a;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .phone-notch {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 28px;
+            background: #1a1a1a;
+            border-radius: 0 0 16px 16px;
+            z-index: 10;
+        }
+        .phone-notch::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 5px;
+            background: #333;
+            border-radius: 3px;
+        }
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: #111;
+            border-radius: 36px;
+            overflow: hidden;
+        }
+        .phone-screen iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* Side Navigation */
+        .side-nav {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .nav-section {
+            background: #141414;
+            border: 1px solid #252525;
+            border-radius: 12px;
+            padding: 14px;
+        }
+        .nav-section-title {
+            font-size: 0.65rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #252525;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+        .nav-item:hover { background: #1a1a1a; color: #f2f2f2; }
+        .nav-item.active { background: rgba(34,197,94,0.15); color: #22c55e; }
+        .nav-item .icon { font-size: 1.1rem; width: 24px; text-align: center; }
+        
+        /* Mobile: Full screen, no frame */
+        @media (max-width: 500px) {
+            body { padding: 0; background: #111; }
+            .desktop-header { display: none; }
+            .main-container { max-width: 100%; }
+            .phone-frame { 
+                width: 100%; 
+                height: 100vh; 
+                border-radius: 0; 
+                padding: 0;
+                box-shadow: none;
+            }
+            .phone-notch { display: none; }
+            .phone-screen { border-radius: 0; }
+            .side-nav { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="desktop-header">
+        <div class="app-title">
+            <span style="width:36px;height:36px;background:#22c55e;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🎱</span>
+            <span>Player App</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+            <a href="/player/home" target="_blank" class="back-btn">Open Full Screen ↗</a>
+            <a href="/master" class="back-btn">← Dashboard</a>
+        </div>
+    </div>
+    
+    <div class="main-container">
+        <div class="phone-frame">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+                <iframe src="/player/home" id="player-frame"></iframe>
+            </div>
+        </div>
+        
+        <div class="side-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">🏠 Main</div>
+                <button class="nav-item active" onclick="loadPage('/player/home', this)"><span class="icon">🏠</span> Home (Bar List)</button>
+                <button class="nav-item" onclick="loadPage('/player/profile', this)"><span class="icon">👤</span> Profile</button>
+                <button class="nav-item" onclick="loadPage('/player/leaderboards', this)"><span class="icon">🏆</span> Rankings</button>
+                <button class="nav-item" onclick="loadPage('/player/notifications', this)"><span class="icon">🔔</span> Notifications</button>
+                <button class="nav-item" onclick="loadPage('/player/friends', this)"><span class="icon">👥</span> Friends</button>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">🪙 Tokens</div>
+                <button class="nav-item" onclick="loadPage('/player/tokens', this)"><span class="icon">💰</span> Token Balance</button>
+                <button class="nav-item" onclick="loadPage('/player/shop', this)"><span class="icon">🛒</span> Token Shop</button>
+                <button class="nav-item" onclick="loadPage('/player/earn', this)"><span class="icon">📈</span> Earn Tokens</button>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">🎱 Bar & Queue</div>
+                <button class="nav-item" onclick="loadPage('/join', this)"><span class="icon">📝</span> Join Queue</button>
+                <button class="nav-item" onclick="loadPage('/player/bar/1', this)"><span class="icon">🏪</span> Bar Detail</button>
+                <button class="nav-item" onclick="loadPage('/player/queue/1', this)"><span class="icon">📋</span> Queue Status</button>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">🌙 Events</div>
+                <button class="nav-item" onclick="loadPage('/player/pool-nights', this)"><span class="icon">🌙</span> Pool Nights</button>
+                <button class="nav-item" onclick="loadPage('/player/host-night', this)"><span class="icon">➕</span> Host a Night</button>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">⚡ Compete</div>
+                <button class="nav-item" onclick="loadPage('/player/challenges', this)"><span class="icon">🎯</span> Challenges</button>
+                <button class="nav-item" onclick="loadPage('/player/rivalries', this)"><span class="icon">🔥</span> Rivalries</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Remember the current page in URL hash
+        function loadPage(url, btn) {
+            document.getElementById('player-frame').src = url;
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            // Store in hash for refresh persistence
+            window.location.hash = encodeURIComponent(url);
+            localStorage.setItem('playerAppPage', url);
+        }
+        
+        // On page load, restore last page
+        (function() {
+            let savedPage = null;
+            
+            // Check hash first (for link sharing)
+            if (window.location.hash) {
+                savedPage = decodeURIComponent(window.location.hash.slice(1));
+            } else {
+                // Fall back to localStorage
+                savedPage = localStorage.getItem('playerAppPage');
+            }
+            
+            if (savedPage && savedPage !== '/player/home') {
+                document.getElementById('player-frame').src = savedPage;
+                // Update active nav item
+                document.querySelectorAll('.nav-item').forEach(btn => {
+                    if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(savedPage)) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

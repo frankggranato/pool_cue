@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <title>Queue Management - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555;
+            --accent: #f5c518; --success: #22c55e; --danger: #ef4444; --warning: #f97316;
+            --border: rgba(255,255,255,0.08);
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--border); }
+        .logo { font-size: 1.2rem; font-weight: 800; display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+        .logo-mark { width: 28px; height: 28px; background: var(--accent); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: #111; }
+        .nav { display: flex; gap: 6px; }
+        .nav-link { padding: 8px 16px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); text-decoration: none; font-size: 0.8rem; font-weight: 500; transition: all 0.15s; }
+        .nav-link:hover { border-color: rgba(255,255,255,0.2); color: var(--text-primary); }
+        .nav-link.active { background: var(--text-primary); border-color: var(--text-primary); color: var(--bg-primary); }
+        
+        .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+        .page-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+        
+        .flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 0.85rem; }
+        .flash.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); color: var(--success); }
+        .flash.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: var(--danger); }
+        
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+        @media (max-width: 900px) { .grid-3 { grid-template-columns: 1fr; } .grid-2 { grid-template-columns: 1fr; } }
+        
+        .panel { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .panel-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .panel-title { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+        .panel-body { padding: 18px; }
+        
+        .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .stat-row:last-child { border-bottom: none; }
+        .stat-label { font-size: 0.85rem; color: var(--text-secondary); }
+        .stat-value { font-size: 1rem; font-weight: 700; }
+        .stat-value.highlight { color: var(--accent); }
+        
+        .queue-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); background: var(--bg-tertiary); margin-bottom: 8px; border-radius: 8px; }
+        .queue-item:last-child { margin-bottom: 0; }
+        .queue-item.king { border: 1px solid rgba(245,197,24,0.3); background: rgba(245,197,24,0.05); }
+        .queue-item.needs-confirm { border-left: 3px solid #eab308; }
+        .queue-pos { min-width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: var(--text-muted); font-weight: 700; background: var(--bg-primary); border-radius: 6px; }
+        .queue-item.king .queue-pos { background: var(--accent); color: #111; }
+        .queue-name { flex: 1; font-weight: 500; }
+        .queue-partner { font-size: 0.75rem; color: var(--text-muted); }
+        .queue-actions { display: flex; gap: 6px; }
+        
+        .btn { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: all 0.15s; font-family: inherit; }
+        .btn-primary { background: var(--text-primary); color: var(--bg-primary); }
+        .btn-primary:hover { background: #e5e5e5; }
+        .btn-accent { background: var(--accent); color: #111; }
+        .btn-accent:hover { background: #e0b015; }
+        .btn-danger { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.2); color: var(--danger); }
+        .btn-danger:hover { background: rgba(239,68,68,0.25); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
+        .btn-outline:hover { border-color: var(--text-primary); color: var(--text-primary); }
+        .btn-small { padding: 6px 12px; font-size: 0.75rem; }
+        .btn-king { background: rgba(245,197,24,0.15); border: 1px solid rgba(245,197,24,0.3); color: var(--accent); }
+        .btn-king:hover { background: rgba(245,197,24,0.25); }
+        
+        .form-group { margin-bottom: 14px; }
+        .form-label { display: block; font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+        .form-input { width: 100%; padding: 12px 14px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 0.9rem; font-family: inherit; }
+        .form-input:focus { outline: none; border-color: var(--text-primary); }
+        
+        .rules-toggle { display: flex; gap: 8px; }
+        .rules-btn { flex: 1; padding: 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-tertiary); color: var(--text-secondary); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+        .rules-btn.active { background: var(--accent); color: #111; border-color: var(--accent); }
+        .rules-btn:hover:not(.active) { border-color: var(--text-primary); color: var(--text-primary); }
+        
+        .checkbox-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+        .checkbox-row input { width: 18px; height: 18px; accent-color: var(--accent); }
+        .checkbox-row label { font-size: 0.8rem; color: var(--text-secondary); }
+        
+        .empty { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+        .empty-icon { font-size: 2rem; margin-bottom: 10px; }
+        
+        .quick-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .quick-actions form { margin: 0; }
+        
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; }
+        .badge-king { background: rgba(245,197,24,0.15); color: var(--accent); }
+        .badge-challenger { background: rgba(255,255,255,0.08); color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/master" class="logo"><div class="logo-mark">🎱</div>Pool Cue</a>
+        <nav class="nav">
+            <a href="/admin" class="nav-link active">Queue</a>
+            <a href="/admin/pool-nights" class="nav-link">🌙 Pool Nights</a>
+            <a href="/admin/settings" class="nav-link">Settings</a>
+            <a href="/display" class="nav-link" target="_blank">📺 Board</a>
+        </nav>
+    </div>
+    
+    <div class="container">
+        <h1 class="page-title">🎯 Queue Management</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endwith %}
+        
+        <!-- TOP ROW: Status, Rules, Add Player -->
+        <div class="grid-3">
+            <div class="panel">
+                <div class="panel-header"><span class="panel-title">📊 Status</span></div>
+                <div class="panel-body">
+                    <div class="stat-row"><span class="stat-label">In Queue</span><span class="stat-value highlight">{{ queue|length if queue else 0 }}</span></div>
+                    <div class="stat-row"><span class="stat-label">Shot Caller</span><span class="stat-value">{{ queue[0].nickname if queue else 'None' }}</span></div>
+                    <div class="stat-row"><span class="stat-label">Challenger</span><span class="stat-value">{{ queue[1].nickname if queue|length > 1 else 'Waiting...' }}</span></div>
+                    <div class="stat-row">
+                        <span class="stat-label">Ranked Status</span>
+                        <span class="stat-value" style="font-size:0.8rem;">
+                            {% if ranked_status and ranked_status.is_event_ranked %}
+                                <span style="color:var(--accent);">🏆 Auto-Ranked</span>
+                            {% elif queue and queue|length > 0 and queue[0].ranked_request and queue[0].ranked_accepted %}
+                                <span style="color:var(--accent);">🏆 Ranked (Player)</span>
+                            {% elif queue and queue|length > 0 and queue[0].ranked_request and queue[0].ranked_accepted is none %}
+                                <span style="color:var(--warning);">⏳ Pending</span>
+                            {% else %}
+                                <span style="color:var(--text-muted);">Unranked</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-header"><span class="panel-title">🎯 Table Rules</span></div>
+                <div class="panel-body">
+                    <div class="rules-toggle">
+                        <button type="button" class="rules-btn {% if rules != 'doubles' %}active{% endif %}" id="btn-singles" onclick="setRule('singles')">Singles</button>
+                        <button type="button" class="rules-btn {% if rules == 'doubles' %}active{% endif %}" id="btn-doubles" onclick="setRule('doubles')">Doubles</button>
+                    </div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="permanent-rules" {% if permanent_rules %}checked{% endif %} onchange="togglePermanent()">
+                        <label for="permanent-rules">Lock rules (bar controls only)</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-header"><span class="panel-title">➕ Add Player</span></div>
+                <div class="panel-body">
+                    <form action="{{ url_for('admin.add_to_queue') }}" method="POST">
+                        <div class="form-group">
+                            <input type="text" name="nickname" class="form-input" placeholder="Player name" required>
+                        </div>
+                        <div class="form-group" id="partner-field" style="display:{% if rules == 'doubles' %}block{% else %}none{% endif %};">
+                            <input type="text" name="partner" class="form-input" placeholder="Partner name (doubles)">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width:100%;">Add to Queue</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- QUEUE LIST -->
+        <div class="panel" style="margin-bottom: 20px;">
+            <div class="panel-header">
+                <span class="panel-title">📋 Current Queue ({{ queue|length }} players)</span>
+                <div class="quick-actions">
+                    <form action="{{ url_for('admin.seed_demo') }}" method="POST">
+                        <button type="submit" class="btn btn-outline btn-small">+ Add 15 Demo</button>
+                    </form>
+                    <form action="{{ url_for('admin.clear_queue') }}" method="POST" onsubmit="return confirm('Clear entire queue?')">
+                        <button type="submit" class="btn btn-danger btn-small">Clear All</button>
+                    </form>
+                </div>
+            </div>
+            <div class="panel-body">
+                {% if queue %}
+                {% for player in queue %}
+                <div class="queue-item {% if loop.index == 1 %}king{% endif %} {% if player.sms_sent and not player.confirmed %}needs-confirm{% endif %}">
+                    <div class="queue-pos">{{ loop.index }}</div>
+                    <div style="flex:1;">
+                        <div class="queue-name">
+                            {{ player.nickname }}
+                            {% if loop.index == 1 %}
+                            <span class="badge badge-king">👑 Shot Caller</span>
+                            {% elif loop.index == 2 %}
+                            <span class="badge badge-challenger">🎯 Challenger</span>
+                            {% endif %}
+                            {% if player.sms_sent and not player.confirmed %}
+                            <span class="badge" style="background:rgba(234,179,8,0.15);color:#eab308;border:1px solid rgba(234,179,8,0.3);">⏳ Awaiting</span>
+                            {% elif player.confirmed %}
+                            <span class="badge" style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);">✓ Confirmed</span>
+                            {% endif %}
+                        </div>
+                        {% if player.partner_name %}
+                        <div class="queue-partner">+ {{ player.partner_name }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="queue-actions">
+                        {% if player.sms_sent and not player.confirmed %}
+                        <form action="{{ url_for('admin.confirm_player') }}" method="POST" style="margin:0;">
+                            <input type="hidden" name="queue_id" value="{{ player.id }}">
+                            <button type="submit" class="btn btn-small" style="background:#22c55e;border-color:#22c55e;color:#000" title="Confirm Present">✓</button>
+                        </form>
+                        {% endif %}
+                        {% if loop.index != 1 %}
+                        <form action="{{ url_for('admin.make_king') }}" method="POST" style="margin:0;">
+                            <input type="hidden" name="queue_id" value="{{ player.id }}">
+                            <button type="submit" class="btn btn-king btn-small" title="Make Shot Caller">👑</button>
+                        </form>
+                        {% endif %}
+                        <form action="{{ url_for('admin.remove_player') }}" method="POST" style="margin:0;">
+                            <input type="hidden" name="queue_id" value="{{ player.id }}">
+                            <button type="submit" class="btn btn-danger btn-small" title="Remove">✕</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty">
+                    <div class="empty-icon">🎱</div>
+                    <div>Queue is empty</div>
+                    <div style="font-size:0.8rem;margin-top:8px;">Add players above or click "Add 15 Demo"</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- UNDO SECTION -->
+        {% if last_removal %}
+        <div class="panel">
+            <div class="panel-body" style="display:flex;justify-content:space-between;align-items:center;background:rgba(34,197,94,0.05);">
+                <span style="color:var(--success);">↩️ Last removed: <strong>{{ last_removal.player_nickname }}</strong></span>
+                <form action="{{ url_for('admin.undo') }}" method="POST" style="margin:0;">
+                    <button type="submit" class="btn btn-outline btn-small">Undo</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <script>
+    let currentRules = '{{ rules or "singles" }}';
+    
+    function setRule(rule) {
+        fetch('/api/table/rules', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rules: rule })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.success) {
+                currentRules = data.game_type;
+                updateRuleButtons();
+                updatePartnerField();
+            }
+        });
+    }
+    
+    function updateRuleButtons() {
+        const btnSingles = document.getElementById('btn-singles');
+        const btnDoubles = document.getElementById('btn-doubles');
+        
+        if(currentRules === 'singles') {
+            btnSingles.classList.add('active');
+            btnDoubles.classList.remove('active');
+        } else {
+            btnDoubles.classList.add('active');
+            btnSingles.classList.remove('active');
+        }
+    }
+    
+    function updatePartnerField() {
+        const partnerField = document.getElementById('partner-field');
+        partnerField.style.display = currentRules === 'doubles' ? 'block' : 'none';
+    }
+    
+    function togglePermanent() {
+        const checked = document.getElementById('permanent-rules').checked;
+        fetch('/api/table/permanent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ permanent: checked })
+        });
+    }
+    </script>
+</body>
+</html>

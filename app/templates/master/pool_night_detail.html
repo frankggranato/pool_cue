@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ night.title or 'Pool Night' }} - Pool Cue</title>
+    <link rel="stylesheet" href="/static/css/master-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.05);--t1:#e4e4e7;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;--orange:#f97316;--cyan:#06b6d4}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:11px;line-height:1.3}
+        .p{padding:12px 16px;max-width:900px}
+        .hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+        .hdr h1{font-size:0.85rem;font-weight:600;display:flex;align-items:center;gap:8px}
+        .btn{padding:5px 12px;border-radius:4px;font-size:0.65rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:0;color:var(--t2);text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+        .btn:hover{border-color:var(--gold);color:var(--gold)}
+        .c{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:12px}
+        .c-header{padding:12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+        .c-header h2{font-size:0.75rem;font-weight:600}
+        .c-body{padding:12px}
+        .status{padding:4px 10px;font-size:0.55rem;font-weight:600;text-transform:uppercase;border-radius:3px}
+        .status.pending{background:rgba(249,115,22,0.15);color:var(--orange)}
+        .status.approved{background:rgba(34,197,94,0.15);color:var(--green)}
+        .status.rejected{background:rgba(239,68,68,0.15);color:var(--red)}
+        .status.cancelled{background:rgba(113,113,122,0.15);color:var(--t3)}
+        .info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+        .info-item{display:flex;flex-direction:column;gap:2px}
+        .info-label{font-size:0.55rem;color:var(--t3);text-transform:uppercase}
+        .info-value{font-size:0.75rem;font-weight:500}
+        .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+        .stat{text-align:center;padding:12px;background:rgba(255,255,255,0.02);border-radius:4px}
+        .stat-value{font-size:1rem;font-weight:600;color:var(--gold)}
+        .stat-label{font-size:0.55rem;color:var(--t3);text-transform:uppercase;margin-top:4px}
+        .stat.green .stat-value{color:var(--green)}
+        .stat.blue .stat-value{color:var(--blue)}
+        .notes{padding:12px;background:rgba(255,255,255,0.02);border-radius:4px;font-size:0.7rem;color:var(--t2);line-height:1.5}
+        .empty{color:var(--t3);font-style:italic}
+        a{color:var(--gold);text-decoration:none}
+    </style>
+</head>
+<body>
+    {% include 'master/_nav.html' %}
+    <div class="p">
+        <div class="hdr">
+            <h1>
+                <a href="{{ url_for('master.pool_nights') }}" style="color:var(--t3)">&larr;</a>
+                🌙 {{ night.title or 'Pool Night' }}
+                {% if night.format == 'tournament' %}
+                <span class="status" style="background:rgba(168,85,247,0.15);color:var(--purple)">🏆 Tournament</span>
+                {% endif %}
+            </h1>
+            <div style="display:flex;gap:8px;align-items:center">
+                {% if night.format == 'tournament' %}
+                <a href="{{ url_for('master.tournament_detail', night_id=night.id) }}" class="btn" style="background:var(--purple);border-color:var(--purple);color:#fff">🏆 View Bracket</a>
+                {% endif %}
+                <span class="status {{ night.status }}">{{ night.status }}</span>
+            </div>
+        </div>
+
+        <!-- Event Info -->
+        <div class="c">
+            <div class="c-header"><h2>📋 Event Details</h2></div>
+            <div class="c-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Bar</span>
+                        <span class="info-value">{{ night.bar_name or 'Unknown Bar' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Date</span>
+                        <span class="info-value">{{ night.event_date }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Start Time</span>
+                        <span class="info-value">{{ night.start_time or 'Not set' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">End Time</span>
+                        <span class="info-value">{{ night.end_time or 'Not set' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Game Type</span>
+                        <span class="info-value">{{ night.game_type or 'Ranked' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Ranked Mode</span>
+                        <span class="info-value">{% if night.ranked_required %}<span style="color:var(--purple)">🏆 Ranked Required</span>{% else %}Optional{% endif %}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Max Players</span>
+                        <span class="info-value">{{ night.max_players or 'Unlimited' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Entry Fee</span>
+                        <span class="info-value">${{ "%.2f"|format(night.entry_fee or 0) }}{% if night.entry_fee and night.entry_fee > 0 %} <span style="color:var(--green);">💵</span>{% endif %}</span>
+                    </div>
+                </div>
+                
+                <!-- Ranked Status -->
+                <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                            <span class="info-label">Ranked Matches</span>
+                            <div style="font-size:0.8rem;font-weight:600;margin-top:4px;">
+                                {% if night.ranked_required %}
+                                <span style="color:var(--purple);">🏆 All matches are ranked</span>
+                                {% else %}
+                                <span style="color:var(--t3);">Player choice (optional)</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if night.status == 'approved' %}
+                        <form action="/master/pool-nights/{{ night.id }}/set-ranked" method="POST">
+                            <input type="hidden" name="ranked" value="{% if night.ranked_required %}0{% else %}1{% endif %}">
+                            <button type="submit" style="padding:8px 14px;border-radius:4px;font-size:0.65rem;font-weight:500;cursor:pointer;border:1px solid {% if night.ranked_required %}var(--purple){% else %}var(--border){% endif %};background:{% if night.ranked_required %}rgba(168,85,247,0.15){% else %}transparent{% endif %};color:{% if night.ranked_required %}var(--purple){% else %}var(--t2){% endif %};">
+                                {% if night.ranked_required %}🏆 Ranked ✓{% else %}Set Ranked{% endif %}
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    <div style="font-size:0.6rem;color:var(--t3);margin-top:6px;">
+                        When ranked is required, all games during this event auto-rank without player approval.
+                    </div>
+                </div>
+                
+                {% if night.description %}
+                <div style="margin-top:12px">
+                    <span class="info-label">Description</span>
+                    <div class="notes" style="margin-top:4px">{{ night.description }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Activity Stats -->
+        <div class="c">
+            <div class="c-header"><h2>🎮 Activity</h2></div>
+            <div class="c-body">
+                <div class="stats-grid">
+                    <div class="stat">
+                        <div class="stat-value">{{ games_stats.games_count }}</div>
+                        <div class="stat-label">Games Played</div>
+                    </div>
+                    <div class="stat blue">
+                        <div class="stat-value">{{ games_stats.unique_players }}</div>
+                        <div class="stat-label">Player Appearances</div>
+                    </div>
+                    <div class="stat green">
+                        <div class="stat-value">{% if games_stats.games_count > 0 %}{{ "%.1f"|format(games_stats.unique_players / games_stats.games_count) }}{% else %}0{% endif %}</div>
+                        <div class="stat-label">Players/Game</div>
+                    </div>
+                </div>
+                {% if games_stats.games_count == 0 %}
+                <div class="empty" style="text-align:center;margin-top:12px">No games recorded for this night yet</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- POS Summary -->
+        <div class="c">
+            <div class="c-header"><h2>💰 POS Summary</h2></div>
+            <div class="c-body">
+                {% if pos_stats.checks_count > 0 %}
+                <div class="stats-grid">
+                    <div class="stat">
+                        <div class="stat-value">{{ pos_stats.checks_count }}</div>
+                        <div class="stat-label">Checks</div>
+                    </div>
+                    <div class="stat green">
+                        <div class="stat-value">${{ "%.2f"|format(pos_stats.total_revenue) }}</div>
+                        <div class="stat-label">Total Revenue</div>
+                    </div>
+                    <div class="stat blue">
+                        <div class="stat-value">${{ "%.2f"|format(pos_stats.avg_check_amount) }}</div>
+                        <div class="stat-label">Avg Check</div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="empty" style="text-align:center">No POS data available for this night</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Entry Fees & Prize Pool -->
+        {% if night.entry_fee and night.entry_fee > 0 %}
+        <div class="c">
+            <div class="c-header"><h2>💵 Entry Fees & Prize Pool</h2></div>
+            <div class="c-body">
+                <div class="stats-grid">
+                    <div class="stat">
+                        <div class="stat-value">${{ "%.2f"|format(night.entry_fee or 0) }}</div>
+                        <div class="stat-label">Entry Fee</div>
+                    </div>
+                    <div class="stat green">
+                        <div class="stat-value">{{ paid_count }}</div>
+                        <div class="stat-label">Paid RSVPs</div>
+                    </div>
+                    <div class="stat blue">
+                        <div class="stat-value">${{ "%.2f"|format(total_collected) }}</div>
+                        <div class="stat-label">Collected</div>
+                    </div>
+                </div>
+                {% if night.prize_pool %}
+                <div style="margin-top:12px;padding:12px;background:rgba(34,197,94,0.1);border-radius:6px;text-align:center;">
+                    <span style="font-size:0.65rem;color:var(--t3);text-transform:uppercase;">Prize Pool</span>
+                    <div style="font-size:1.2rem;font-weight:700;color:var(--green);">${{ "%.2f"|format(night.prize_pool) }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- RSVPs -->
+        <div class="c">
+            <div class="c-header">
+                <h2>👥 RSVPs ({{ rsvps|length }})</h2>
+            </div>
+            <div class="c-body">
+                {% if rsvps %}
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    {% for r in rsvps %}
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(255,255,255,0.02);border-radius:4px;">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span style="font-weight:500;">{{ r.nickname }}</span>
+                            {% if r.checked_in %}
+                            <span style="font-size:0.55rem;padding:2px 6px;background:rgba(34,197,94,0.15);color:var(--green);border-radius:3px;">✓ Checked In</span>
+                            {% endif %}
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            {% if night.entry_fee and night.entry_fee > 0 %}
+                            {% if r.paid %}
+                            <span style="font-size:0.6rem;padding:3px 8px;background:rgba(34,197,94,0.15);color:var(--green);border-radius:3px;">💵 Paid ${{ "%.2f"|format(r.amount_paid or night.entry_fee) }}</span>
+                            {% else %}
+                            <span style="font-size:0.6rem;padding:3px 8px;background:rgba(249,115,22,0.15);color:var(--orange);border-radius:3px;">⏳ Unpaid</span>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty" style="text-align:center;">No RSVPs yet</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Record Payouts -->
+        {% if night.status == 'approved' and rsvps %}
+        <div class="c">
+            <div class="c-header"><h2>🏆 Record Payouts</h2></div>
+            <div class="c-body">
+                {% if payouts %}
+                <div style="margin-bottom:16px;">
+                    <div style="font-size:0.65rem;color:var(--t3);text-transform:uppercase;margin-bottom:8px;">Payouts Made</div>
+                    {% for p in payouts %}
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(34,197,94,0.05);border-radius:4px;margin-bottom:6px;">
+                        <div>
+                            {% if p.placement > 0 %}
+                            <span style="font-weight:700;color:var(--gold);">{{ p.placement }}{{ 'st' if p.placement == 1 else 'nd' if p.placement == 2 else 'rd' if p.placement == 3 else 'th' }}</span>
+                            {% endif %}
+                            <span style="margin-left:8px;">{{ p.nickname }}</span>
+                        </div>
+                        <span style="color:var(--green);font-weight:600;">${{ "%.2f"|format(p.amount) }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <form action="/master/pool-nights/{{ night.id }}/record-payout" method="POST" style="display:grid;grid-template-columns:1fr 80px 100px auto;gap:10px;align-items:end;">
+                    <div>
+                        <label style="font-size:0.55rem;color:var(--t3);text-transform:uppercase;">Player</label>
+                        <select name="player_id" required style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.7rem;">
+                            <option value="">Select player...</option>
+                            {% for r in rsvps %}
+                            <option value="{{ r.player_id }}">{{ r.nickname }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.55rem;color:var(--t3);text-transform:uppercase;">Place</label>
+                        <select name="placement" style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.7rem;">
+                            <option value="1">1st</option>
+                            <option value="2">2nd</option>
+                            <option value="3">3rd</option>
+                            <option value="0">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.55rem;color:var(--t3);text-transform:uppercase;">Amount ($)</label>
+                        <input type="number" name="amount" step="0.01" min="0.01" required placeholder="50.00" style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.7rem;">
+                    </div>
+                    <button type="submit" style="padding:8px 14px;background:var(--green);border:none;border-radius:4px;color:#000;font-size:0.65rem;font-weight:600;cursor:pointer;">💵 Pay Out</button>
+                </form>
+                <div style="font-size:0.6rem;color:var(--t3);margin-top:8px;">
+                    Payouts are added directly to players' wallet balances.
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Back Button -->
+        <div style="margin-top:20px">
+            <a href="{{ url_for('master.pool_nights') }}" class="btn">&larr; Back to Pool Nights</a>
+        </div>
+    </div>
+</body>
+</html>

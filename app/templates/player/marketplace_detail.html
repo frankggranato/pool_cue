@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#111111">
+    <title>{{ listing.title }} - Pool Cue Marketplace</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222; --border: rgba(255,255,255,0.1);
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555; --accent: #f5c518; --success: #22c55e; --danger: #ef4444;
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding-bottom: 40px; }
+        
+        .header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+        .back-btn { width: 36px; height: 36px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .header h1 { font-size: 1.1rem; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .flash { padding: 12px 16px; border-radius: 8px; margin: 16px 20px 0; font-size: 0.9rem; }
+        .flash.error { background: rgba(239,68,68,0.15); color: var(--danger); }
+        .flash.success { background: rgba(34,197,94,0.15); color: var(--success); }
+        
+        .listing-hero { padding: 24px 20px; text-align: center; border-bottom: 1px solid var(--border); }
+        .listing-icon { font-size: 4rem; margin-bottom: 12px; }
+        .listing-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
+        .listing-price { font-size: 2rem; font-weight: 700; color: var(--accent); display: flex; align-items: center; justify-content: center; gap: 8px; }
+        
+        .listing-meta { display: flex; justify-content: center; gap: 16px; margin-top: 16px; }
+        .meta-item { text-align: center; }
+        .meta-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+        .meta-value { font-size: 0.9rem; font-weight: 500; margin-top: 2px; }
+        
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; margin-top: 12px; }
+        .status-badge.active { background: rgba(34,197,94,0.15); color: var(--success); }
+        .status-badge.sold { background: rgba(239,68,68,0.15); color: var(--danger); }
+        .status-badge.closed { background: rgba(136,136,136,0.15); color: var(--text-secondary); }
+        
+        .section { padding: 20px; }
+        .section-title { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        
+        .description-box { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 16px; line-height: 1.6; font-size: 0.95rem; }
+        .no-description { color: var(--text-secondary); font-style: italic; }
+        
+        .seller-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 12px; }
+        .seller-avatar { width: 48px; height: 48px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+        .seller-name { font-weight: 600; }
+        .seller-label { font-size: 0.8rem; color: var(--text-secondary); }
+        
+        .action-section { padding: 20px; padding-top: 0; }
+        .buy-btn, .close-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .buy-btn { background: var(--accent); color: #111; }
+        .buy-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .close-btn { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); margin-top: 12px; }
+        .close-btn:hover { border-color: var(--danger); color: var(--danger); }
+        
+        .balance-note { text-align: center; font-size: 0.85rem; color: var(--text-secondary); margin-top: 12px; }
+        .balance-note .balance { color: var(--accent); font-weight: 600; }
+        .insufficient { color: var(--danger); }
+        
+        .own-listing-note { background: rgba(59,130,246,0.15); color: #3b82f6; padding: 12px 16px; border-radius: 8px; text-align: center; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/player/tokens/marketplace" class="back-btn">←</a>
+        <h1>{{ listing.title }}</h1>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+    
+    <div class="listing-hero">
+        <div class="listing-icon">🎱</div>
+        <div class="listing-title">{{ listing.title }}</div>
+        {% if listing.price_type == 'cash' %}
+        <div class="listing-price"><span>$</span>{{ "%.2f"|format(listing.price_cash or 0) }}</div>
+        {% else %}
+        <div class="listing-price"><span>🪙</span> {{ listing.price_tokens }}</div>
+        {% endif %}
+        <div class="listing-meta">
+            <div class="meta-item">
+                <div class="meta-label">Condition</div>
+                <div class="meta-value">{{ listing.condition }}</div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-label">Listed</div>
+                <div class="meta-value">{{ listing.created_at[:10] if listing.created_at else 'Recently' }}</div>
+            </div>
+        </div>
+        <div class="status-badge {{ listing.status }}">{{ listing.status|title }}</div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">📝 Description</div>
+        <div class="description-box">
+            {% if listing.description %}
+                {{ listing.description }}
+            {% else %}
+                <span class="no-description">No description provided</span>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">👤 Seller</div>
+        <div class="seller-card">
+            <div class="seller-avatar">🎱</div>
+            <div>
+                <div class="seller-name">{{ listing.seller_name or 'Player' }}</div>
+                <div class="seller-label">Seller</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="action-section">
+        {% if listing.status != 'active' %}
+            <div class="own-listing-note">This listing is no longer available ({{ listing.status }})</div>
+        {% elif player_id == listing.seller_player_id %}
+            <div class="own-listing-note">This is your listing</div>
+            <form action="/player/tokens/marketplace/{{ listing.id }}/close" method="POST">
+                <button type="submit" class="close-btn" onclick="return confirm('Close this listing?')">Close Listing</button>
+            </form>
+        {% elif not player_id %}
+            <a href="/auth/login" class="buy-btn" style="text-decoration:none;">Log in to Buy</a>
+        {% else %}
+            <form action="/player/tokens/marketplace/{{ listing.id }}/buy" method="POST">
+                {% if listing.price_type == 'cash' %}
+                    {# Cash purchase - use wallet balance #}
+                    {% set price = listing.price_cash or 0 %}
+                    {% if buyer_wallet_balance >= price %}
+                        <button type="submit" class="buy-btn" style="background:var(--success);" onclick="return confirm('Buy this cue for ${{ '%.2f'|format(price) }} from your wallet?')">
+                            💵 Buy with Wallet - ${{ "%.2f"|format(price) }}
+                        </button>
+                        <div class="balance-note">Your wallet balance: <span class="balance">${{ "%.2f"|format(buyer_wallet_balance) }}</span></div>
+                    {% else %}
+                        <button type="button" class="buy-btn" style="background:var(--success);opacity:0.5;" disabled>
+                            💵 Buy with Wallet - ${{ "%.2f"|format(price) }}
+                        </button>
+                        <div class="balance-note insufficient">
+                            Insufficient wallet balance. You have <span class="balance">${{ "%.2f"|format(buyer_wallet_balance) }}</span>, need ${{ "%.2f"|format(price) }}.
+                        </div>
+                        <a href="/player/wallet" style="display:block;text-align:center;margin-top:12px;color:var(--success);font-size:0.9rem;">+ Add Funds to Wallet</a>
+                    {% endif %}
+                {% else %}
+                    {# Token purchase #}
+                    {% if buyer_balance >= listing.price_tokens %}
+                        <button type="submit" class="buy-btn" onclick="return confirm('Buy this cue for {{ listing.price_tokens }} tokens?')">
+                            🪙 Buy with Tokens - {{ listing.price_tokens }}
+                        </button>
+                        <div class="balance-note">Your balance: <span class="balance">{{ buyer_balance }} tokens</span></div>
+                    {% else %}
+                        <button type="button" class="buy-btn" disabled>
+                            🪙 Buy with Tokens - {{ listing.price_tokens }}
+                        </button>
+                        <div class="balance-note insufficient">
+                            Insufficient tokens. You have <span class="balance">{{ buyer_balance }}</span>, need {{ listing.price_tokens }}.
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </form>
+        {% endif %}
+    </div>
+</body>
+</html>

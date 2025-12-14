@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <title>Host a Pool Night - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --bg-primary: #111111;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #222222;
+            --text-primary: #f2f2f2;
+            --text-secondary: #888888;
+            --text-muted: #555555;
+            --accent: #f5c518;
+            --purple: #a78bfa;
+            --border: rgba(255,255,255,0.08);
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg-primary);
+            z-index: 100;
+        }
+        .back-btn { color: var(--text-secondary); text-decoration: none; font-size: 1.3rem; }
+        .header h1 { font-size: 1.1rem; font-weight: 600; }
+        
+        .container { padding: 20px; max-width: 500px; margin: 0 auto; }
+        
+        .info-card {
+            background: rgba(139,92,246,0.1);
+            border: 1px solid rgba(139,92,246,0.25);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 24px;
+        }
+        .info-card h3 { font-size: 1rem; color: var(--purple); margin-bottom: 8px; }
+        .info-card p { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--purple);
+        }
+        .form-textarea { min-height: 100px; resize: vertical; }
+        
+        .row { display: flex; gap: 12px; }
+        .row .form-group { flex: 1; }
+</style>
+</head>
+        
+        /* Toggle Group */
+        .toggle-group {
+            display: flex;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 4px;
+        }
+        .toggle-option {
+            flex: 1;
+            padding: 14px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .toggle-option.active {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        
+        /* Rules Section */
+        .rules-section { margin-bottom: 24px; }
+        .rule-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .rule-label { font-size: 0.9rem; font-weight: 500; }
+        .rule-value { color: var(--text-secondary); font-size: 0.9rem; }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: var(--purple);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 0 22px;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            padding: 8px 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.6rem;
+        }
+        .nav-item .icon { font-size: 1.25rem; }
+    </style>
+</head>
+<body>
+    <a href="/master" class="dev-link" style="position:fixed;top:8px;right:8px;padding:6px 12px;background:#1a1a1a;border:1px solid #252525;border-radius:4px;color:#888;font-size:0.65rem;text-decoration:none;z-index:1000;">← Dashboard</a>
+    <div class="header">
+        <a href="/player/pool-nights" class="back-btn">←</a>
+        <h1>Host a Pool Night</h1>
+    </div>
+    
+    <div class="container">
+        <div class="info-card">
+            <h3>🌙 Create Your Event</h3>
+            <p>Host a ranked session at your favorite bar. You set the rules as Shot Caller, and players can RSVP to join. Great for organizing competitive play or casual meetups!</p>
+        </div>
+        
+        <form id="hostNightForm" onsubmit="return submitForm(event)">
+            <div class="form-group">
+                <label class="form-label">Event Name</label>
+                <input type="text" name="title" class="form-input" placeholder="e.g. Monday Night Ranked" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Select Bar</label>
+                <select name="bar_id" class="form-select" required>
+                    <option value="">Choose a bar...</option>
+                    {% for bar in bars %}
+                    <option value="{{ bar.id }}">{{ bar.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="row">
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" name="event_date" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Start Time</label>
+                    <input type="time" name="start_time" class="form-input" value="20:00">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Game Type</label>
+                <div class="toggle-group">
+                    <button type="button" class="toggle-option active" data-value="singles" onclick="selectToggle(this, 'game_type')">Singles</button>
+                    <button type="button" class="toggle-option" data-value="doubles" onclick="selectToggle(this, 'game_type')">Doubles</button>
+                    <button type="button" class="toggle-option" data-value="both" onclick="selectToggle(this, 'game_type')">Both</button>
+                </div>
+                <input type="hidden" name="game_type" value="singles">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Max Players</label>
+                <select name="max_players" class="form-select">
+                    <option value="8">8</option>
+                    <option value="12">12</option>
+                    <option value="16" selected>16</option>
+                    <option value="20">20</option>
+                    <option value="24">24</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Access Type</label>
+                <div class="toggle-group">
+                    <button type="button" class="toggle-option active" data-value="open" onclick="selectToggle(this, 'access_type')">Open to All</button>
+                    <button type="button" class="toggle-option" data-value="invite" onclick="selectToggle(this, 'access_type')">Invite Only</button>
+                </div>
+                <input type="hidden" name="access_type" value="open">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Description (Optional)</label>
+                <textarea name="description" class="form-textarea" placeholder="Tell players what to expect..."></textarea>
+            </div>
+            
+            <div style="padding:12px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.2);border-radius:8px;margin-bottom:20px;">
+                <div style="font-size:0.8rem;color:var(--accent);font-weight:500;">⏳ Requires Bar Approval</div>
+                <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px;">Your pool night request will be reviewed by the bar before it appears to other players.</div>
+            </div>
+            
+            <button type="submit" class="submit-btn" id="submitBtn">🌙 Request Pool Night</button>
+        </form>
+        
+        <script>
+            function selectToggle(btn, fieldName) {
+                const group = btn.closest('.toggle-group');
+                group.querySelectorAll('.toggle-option').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.querySelector(`input[name="${fieldName}"]`).value = btn.dataset.value;
+            }
+            
+            async function submitForm(e) {
+                e.preventDefault();
+                const form = document.getElementById('hostNightForm');
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                
+                document.getElementById('submitBtn').disabled = true;
+                document.getElementById('submitBtn').textContent = 'Submitting...';
+                
+                try {
+                    const res = await fetch('/player/api/pool-night/request', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    const result = await res.json();
+                    
+                    if (result.success) {
+                        alert('Pool night request submitted! The bar will review it shortly.');
+                        window.location.href = '/player/pool-nights';
+                    } else {
+                        alert(result.error || 'Failed to submit request');
+                        document.getElementById('submitBtn').disabled = false;
+                        document.getElementById('submitBtn').textContent = '🌙 Request Pool Night';
+                    }
+                } catch (err) {
+                    alert('Connection error. Please try again.');
+                    document.getElementById('submitBtn').disabled = false;
+                    document.getElementById('submitBtn').textContent = '🌙 Request Pool Night';
+                }
+                return false;
+            }
+        </script>
+    </div>
+    
+        <nav class="bottom-nav">
+        <a href="{% if demo_mode %}/player/demo/home{% else %}/player/home{% endif %}" class="nav-item active"><div class="icon">🎱</div><div>Home</div></a>
+        <a href="{% if demo_mode %}/player/demo/friends{% else %}/player/friends{% endif %}" class="nav-item"><div class="icon">👥</div><div>Friends</div></a>
+        <a href="{% if demo_mode %}/player/demo/challenges{% else %}/player/challenges{% endif %}" class="nav-item"><div class="icon">⚔️</div><div>Challenges</div></a>
+        <a href="{% if demo_mode %}/player/demo/leaderboards{% else %}/player/leaderboard{% endif %}" class="nav-item"><div class="icon">🏆</div><div>Rankings</div></a>
+        <a href="{% if demo_mode %}/player/demo/profile{% else %}/player/profile{% endif %}" class="nav-item"><div class="icon">👤</div><div>Profile</div></a>
+    </nav>
+    
+    <script>
+        document.querySelectorAll('.toggle-group').forEach(group => {
+            group.querySelectorAll('.toggle-option').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    group.querySelectorAll('.toggle-option').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

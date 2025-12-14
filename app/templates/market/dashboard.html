@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Pool Cue Advertiser Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.06);--t1:#f4f4f5;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--blue:#3b82f6;--red:#ef4444}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);font-size:12px}
+        .nav{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#0a0a0c;border-bottom:1px solid var(--border)}
+        .nav-logo{display:flex;align-items:center;gap:10px;font-weight:600}
+        .nav-logo span{font-size:1.25rem}
+        .nav-links{display:flex;gap:20px;align-items:center}
+        .nav-links a{color:var(--t2);text-decoration:none;font-size:0.75rem;font-weight:500}
+        .nav-links a:hover,.nav-links a.active{color:var(--gold)}
+        .nav-user{display:flex;align-items:center;gap:12px}
+        .nav-user .credits{background:rgba(34,197,94,0.1);color:var(--green);padding:4px 10px;border-radius:4px;font-size:0.7rem;font-weight:600}
+        .nav-user .name{font-size:0.75rem;color:var(--t2)}
+        .container{max-width:1200px;margin:0 auto;padding:20px}
+        .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+        .header h1{font-size:1.1rem;font-weight:600}
+        .btn{padding:8px 16px;border-radius:5px;font-size:0.7rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--t2);text-decoration:none;display:inline-block}
+        .btn:hover{border-color:var(--gold);color:var(--gold)}
+        .btn-primary{background:var(--gold);border-color:var(--gold);color:#000}
+        .btn-primary:hover{background:#d4a90a}
+        .kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px}
+        .kpi{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:16px;text-align:center}
+        .kpi-value{font-size:1.5rem;font-weight:700;color:var(--gold)}
+        .kpi-label{font-size:0.6rem;color:var(--t3);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px}
+        .kpi-sub{font-size:0.65rem;color:var(--t2);margin-top:2px}
+        .grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:16px}
+        .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+        .card-title{font-size:0.75rem;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:0.5px}
+        table{width:100%;border-collapse:collapse}
+        th,td{padding:8px;text-align:left;font-size:0.75rem}
+        th{color:var(--t3);font-weight:500;font-size:0.65rem;text-transform:uppercase;border-bottom:1px solid var(--border)}
+        tr:hover{background:rgba(255,255,255,0.02)}
+        .badge{padding:3px 8px;border-radius:4px;font-size:0.6rem;font-weight:600;text-transform:uppercase}
+        .badge-green{background:rgba(34,197,94,0.15);color:var(--green)}
+        .badge-gold{background:rgba(234,179,8,0.15);color:var(--gold)}
+        .badge-blue{background:rgba(59,130,246,0.15);color:var(--blue)}
+        .badge-gray{background:rgba(255,255,255,0.08);color:var(--t3)}
+        .badge-red{background:rgba(239,68,68,0.15);color:var(--red)}
+        .placement-bar{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+        .placement-bar:last-child{border-bottom:none}
+        .placement-name{flex:1;font-size:0.7rem}
+        .placement-stats{display:flex;gap:16px;font-size:0.7rem;color:var(--t2)}
+        .placement-stats span{min-width:60px}
+        .bar-fill{height:4px;background:var(--gold);border-radius:2px}
+        .empty{text-align:center;padding:40px;color:var(--t3)}
+        .empty-icon{font-size:2rem;margin-bottom:8px}
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-logo">
+            <span>🎱</span> Pool Cue <span style="color:var(--t3);font-weight:400;font-size:0.7rem;margin-left:8px">Advertiser</span>
+        </div>
+        <div class="nav-links">
+            <a href="/market/dashboard" class="active">Dashboard</a>
+            <a href="/market/campaigns">Campaigns</a>
+            <a href="/market/billing">Billing</a>
+            <a href="/market/pricing">Pricing</a>
+        </div>
+        <div class="nav-user">
+            <span class="credits">${{ '%.2f'|format(marketer.credits_balance or 0) }} credits</span>
+            <span class="name">{{ marketer.business_name }}</span>
+            <a href="/market/logout" class="btn" style="padding:5px 10px">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>📊 Dashboard</h1>
+            <div style="display:flex;gap:8px;align-items:center">
+                <select onchange="location.href='?days='+this.value" style="padding:6px 10px;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.7rem">
+                    <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+                    <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+                    <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+                </select>
+                <a href="/market/campaign/new" class="btn btn-primary">+ New Campaign</a>
+            </div>
+        </div>
+        
+        <!-- KPIs -->
+        <div class="kpi-grid">
+            <div class="kpi">
+                <div class="kpi-value">{{ '{:,}'.format(stats.impressions) }}</div>
+                <div class="kpi-label">Impressions</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-value">{{ '{:,}'.format(stats.estimated_reach) }}</div>
+                <div class="kpi-label">Est. Reach</div>
+                <div class="kpi-sub">~{{ '%.1f'|format(stats.estimated_reach / stats.impressions if stats.impressions > 0 else 0) }}x viewers/impression</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-value">{{ '{:,}'.format(stats.clicks) }}</div>
+                <div class="kpi-label">Clicks</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-value" style="color:var(--green)">{{ stats.ctr }}%</div>
+                <div class="kpi-label">CTR</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-value" style="color:var(--blue)">{{ stats.unique_viewers }}</div>
+                <div class="kpi-label">Unique Viewers</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-value">${{ '%.2f'|format(stats.estimated_cost) }}</div>
+                <div class="kpi-label">Est. Cost</div>
+                <div class="kpi-sub">Based on CPM</div>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <!-- Campaigns -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Your Campaigns</span>
+                    <a href="/market/campaigns" class="btn" style="padding:4px 10px;font-size:0.6rem">View All</a>
+                </div>
+                {% if campaigns %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Campaign</th>
+                            <th>Status</th>
+                            <th style="text-align:right">Impressions</th>
+                            <th style="text-align:right">Clicks</th>
+                            <th style="text-align:right">CTR</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for camp in campaigns[:5] %}
+                        <tr onclick="location.href='/market/campaign/{{ camp.id }}'" style="cursor:pointer">
+                            <td style="font-weight:500">{{ camp.name }}</td>
+                            <td>
+                                {% if camp.approval_status == 'approved' or camp.status == 'active' %}
+                                <span class="badge badge-green">Active</span>
+                                {% elif camp.approval_status == 'pending_review' %}
+                                <span class="badge badge-gold">Pending</span>
+                                {% elif camp.approval_status == 'rejected' %}
+                                <span class="badge badge-red">Rejected</span>
+                                {% else %}
+                                <span class="badge badge-gray">Draft</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align:right;color:var(--gold)">{{ '{:,}'.format(camp.total_impressions or 0) }}</td>
+                            <td style="text-align:right">{{ camp.total_clicks or 0 }}</td>
+                            <td style="text-align:right;color:var(--green)">{{ '%.2f'|format((camp.total_clicks or 0) / (camp.total_impressions or 1) * 100) }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty">
+                    <div class="empty-icon">📢</div>
+                    <div>No campaigns yet</div>
+                    <a href="/market/campaign/new" class="btn btn-primary" style="margin-top:12px">Create Your First Campaign</a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Performance by Placement -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">By Placement</span>
+                </div>
+                {% if stats.by_placement %}
+                {% set max_imps = stats.by_placement|map(attribute='impressions')|max %}
+                {% for p in stats.by_placement %}
+                <div class="placement-bar">
+                    <div class="placement-name">{{ p.display_name }}</div>
+                    <div class="placement-stats">
+                        <span style="color:var(--gold)">{{ '{:,}'.format(p.impressions) }}</span>
+                        <span>${{ '%.2f'|format(p.cost) }}</span>
+                    </div>
+                </div>
+                <div class="bar-fill" style="width:{{ (p.impressions / max_imps * 100) if max_imps > 0 else 0 }}%"></div>
+                {% endfor %}
+                {% else %}
+                <div class="empty" style="padding:20px">
+                    <div style="font-size:0.7rem">No data yet</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

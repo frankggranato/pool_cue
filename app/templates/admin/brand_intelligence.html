@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Intelligence - Pool Cue Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+        
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 20px 30px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        .header .back { color: #94a3b8; text-decoration: none; font-size: 0.9rem; }
+        
+        .tabs {
+            display: flex;
+            background: #1e293b;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 15px 25px;
+            color: #94a3b8;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+        .tab:hover { color: #e2e8f0; }
+        .tab.active { color: #f59e0b; border-bottom-color: #f59e0b; }
+        
+        .content { padding: 25px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .stat-card .label { color: #94a3b8; font-size: 0.8rem; margin-bottom: 8px; }
+        .stat-card .value { font-size: 2rem; font-weight: 700; color: #f59e0b; }
+        .stat-card .sub { font-size: 0.8rem; color: #64748b; margin-top: 5px; }
+        
+        .table-card {
+            background: #1e293b;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 25px;
+        }
+        .table-card h3 {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 20px; text-align: left; }
+        th { color: #94a3b8; font-weight: 500; font-size: 0.8rem; text-transform: uppercase; }
+        tr { border-bottom: 1px solid rgba(255,255,255,0.03); }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .badge-hot { background: rgba(239,68,68,0.2); color: #ef4444; }
+        .badge-warm { background: rgba(245,158,11,0.2); color: #f59e0b; }
+        .badge-chill { background: rgba(59,130,246,0.2); color: #3b82f6; }
+        .badge-brand { background: rgba(168,85,247,0.2); color: #a855f7; }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .btn-primary { background: #f59e0b; color: #000; }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: #e2e8f0; }
+        .btn:hover { opacity: 0.9; }
+        
+        .heatmap-container { padding: 20px; }
+        .heatmap {
+            display: grid;
+            grid-template-columns: 50px repeat(24, 1fr);
+            gap: 2px;
+            font-size: 0.7rem;
+        }
+        .heatmap-cell {
+            aspect-ratio: 1;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .heatmap-label { color: #64748b; display: flex; align-items: center; }
+        
+        .cohort-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .cohort-bar .name { width: 150px; font-weight: 500; }
+        .cohort-bar .bar-container { flex: 1; height: 24px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; }
+        .cohort-bar .bar-fill { height: 100%; background: #f59e0b; display: flex; align-items: center; padding-left: 10px; font-size: 0.8rem; }
+        .cohort-bar .count { width: 60px; text-align: right; color: #94a3b8; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Brand Intelligence</h1>
+        <a href="/admin" class="back">← Back to Admin</a>
+    </div>
+    
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('overview')">Overview</div>
+        <div class="tab" onclick="showTab('brands')">Brands</div>
+        <div class="tab" onclick="showTab('engagement')">Bar Engagement</div>
+        <div class="tab" onclick="showTab('cohorts')">Cohorts</div>
+        <div class="tab" onclick="showTab('heatmap')">Activity Heatmap</div>
+        <div class="tab" onclick="showTab('reports')">Reports</div>
+        <div class="tab" onclick="showTab('league')">League Metrics</div>
+    </div>
+    
+    <div class="content">
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="label">Active Players (This Month)</div>
+                    <div class="value" id="activePlayers">--</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Total Matches</div>
+                    <div class="value" id="totalMatches">--</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Top Brand</div>
+                    <div class="value" id="topBrand">--</div>
+                    <div class="sub" id="topBrandImpressions"></div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Brands Tracked</div>
+                    <div class="value">10</div>
+                </div>
+            </div>
+            
+            <div class="table-card">
+                <h3>Top Brands by Impressions</h3>
+                <table>
+                    <thead><tr><th>Brand</th><th>Category</th><th>Impressions</th><th>Clicks</th><th>CTR</th></tr></thead>
+                    <tbody id="topBrandsTable"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Brands Tab -->
+        <div id="brands" class="tab-content">
+            <div class="table-card">
+                <h3>All Brands <button class="btn btn-secondary" onclick="loadBrands()">Refresh</button></h3>
+                <table>
+                    <thead><tr><th>Brand</th><th>Category</th><th>Impressions</th><th>Clicks</th><th>CTR</th><th>Actions</th></tr></thead>
+                    <tbody id="brandsTable"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Engagement Tab -->
+        <div id="engagement" class="tab-content">
+            <div class="table-card">
+                <h3>Bar Engagement Scores</h3>
+                <table>
+                    <thead><tr><th>Bar</th><th>Date</th><th>Players</th><th>Matches</th><th>Score</th><th>Status</th></tr></thead>
+                    <tbody id="engagementTable"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Cohorts Tab -->
+        <div id="cohorts" class="tab-content">
+            <div style="margin-bottom: 20px;">
+                <button class="btn btn-primary" onclick="recomputeCohorts()">🔄 Recompute All Cohorts</button>
+            </div>
+            <div class="table-card">
+                <h3>Player Cohort Distribution</h3>
+                <div style="padding: 20px;" id="cohortBars"></div>
+            </div>
+        </div>
+        
+        <!-- Heatmap Tab -->
+        <div id="heatmap" class="tab-content">
+            <div class="table-card">
+                <h3>Activity Heatmap (7 days × 24 hours)</h3>
+                <div class="heatmap-container">
+                    <div class="heatmap" id="heatmapGrid"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reports Tab -->
+        <div id="reports" class="tab-content">
+            <div class="table-card">
+                <h3>Generated Reports</h3>
+                <table>
+                    <thead><tr><th>Brand</th><th>Period</th><th>Generated</th><th>Impressions</th><th>CTR</th><th>Actions</th></tr></thead>
+                    <tbody id="reportsTable"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- League Metrics Tab -->
+        <div id="league" class="tab-content">
+            <div class="stats-grid" id="leagueStats"></div>
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+            
+            if (tabId === 'overview') loadOverview();
+            else if (tabId === 'brands') loadBrands();
+            else if (tabId === 'engagement') loadEngagement();
+            else if (tabId === 'cohorts') loadCohorts();
+            else if (tabId === 'heatmap') loadHeatmap();
+            else if (tabId === 'reports') loadReports();
+            else if (tabId === 'league') loadLeague();
+        }
+        
+        async function loadOverview() {
+            try {
+                const res = await fetch('/admin/brands/api/overview');
+                const data = await res.json();
+                document.getElementById('activePlayers').textContent = data.active_players || 0;
+                document.getElementById('totalMatches').textContent = data.total_matches || 0;
+                if (data.top_brands?.length) {
+                    document.getElementById('topBrand').textContent = data.top_brands[0].name;
+                    document.getElementById('topBrandImpressions').textContent = (data.top_brands[0].impressions || 0) + ' impressions';
+                    document.getElementById('topBrandsTable').innerHTML = data.top_brands.map(b => `
+                        <tr><td><strong>${b.name}</strong></td><td><span class="badge badge-brand">${b.category||'N/A'}</span></td>
+                        <td>${b.impressions||0}</td><td>${b.clicks||0}</td><td>${b.ctr||0}%</td></tr>
+                    `).join('');
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        async function loadBrands() {
+            const res = await fetch('/admin/brands/api/brands');
+            const brands = await res.json();
+            document.getElementById('brandsTable').innerHTML = brands.map(b => `
+                <tr><td><strong>${b.name}</strong></td><td><span class="badge badge-brand">${b.category||'N/A'}</span></td>
+                <td>${b.impressions||0}</td><td>${b.clicks||0}</td><td>${b.ctr||0}%</td>
+                <td><button class="btn btn-secondary" onclick="generateReport(${b.id})">Generate Report</button></td></tr>
+            `).join('');
+        }
+        
+        async function loadEngagement() {
+            const res = await fetch('/admin/brands/api/engagement');
+            const data = await res.json();
+            document.getElementById('engagementTable').innerHTML = data.length ? data.map(e => `
+                <tr><td>Bar #${e.bar_id||1}</td><td>${e.date||'Today'}</td><td>${e.unique_players||0}</td>
+                <td>${e.matches||0}</td><td><strong>${e.engagement_score||0}</strong></td>
+                <td><span class="badge badge-${(e.heat_label||'chill').toLowerCase()}">${e.heat_label||'Chill'}</span></td></tr>
+            `).join('') : '<tr><td colspan="6">No engagement data yet</td></tr>';
+        }
+        
+        async function loadCohorts() {
+            const res = await fetch('/admin/brands/api/cohorts');
+            const cohorts = await res.json();
+            document.getElementById('cohortBars').innerHTML = cohorts.length ? cohorts.map(c => `
+                <div class="cohort-bar"><div class="name">${c.name}</div>
+                <div class="bar-container"><div class="bar-fill" style="width:${Math.max(c.percentage,5)}%">${c.percentage}%</div></div>
+                <div class="count">${c.count}</div></div>
+            `).join('') : '<p>No cohort data. Click "Recompute" to generate.</p>';
+        }
+        
+        async function loadHeatmap() {
+            const res = await fetch('/admin/brands/api/heatmap');
+            const hm = await res.json();
+            const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+            let html = '<div class="heatmap-label"></div>';
+            for(let h=0;h<24;h++) html += `<div class="heatmap-label" style="justify-content:center">${h}</div>`;
+            for(let d=0;d<7;d++) {
+                html += `<div class="heatmap-label">${days[d]}</div>`;
+                for(let h=0;h<24;h++) {
+                    const val = hm[d]?hm[d][h]:0;
+                    const color = val>70?'#ef4444':val>40?'#f59e0b':val>10?'#3b82f6':'#1e293b';
+                    html += `<div class="heatmap-cell" style="background:${color}" title="${days[d]} ${h}:00 - ${val}%"></div>`;
+                }
+            }
+            document.getElementById('heatmapGrid').innerHTML = html;
+        }
+        
+        async function loadReports() {
+            const res = await fetch('/admin/brands/api/reports');
+            const reports = await res.json();
+            document.getElementById('reportsTable').innerHTML = reports.length ? reports.map(r => `
+                <tr><td><strong>${r.brand_name}</strong></td><td>${r.period_start} - ${r.period_end}</td>
+                <td>${r.generated_at}</td><td>${r.impressions||0}</td><td>${r.ctr||0}%</td>
+                <td><button class="btn btn-secondary">View</button></td></tr>
+            `).join('') : '<tr><td colspan="6">No reports generated yet</td></tr>';
+        }
+        
+        async function loadLeague() {
+            const res = await fetch('/admin/brands/api/league_metrics');
+            const m = await res.json();
+            document.getElementById('leagueStats').innerHTML = `
+                <div class="stat-card"><div class="label">Active Ranked Players</div><div class="value">${m.active_ranked_players||0}</div><div class="sub">Last ${m.period_days||30} days</div></div>
+                <div class="stat-card"><div class="label">Ranked Matches</div><div class="value">${m.ranked_matches||0}</div><div class="sub">${m.ranked_ratio||0}% of total</div></div>
+                <div class="stat-card"><div class="label">Casual Matches</div><div class="value">${m.casual_matches||0}</div></div>
+                <div class="stat-card"><div class="label">Retained Players</div><div class="value">${m.retained_players||0}</div><div class="sub">Active both periods</div></div>
+            `;
+        }
+        
+        async function generateReport(id) {
+            await fetch(`/admin/brands/api/brands/${id}/generate_report`, {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+            alert('Report generated!'); loadReports();
+        }
+        
+        async function recomputeCohorts() {
+            const res = await fetch('/admin/brands/api/cohorts/recompute', {method:'POST'});
+            const r = await res.json();
+            alert(`Processed ${r.users_processed} users`); loadCohorts();
+        }
+        
+        loadOverview();
+    </script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invite Expired - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.08);--t1:#f4f4f5;--t2:#a1a1aa;--gold:#eab308;--red:#ef4444}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+        .container{width:100%;max-width:400px;text-align:center}
+        .logo{margin-bottom:30px}
+        .logo-icon{font-size:3rem;margin-bottom:12px}
+        .logo-text{font-size:1.5rem;font-weight:700}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:30px}
+        .error-icon{font-size:3rem;margin-bottom:16px}
+        .title{font-size:1.2rem;font-weight:600;margin-bottom:12px}
+        .message{color:var(--t2);font-size:0.9rem;margin-bottom:24px;line-height:1.5}
+        .btn{display:inline-block;padding:12px 28px;background:var(--gold);border-radius:8px;color:#000;font-size:0.9rem;font-weight:600;text-decoration:none}
+        .btn:hover{background:#d4a90a}
+        .links{margin-top:20px;font-size:0.8rem;color:var(--t2)}
+        .links a{color:var(--gold);text-decoration:none}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <div class="logo-icon">🎱</div>
+            <div class="logo-text">Pool Cue</div>
+        </div>
+        
+        <div class="card">
+            <div class="error-icon">⏰</div>
+            <div class="title">Invite Link Expired</div>
+            <div class="message">{{ error or "This invite link is no longer valid. It may have expired or already been used." }}</div>
+            <a href="/auth/signup" class="btn">Create Account</a>
+        </div>
+        
+        <div class="links">
+            Already have an account? <a href="/auth/login">Sign in</a>
+        </div>
+    </div>
+</body>
+</html>

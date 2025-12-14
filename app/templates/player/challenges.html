@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#111111">
+    <title>Challenges - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555;
+            --border: rgba(255,255,255,0.08); --accent: #f5c518; --success: #22c55e; --danger: #ef4444;
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding-bottom: 100px; }
+        
+        .header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; position: sticky; top: 0; background: var(--bg-primary); z-index: 100; }
+        .back-btn { width: 36px; height: 36px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .header h1 { font-size: 1.2rem; font-weight: 600; flex: 1; }
+        
+        .tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 20px; }
+        .tab { flex: 1; padding: 14px 0; background: none; border: none; color: var(--text-muted); font-size: 0.9rem; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; font-family: inherit; }
+        .tab.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+        
+        .section { padding: 20px; }
+        .section-title { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        
+        .challenge-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        .challenge-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .challenge-icon { width: 44px; height: 44px; background: rgba(245,197,24,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+        .challenge-info { flex: 1; }
+        .challenge-name { font-weight: 600; font-size: 1rem; }
+        .challenge-meta { font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px; }
+        .challenge-wager { background: var(--accent); color: #111; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+        
+        .challenge-message { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 12px; margin-bottom: 12px; font-size: 0.9rem; color: var(--text-secondary); font-style: italic; }
+        
+        .challenge-actions { display: flex; gap: 10px; }
+        .btn { flex: 1; padding: 12px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; border: none; cursor: pointer; font-family: inherit; }
+        .btn-accept { background: var(--success); color: white; }
+        .btn-decline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
+        .btn-primary { background: var(--accent); color: #111; }
+        .btn-won { background: var(--success); color: white; }
+        .btn-lost { background: var(--danger); color: white; }
+        
+        .history-item { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+        .history-item:last-child { border-bottom: none; }
+        .history-result { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+        .history-result.win { background: rgba(34,197,94,0.2); }
+        .history-result.loss { background: rgba(239,68,68,0.2); }
+        .history-info { flex: 1; }
+        .history-opponent { font-weight: 500; }
+        .history-date { font-size: 0.75rem; color: var(--text-secondary); }
+        .history-tokens { font-size: 0.85rem; font-weight: 600; }
+        .history-tokens.positive { color: var(--success); }
+        .history-tokens.negative { color: var(--danger); }
+        
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+        
+        .new-challenge-btn { position: fixed; bottom: 90px; right: 20px; width: 56px; height: 56px; background: var(--accent); border-radius: 50%; border: none; font-size: 1.8rem; color: #111; cursor: pointer; box-shadow: 0 4px 12px rgba(245,197,24,0.3); }
+        
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: flex-end; }
+        .modal.show { display: flex; }
+        .modal-content { background: var(--bg-secondary); width: 100%; border-radius: 20px 20px 0 0; padding: 24px; max-height: 80vh; overflow-y: auto; }
+        .modal-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+        .modal-close { background: none; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer; }
+        
+        .form-group { margin-bottom: 18px; }
+        .form-label { display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 8px; }
+        .form-input, .form-select { width: 100%; padding: 14px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 10px; color: var(--text-primary); font-size: 1rem; font-family: inherit; }
+        .form-input:focus, .form-select:focus { outline: none; border-color: var(--accent); }
+        
+        .friend-select { display: flex; flex-wrap: wrap; gap: 8px; }
+        .friend-chip { padding: 10px 16px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 20px; font-size: 0.85rem; cursor: pointer; }
+        .friend-chip.selected { background: var(--accent); color: #111; border-color: var(--accent); }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-primary); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 6px 0 22px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 14px; color: var(--text-muted); text-decoration: none; font-size: 0.6rem; font-weight: 500; }
+        .nav-item .icon { font-size: 1.25rem; }
+        .nav-item.active { color: var(--text-primary); }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/player/home" class="back-btn">←</a>
+        <h1>Challenges</h1>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab active" onclick="showTab('pending')">Incoming</button>
+        <button class="tab" onclick="showTab('outgoing')">Sent</button>
+        <button class="tab" onclick="showTab('active')">Active</button>
+        <button class="tab" onclick="showTab('history')">History</button>
+    </div>
+    
+    <div id="pending" class="section">
+        <div id="pendingList"></div>
+    </div>
+    
+    <div id="outgoing" class="section hidden">
+        <div id="outgoingList"></div>
+    </div>
+    
+    <div id="active" class="section hidden">
+        <div id="activeList"></div>
+    </div>
+    
+    <div id="history" class="section hidden">
+        <div id="historyList"></div>
+    </div>
+    
+    <button class="new-challenge-btn" onclick="openNewChallenge()">⚔️</button>
+    
+    <!-- New Challenge Modal -->
+    <div class="modal" id="newChallengeModal">
+        <div class="modal-content">
+            <div class="modal-title">
+                New Challenge
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Challenge a Friend</label>
+                <div class="friend-select" id="friendSelect"></div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Message (optional)</label>
+                <input type="text" class="form-input" id="challengeMessage" placeholder="Let's settle this...">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">When? (optional)</label>
+                <input type="datetime-local" class="form-input" id="challengeTime">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Where? (optional)</label>
+                <input type="text" class="form-input" id="challengeLocation" placeholder="e.g. The Corner Pocket, Table 2">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Wager Tokens (optional)</label>
+                <input type="number" class="form-input" id="tokenWager" placeholder="0" min="0" step="10">
+                <p style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;">Both players must have enough tokens to match the wager</p>
+            </div>
+            
+            <button class="btn btn-primary" onclick="sendChallenge()" style="width:100%;margin-top:10px;">Send Challenge ⚔️</button>
+        </div>
+    </div>
+    
+    <!-- Report Result Modal -->
+    <div class="modal" id="resultModal">
+        <div class="modal-content">
+            <div class="modal-title">
+                Report Result
+                <button class="modal-close" onclick="closeResultModal()">×</button>
+            </div>
+            <p style="color:var(--text-secondary);margin-bottom:20px;">Who won the challenge?</p>
+            <div style="display:flex;gap:12px;">
+                <button class="btn btn-won" onclick="reportResult('me')" style="flex:1;">I Won 🏆</button>
+                <button class="btn btn-lost" onclick="reportResult('them')" style="flex:1;">I Lost</button>
+            </div>
+        </div>
+    </div>
+    
+        <nav class="bottom-nav">
+        <a href="{% if demo_mode %}/player/demo/home{% else %}/player/home{% endif %}" class="nav-item"><div class="icon">🎱</div><div>Home</div></a>
+        <a href="{% if demo_mode %}/player/demo/friends{% else %}/player/friends{% endif %}" class="nav-item"><div class="icon">👥</div><div>Friends</div></a>
+        <a href="{% if demo_mode %}/player/demo/challenges{% else %}/player/challenges{% endif %}" class="nav-item active"><div class="icon">⚔️</div><div>Challenges</div></a>
+        <a href="{% if demo_mode %}/player/demo/leaderboards{% else %}/player/leaderboard{% endif %}" class="nav-item"><div class="icon">🏆</div><div>Rankings</div></a>
+        <a href="{% if demo_mode %}/player/demo/profile{% else %}/player/profile{% endif %}" class="nav-item"><div class="icon">👤</div><div>Profile</div></a>
+    </nav>
+    
+    <script>
+        let challenges = { pending: [], active: [], history: [] };
+        let friends = [];
+        let selectedFriendId = null;
+        let activeChallenge = null;
+        
+        async function loadChallenges() {
+            try {
+                const res = await fetch('/api/social/challenges');
+                const data = await res.json();
+                
+                if (data.error) {
+                    window.location.href = '/auth/login';
+                    return;
+                }
+                
+                challenges = data;
+                renderPending();
+                renderOutgoing();
+                renderActive();
+                renderHistory();
+            } catch (e) {
+                console.error('Failed to load challenges:', e);
+            }
+        }
+        
+        async function loadFriends() {
+            try {
+                const res = await fetch('/api/social/friends');
+                const data = await res.json();
+                friends = data.friends || [];
+            } catch (e) {
+                console.error('Failed to load friends:', e);
+            }
+        }
+        
+        function renderPending() {
+            const list = document.getElementById('pendingList');
+            const pending = challenges.pending || [];
+            
+            if (pending.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">⚔️</div>
+                        <p>No incoming challenges</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            list.innerHTML = pending.map(c => `
+                <div class="challenge-card">
+                    <div class="challenge-header">
+                        <div class="challenge-icon">⚔️</div>
+                        <div class="challenge-info">
+                            <div class="challenge-name">${c.challenger_name}</div>
+                            <div class="challenge-meta">challenged you</div>
+                        </div>
+                        ${c.tokens_wagered > 0 ? `<div class="challenge-wager">${c.tokens_wagered} tokens</div>` : ''}
+                    </div>
+                    ${c.message ? `<div class="challenge-message">"${c.message}"</div>` : ''}
+                    <div class="challenge-actions">
+                        <button class="btn btn-accept" onclick="respondChallenge(${c.id}, true)">Accept</button>
+                        <button class="btn btn-decline" onclick="respondChallenge(${c.id}, false)">Decline</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function renderOutgoing() {
+            const list = document.getElementById('outgoingList');
+            const outgoing = challenges.outgoing || [];
+            
+            if (outgoing.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📤</div>
+                        <p>No pending challenges sent</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            list.innerHTML = outgoing.map(c => `
+                <div class="challenge-card">
+                    <div class="challenge-header">
+                        <div class="challenge-icon" style="background:rgba(59,130,246,0.15);">📤</div>
+                        <div class="challenge-info">
+                            <div class="challenge-name">${c.challenged_name}</div>
+                            <div class="challenge-meta">Waiting for response...</div>
+                        </div>
+                    </div>
+                    ${c.message ? `<div class="challenge-message">"${c.message}"</div>` : ''}
+                    <button class="btn btn-decline" onclick="cancelChallenge(${c.id})" style="width:100%;">Cancel Challenge</button>
+                </div>
+            `).join('');
+        }
+        
+        function renderActive() {
+            const list = document.getElementById('activeList');
+            const active = challenges.active || [];
+            
+            if (active.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🎱</div>
+                        <p>No active challenges</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            list.innerHTML = active.map(c => {
+                let metaInfo = 'Game on!';
+                if (c.scheduled_datetime) {
+                    const dt = new Date(c.scheduled_datetime);
+                    metaInfo = `📅 ${dt.toLocaleDateString()} at ${dt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+                }
+                if (c.location) {
+                    metaInfo += c.scheduled_datetime ? ` • 📍 ${c.location}` : `📍 ${c.location}`;
+                }
+                return `
+                <div class="challenge-card">
+                    <div class="challenge-header">
+                        <div class="challenge-icon">🎱</div>
+                        <div class="challenge-info">
+                            <div class="challenge-name">${c.challenger_name} vs ${c.challenged_name}</div>
+                            <div class="challenge-meta">${metaInfo}</div>
+                        </div>
+                        ${c.tokens_wagered > 0 ? `<div class="challenge-wager">${c.tokens_wagered} tokens</div>` : ''}
+                    </div>
+                    ${c.message ? `<div class="challenge-message">"${c.message}"</div>` : ''}
+                    <button class="btn btn-primary" onclick="openResultModal(${c.id})" style="width:100%;">Report Result</button>
+                </div>
+            `}).join('');
+        }
+        
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            const history = challenges.history || [];
+            
+            if (history.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📜</div>
+                        <p>No challenge history yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            list.innerHTML = history.map(c => {
+                const isWinner = c.winner_name === c.challenger_name; // Simplified - would need player_id check
+                const opponent = c.challenger_name; // Would need logic for which is opponent
+                return `
+                    <div class="history-item">
+                        <div class="history-result ${isWinner ? 'win' : 'loss'}">${isWinner ? '🏆' : '💔'}</div>
+                        <div class="history-info">
+                            <div class="history-opponent">vs ${opponent}</div>
+                            <div class="history-date">${new Date(c.completed_at).toLocaleDateString()}</div>
+                        </div>
+                        <div class="history-tokens ${isWinner ? 'positive' : 'negative'}">
+                            ${isWinner ? '+' : ''}${isWinner ? (75 + (c.tokens_wagered || 0)) : -(c.tokens_wagered || 0)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab).classList.remove('hidden');
+        }
+        
+        async function respondChallenge(challengeId, accept) {
+            try {
+                await fetch(`/api/social/challenges/${challengeId}/respond`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ accept })
+                });
+                loadChallenges();
+            } catch (e) {
+                alert('Failed to respond');
+            }
+        }
+        
+        async function cancelChallenge(challengeId) {
+            if (!confirm('Cancel this challenge?')) return;
+            try {
+                await fetch(`/api/social/challenges/${challengeId}/cancel`, {
+                    method: 'POST'
+                });
+                loadChallenges();
+            } catch (e) {
+                alert('Failed to cancel');
+            }
+        }
+        
+        function openNewChallenge() {
+            const modal = document.getElementById('newChallengeModal');
+            const select = document.getElementById('friendSelect');
+            
+            if (friends.length === 0) {
+                select.innerHTML = '<p style="color:var(--text-secondary);">Add friends first to challenge them!</p>';
+            } else {
+                select.innerHTML = friends.map(f => `
+                    <div class="friend-chip" onclick="selectFriend(${f.id}, this)">${f.nickname}</div>
+                `).join('');
+            }
+            
+            modal.classList.add('show');
+        }
+        
+        function closeModal() {
+            document.getElementById('newChallengeModal').classList.remove('show');
+            selectedFriendId = null;
+        }
+        
+        function selectFriend(id, el) {
+            document.querySelectorAll('.friend-chip').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedFriendId = id;
+        }
+        
+        async function sendChallenge() {
+            if (!selectedFriendId) {
+                alert('Select a friend to challenge');
+                return;
+            }
+            
+            const message = document.getElementById('challengeMessage').value;
+            const wager = parseInt(document.getElementById('tokenWager').value) || 0;
+            const scheduledTime = document.getElementById('challengeTime').value;
+            const location = document.getElementById('challengeLocation').value;
+            
+            try {
+                const res = await fetch('/api/social/challenges/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        challenged_id: selectedFriendId,
+                        message,
+                        tokens_wager: wager,
+                        scheduled_datetime: scheduledTime,
+                        location: location
+                    })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert('Challenge sent! ⚔️');
+                    closeModal();
+                    loadChallenges();
+                } else {
+                    alert(data.error || 'Failed to send challenge');
+                }
+            } catch (e) {
+                alert('Failed to send challenge');
+            }
+        }
+        
+        function openResultModal(challengeId) {
+            activeChallenge = challengeId;
+            document.getElementById('resultModal').classList.add('show');
+        }
+        
+        function closeResultModal() {
+            document.getElementById('resultModal').classList.remove('show');
+            activeChallenge = null;
+        }
+        
+        async function reportResult(result) {
+            if (!activeChallenge) return;
+            
+            // Get current player ID from session
+            const myId = {{ session.get('player_id', 0) }};
+            
+            // Find the challenge to get the other player
+            const challenge = [...(challenges.active || [])].find(c => c.id === activeChallenge);
+            if (!challenge) {
+                alert('Challenge not found');
+                return;
+            }
+            
+            // Determine winner based on user's choice
+            const winnerId = result === 'me' ? myId : (challenge.challenger_user_id === myId ? challenge.challenged_user_id : challenge.challenger_user_id);
+            
+            try {
+                const res = await fetch(`/api/social/challenges/${activeChallenge}/complete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ winner_id: winnerId })
+                });
+                const data = await res.json();
+                closeResultModal();
+                loadChallenges();
+                
+                if (data.success) {
+                    if (result === 'me') {
+                        alert(`🏆 Victory! You won ${data.tokens_won || 25} tokens!`);
+                    } else {
+                        alert('Better luck next time!');
+                    }
+                } else {
+                    alert(data.error || 'Failed to report result');
+                }
+            } catch (e) {
+                alert('Failed to report result');
+            }
+        }
+        
+        // Check for challenge param from friends page
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('challenge')) {
+            selectedFriendId = parseInt(params.get('challenge'));
+            loadFriends().then(() => {
+                openNewChallenge();
+                // Pre-select the friend
+                setTimeout(() => {
+                    const chip = document.querySelector(`.friend-chip[onclick*="${selectedFriendId}"]`);
+                    if (chip) chip.click();
+                }, 100);
+            });
+        }
+        
+        loadChallenges();
+        loadFriends();
+    </script>
+</body>
+</html>

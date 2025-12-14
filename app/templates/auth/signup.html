@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Pool Cue</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { background: #111; color: #fff; font-family: system-ui; padding: 20px; padding-bottom: 100px; margin: 0; }
+        h1 { color: #f5c518; text-align: center; }
+        p.sub { text-align: center; color: #888; margin-bottom: 30px; }
+        
+        .field { margin-bottom: 20px; }
+        .field label { display: block; color: #aaa; margin-bottom: 8px; font-size: 14px; }
+        .field label .req { color: #f5c518; }
+        .field input, .field select { 
+            display: block; 
+            width: 100%; 
+            padding: 16px; 
+            font-size: 16px; 
+            background: #222; 
+            color: #fff; 
+            border: 2px solid #444; 
+            border-radius: 8px;
+        }
+        .field input:focus, .field select:focus { border-color: #f5c518; outline: none; }
+        .field small { display: block; color: #666; font-size: 12px; margin-top: 5px; }
+        .field input.required-field { border-color: #f5c518; }
+        
+        .name-row { display: flex; gap: 10px; }
+        .name-row input { flex: 1; }
+        .gen-btn { 
+            padding: 16px 20px; 
+            background: #333; 
+            color: #f5c518; 
+            border: 2px solid #f5c518; 
+            border-radius: 8px; 
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        
+        .two-col { display: flex; gap: 12px; }
+        .two-col .field { flex: 1; margin-bottom: 20px; }
+        
+        .three-col { display: flex; gap: 8px; }
+        .three-col select { flex: 1; padding: 14px 10px; font-size: 14px; }
+        
+        .submit { 
+            display: block; 
+            width: 100%; 
+            padding: 18px; 
+            margin-top: 20px;
+            font-size: 18px; 
+            font-weight: bold;
+            background: #f5c518; 
+            color: #000; 
+            border: none; 
+            border-radius: 8px;
+        }
+        
+        .links { text-align: center; margin-top: 30px; }
+        .links a { color: #f5c518; margin: 0 15px; text-decoration: none; }
+        
+        .error { background: #f44; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        
+        .info-box { background: rgba(245, 197, 24, 0.1); border: 1px solid rgba(245, 197, 24, 0.3); padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; color: #ccc; }
+        .info-box strong { color: #f5c518; }
+    </style>
+</head>
+<body>
+    <h1>🎱 Pool Cue</h1>
+    <p class="sub">Create your account</p>
+    
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+    
+    <div class="info-box">
+        <strong>📱 Phone verification required</strong><br>
+        We'll send a text to verify your number. This keeps our community safe and lets us notify you when it's your turn!
+    </div>
+    
+    <form method="POST" id="signupForm">
+        <div class="field">
+            <label>Nickname <span class="req">*</span></label>
+            <div class="name-row">
+                <input type="text" name="nickname" id="nickname" placeholder="Your nickname" value="{{ prefill_nickname or '' }}" required>
+                <button type="button" class="gen-btn" id="genBtn">🎲</button>
+            </div>
+            <small id="nameStatus">{% if prefill_nickname %}Keep this name to stay in queue!{% else %}Tap 🎲 for a funny pool name!{% endif %}</small>
+        </div>
+        
+        <div class="field">
+            <label>Phone Number <span class="req">*</span></label>
+            <input type="tel" name="phone" id="phone" placeholder="(555) 123-4567" required class="required-field">
+            <small>📱 Required - we'll text you a verification code</small>
+        </div>
+        
+        <div class="field">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="For account recovery (optional)">
+            <small>Optional - used for login and recovery</small>
+        </div>
+        
+        <div class="field">
+            <label>Password</label>
+            <input type="password" name="password" id="pwd" placeholder="Create a password">
+            <small id="pwdHint">Min 10 chars, letter, number, special char</small>
+        </div>
+        
+        <input type="hidden" name="ref_code" value="{{ ref_code or '' }}">
+        
+        <div class="two-col">
+            <div class="field">
+                <label>Age Range</label>
+                <select name="age_range">
+                    <option value="">Select</option>
+                    <option value="21-25">21-25</option>
+                    <option value="26-30">26-30</option>
+                    <option value="31-35">31-35</option>
+                    <option value="36-40">36-40</option>
+                    <option value="41-50">41-50</option>
+                    <option value="50+">50+</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Gender</label>
+                <select name="gender">
+                    <option value="">Select</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="non-binary">Non-binary</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="field">
+            <label>Birthday (optional)</label>
+            <div class="three-col">
+                <select name="birth_month" id="bMonth">
+                    <option value="">Month</option>
+                    <option value="01">Jan</option>
+                    <option value="02">Feb</option>
+                    <option value="03">Mar</option>
+                    <option value="04">Apr</option>
+                    <option value="05">May</option>
+                    <option value="06">Jun</option>
+                    <option value="07">Jul</option>
+                    <option value="08">Aug</option>
+                    <option value="09">Sep</option>
+                    <option value="10">Oct</option>
+                    <option value="11">Nov</option>
+                    <option value="12">Dec</option>
+                </select>
+                <select name="birth_day" id="bDay">
+                    <option value="">Day</option>
+                    {% for d in range(1, 32) %}<option value="{{ '%02d'|format(d) }}">{{ d }}</option>{% endfor %}
+                </select>
+                <select name="birth_year" id="bYear">
+                    <option value="">Year</option>
+                    {% for y in range(2006, 1919, -1) %}<option value="{{ y }}">{{ y }}</option>{% endfor %}
+                </select>
+            </div>
+            <input type="hidden" name="birthday" id="birthdayField">
+        </div>
+        
+        <button type="submit" class="submit">Create Account & Verify Phone</button>
+    </form>
+    
+    <div class="links">
+        <a href="/auth/login">Log In</a>
+        <a href="/player/demo">Try Demo 🎮</a>
+    </div>
+    
+    <script>
+    // Format phone number as user types
+    document.getElementById('phone').addEventListener('input', function(e) {
+        var x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,3})(\d{0,4})/);
+        e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
+    });
+    
+    // Generate name button
+    document.getElementById('genBtn').onclick = function() {
+        var btn = this;
+        var status = document.getElementById('nameStatus');
+        btn.textContent = '...';
+        status.textContent = 'Finding name...';
+        
+        fetch('/api/generate-nickname')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.nickname) {
+                    document.getElementById('nickname').value = data.nickname;
+                    status.textContent = '✓ ' + data.nickname;
+                    status.style.color = '#22c55e';
+                }
+            })
+            .catch(function(e) { status.textContent = 'Error - try again'; })
+            .finally(function() { btn.textContent = '🎲'; });
+    };
+    
+    // Password checker
+    var pwdValid = true;
+    document.getElementById('pwd').onkeyup = function() {
+        var p = this.value, h = document.getElementById('pwdHint'), c = [];
+        if (!p) { h.textContent = 'Min 10 chars, letter, number, special char'; h.style.color = '#666'; pwdValid = true; return; }
+        if (p.length < 10) c.push('10+');
+        if (!/[a-zA-Z]/.test(p)) c.push('letter');
+        if (!/[0-9]/.test(p)) c.push('number');
+        if (!/[^a-zA-Z0-9]/.test(p)) c.push('special');
+        h.textContent = c.length ? 'Need: ' + c.join(', ') : '✓ Good!';
+        h.style.color = c.length ? '#f97316' : '#22c55e';
+        pwdValid = c.length === 0 || !p;
+    };
+    
+    // Form submit - combine birthday and validate password
+    document.getElementById('signupForm').onsubmit = function() {
+        var p = document.getElementById('pwd').value;
+        if (p && !pwdValid) {
+            alert('Please fix password requirements before submitting');
+            return false;
+        }
+        var m = document.getElementById('bMonth').value;
+        var d = document.getElementById('bDay').value;
+        var y = document.getElementById('bYear').value;
+        if (m && d && y) {
+            document.getElementById('birthdayField').value = y + '-' + m + '-' + d;
+        }
+        return true;
+    };
+    </script>
+</body>
+</html>

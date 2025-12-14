@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Pool Cue</title>
+    <link rel="stylesheet" href="/static/css/master-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.05);--t1:#e4e4e7;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;--orange:#f97316;--cyan:#06b6d4}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:11px;line-height:1.3}
+        .p{padding:12px 16px}
+        .hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+        .hdr h1{font-size:0.85rem;font-weight:600;display:flex;align-items:center;gap:6px}
+        .live{width:5px;height:5px;background:var(--green);border-radius:50%;animation:p 2s infinite}
+        @keyframes p{0%,100%{opacity:1}50%{opacity:.3}}
+        .btn{padding:4px 10px;border-radius:4px;font-size:0.65rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:0;color:var(--t2)}
+        .btn:hover{border-color:var(--gold);color:var(--gold)}.btn-p{background:var(--gold);border-color:var(--gold);color:#000}
+        .kpi{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-bottom:10px}
+        .k{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:8px}
+        .k-v{font-size:1rem;font-weight:600;color:var(--gold)}.k-r{display:flex;justify-content:space-between;align-items:baseline}
+        .k-l{font-size:0.55rem;color:var(--t3);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
+        .k-c{font-size:0.55rem}.up{color:var(--green)}.dn{color:var(--red)}
+        .g{display:grid;gap:8px;margin-bottom:8px}.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(5,1fr)}.g6{grid-template-columns:repeat(6,1fr)}.g21{grid-template-columns:2fr 1fr}
+        .c{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:10px}
+        .c-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+        .c-t{font-size:0.6rem;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.4px}
+        .c-b{font-size:0.55rem;color:var(--t3)}
+        .ch{height:110px}.ch-s{height:80px}.ch-l{height:130px}
+        .dw{position:relative}.dc{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+        .dv{font-size:0.9rem;font-weight:600;color:var(--gold)}.dl{font-size:0.5rem;color:var(--t3)}
+        .st{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.st3{grid-template-columns:repeat(3,1fr)}
+        .s{text-align:center;padding:6px 3px;background:rgba(0,0,0,.3);border-radius:3px}
+        .s-v{font-size:0.85rem;font-weight:600;color:var(--gold)}.s-l{font-size:0.45rem;color:var(--t3);text-transform:uppercase;margin-top:1px}
+        .pr{margin-bottom:5px}.pr:last-child{margin:0}
+        .pr-r{display:flex;justify-content:space-between;font-size:0.6rem;margin-bottom:2px}.pr-l{color:var(--t2)}.pr-v{font-weight:600}
+        .pr-b{height:3px;background:rgba(255,255,255,.04);border-radius:2px;overflow:hidden}.pr-f{height:100%;border-radius:2px}
+        .rw{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.02);font-size:0.65rem}
+        .rw:last-child{border:0}.rw-l{color:var(--t2)}.rw-v{font-weight:600}.hl{color:var(--gold)}
+        .coh{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+        .co{background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:4px;padding:6px 4px;text-align:center;cursor:pointer;transition:all .1s}
+        .co:hover{border-color:var(--gold)}.co-i{font-size:1rem}.co-n{font-size:0.5rem;font-weight:500;margin:2px 0 1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .co-v{font-size:0.8rem;font-weight:600;color:var(--orange)}.co.dng{border-color:rgba(239,68,68,.3)}.co.dng .co-v{color:var(--red)}
+        .hm{display:grid;grid-template-columns:24px repeat(24,1fr);gap:1px;font-size:0.4rem}
+        .hm-l{color:var(--t3);display:flex;align-items:center}.hm-h{color:var(--t3);text-align:center}
+        .hm-c{aspect-ratio:1;border-radius:1px}.h0{background:rgba(255,255,255,.02)}.h1{background:#14532d}.h2{background:#22c55e}.h3{background:#facc15}.h4{background:#f97316}.h5{background:#dc2626}
+        .fd{font-size:0.65rem}.fd-i{display:flex;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.02)}
+        .fd-ic{width:18px;height:18px;background:rgba(255,255,255,.03);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:0.6rem}
+        .fd-t{color:var(--t2)}.fd-t b{color:var(--gold);font-weight:600}.fd-m{font-size:0.5rem;color:var(--t3)}
+        .ins{padding:6px 8px;border-radius:3px;margin-bottom:4px;font-size:0.6rem}.ins:last-child{margin:0}
+        .ins.gld{background:rgba(234,179,8,.06);border-left:2px solid var(--gold)}.ins.grn{background:rgba(34,197,94,.06);border-left:2px solid var(--green)}.ins.rd{background:rgba(239,68,68,.06);border-left:2px solid var(--red)}
+        .ins-t{font-weight:600;margin-bottom:1px}.ins.gld .ins-t{color:var(--gold)}.ins.grn .ins-t{color:var(--green)}.ins.rd .ins-t{color:var(--red)}.ins-x{color:var(--t2)}
+        .sec{display:flex;align-items:center;gap:8px;margin:10px 0 6px}.sec-t{font-size:0.6rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.4px}.sec-l{flex:1;height:1px;background:var(--border)}
+        [data-tip]{position:relative;cursor:help;border-bottom:1px dotted var(--t3)}[data-tip]:hover{color:var(--gold);border-color:var(--gold)}
+        [data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:#1a1a1f;color:var(--t1);padding:4px 8px;border-radius:3px;font-size:0.55rem;white-space:normal;width:max-content;max-width:160px;text-align:center;opacity:0;visibility:hidden;transition:all .1s;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.4);border:1px solid var(--border);font-weight:400;line-height:1.3}
+        [data-tip]:hover::after{opacity:1;visibility:visible}
+        .sb{display:flex;gap:6px;margin-top:10px}.sb-i{flex:1;background:var(--card);border:1px solid var(--border);border-radius:3px;padding:5px;text-align:center;font-size:0.55rem;color:var(--t2)}
+        .dot{display:inline-block;width:4px;height:4px;border-radius:50%;margin-right:3px}.dot.g{background:var(--green)}.dot.y{background:var(--gold)}
+        .empty-state{text-align:center;padding:12px;color:var(--t3);font-size:0.65rem}
+    </style>
+</head>
+<body>
+    {% if not embed %}
+    {% include 'master/_nav.html' %}
+    {% endif %}
+    <div class="p">
+        <div class="hdr">
+            <div style="display:flex;align-items:center;gap:10px">
+                <h1>📊 Analytics <div class="live"></div></h1>
+                {% if selected_bar_id %}
+                    {% for bar in bars %}
+                        {% if bar.id == selected_bar_id %}
+                        <span style="background:var(--gold);color:#000;padding:2px 8px;border-radius:3px;font-size:0.6rem;font-weight:600">{{ bar.name }}</span>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                <span style="background:rgba(255,255,255,0.1);color:var(--t2);padding:2px 8px;border-radius:3px;font-size:0.6rem;font-weight:500">All Bars</span>
+                {% endif %}
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+                <form method="GET" style="display:flex;gap:8px;align-items:center">
+                    <select name="bar_id" style="padding:4px 8px;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.65rem"{% if not bars or bars|length == 0 %} disabled{% endif %}>
+                        <option value="">All Bars</option>
+                        {% for bar in bars %}
+                        <option value="{{ bar.id }}" {% if selected_bar_id == bar.id %}selected{% endif %}>{{ bar.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="date" name="start_date" value="{{ analytics.date_range.start if analytics.date_range else '' }}" style="padding:4px 8px;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.65rem;width:120px">
+                    <span style="color:var(--t3);font-size:0.6rem">to</span>
+                    <input type="date" name="end_date" value="{{ analytics.date_range.end if analytics.date_range else '' }}" style="padding:4px 8px;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.65rem;width:120px">
+                    <button type="submit" class="btn" style="padding:4px 10px">Apply</button>
+                </form>
+                <button class="btn btn-p">Export</button>
+            </div>
+        </div>
+        <!-- KPI Strip - Dynamic from analytics -->
+        <div class="kpi">
+            <div class="k"><div class="k-r"><span class="k-v">{{ analytics.core.total_bars if analytics.core else (analytics.active_bars or 0) }}</span></div><div class="k-l">Bars</div></div>
+            <div class="k"><div class="k-r"><span class="k-v">{{ analytics.core.total_players if analytics.core else (analytics.players_total or 0) }}</span></div><div class="k-l">Players (30d)</div></div>
+            <div class="k"><div class="k-r"><span class="k-v">{{ analytics.core.total_games if analytics.core else (analytics.games_total or 0) }}</span></div><div class="k-l">Games (30d)</div></div>
+            <div class="k"><div class="k-r"><span class="k-v">{% if analytics.pos and analytics.pos.total_revenue %}${{ "%.0f"|format(analytics.pos.total_revenue) }}{% else %}$0{% endif %}</span></div><div class="k-l">POS Revenue</div></div>
+            <div class="k"><div class="k-r"><span class="k-v">{% if analytics.pos and analytics.pos.avg_check_amount %}${{ "%.2f"|format(analytics.pos.avg_check_amount) }}{% else %}N/A{% endif %}</span></div><div class="k-l">Avg Check</div></div>
+            <div class="k"><div class="k-r"><span class="k-v">{{ analytics.ads_summary.total_impressions if analytics.ads_summary else (analytics.impressions_total or 0) }}</span></div><div class="k-l">Impressions</div></div>
+            <div class="k"><div class="k-r"><span class="k-v">{{ analytics.ads_summary.total_clicks if analytics.ads_summary else (analytics.clicks_total or 0) }}</span></div><div class="k-l">Clicks</div></div>
+            <div class="k"><div class="k-r"><span class="k-v">{% if analytics.ads_summary and analytics.ads_summary.ctr %}{{ "%.1f"|format(analytics.ads_summary.ctr) }}%{% else %}0%{% endif %}</span></div><div class="k-l" data-tip="Click-Through Rate">CTR</div></div>
+        </div>
+        
+        <!-- Row 1: Live / Revenue / Insights -->
+        <div class="g g3">
+            <div class="c">
+                <div class="c-h"><span class="c-t">⚡ Live</span><span class="c-b" style="color:var(--green)">● {{ analytics.queue_count or 0 }} in queue</span></div>
+                <div class="st" style="margin-bottom:6px">
+                    <div class="s"><div class="s-v">-</div><div class="s-l">Playing</div></div>
+                    <div class="s"><div class="s-v">{{ analytics.queue_count or 0 }}</div><div class="s-l">Queue</div></div>
+                    <div class="s"><div class="s-v">{{ analytics.active_bars or 0 }}</div><div class="s-l">Bars</div></div>
+                    <div class="s"><div class="s-v">-</div><div class="s-l">Wait</div></div>
+                </div>
+                <div class="fd"><div class="fd-i"><div class="fd-ic">📊</div><div><div class="fd-t">Real-time activity coming soon</div><div class="fd-m">Live feed</div></div></div></div>
+            </div>
+            <div class="c"><div class="c-h"><span class="c-t">🎮 Games/Day</span><span class="c-b">Last 30 days</span></div><div class="ch-l"><canvas id="revChart"></canvas></div></div>
+            <div class="c">
+                <div class="c-h"><span class="c-t">🧠 AI Insights</span></div>
+                {% if analytics.players_total and analytics.players_total > 0 %}
+                <div class="ins gld"><div class="ins-t">📈 Growth</div><div class="ins-x">{{ analytics.players_total }} total players tracked.</div></div>
+                {% endif %}
+                {% if analytics.pos and analytics.pos.total_checks > 0 %}
+                <div class="ins grn"><div class="ins-t">💰 POS Active</div><div class="ins-x">{{ analytics.pos.total_checks }} checks processed, ${{ "%.2f"|format(analytics.pos.avg_check_amount or 0) }} avg.</div></div>
+                {% endif %}
+                {% if not analytics.players_total or analytics.players_total == 0 %}
+                <div class="ins rd"><div class="ins-t">⚠️ No Data</div><div class="ins-x">Start collecting gameplay data to see insights.</div></div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Demographics Section -->
+        <div class="sec"><span class="sec-t">👥 Demographics</span><div class="sec-l"></div></div>
+        <div class="g g6">
+            <div class="c">
+                <div class="c-h"><span class="c-t">Age</span><span class="c-b">{{ analytics.age_total or 0 }} profiles</span></div>
+                {% if analytics.age_total and analytics.age_total > 0 %}
+                <div class="ch-s dw"><canvas id="ageChart"></canvas><div class="dc"><div class="dv">{{ analytics.median_age }}</div><div class="dl">Median</div></div></div>
+                {% else %}
+                <div style="text-align:center;padding:15px 0;color:var(--t3);font-size:0.6rem">No birthday data collected</div>
+                {% endif %}
+            </div>
+            <div class="c">
+                <div class="c-h"><span class="c-t">Gender</span><span class="c-b">{{ analytics.gender_total or 0 }} profiles</span></div>
+                {% if analytics.gender_total and analytics.gender_total > 0 %}
+                <div class="ch-s dw"><canvas id="genderChart"></canvas><div class="dc"><div class="dv">{{ analytics.gender_breakdown.male }}%</div><div class="dl">Male</div></div></div>
+                {% else %}
+                <div style="text-align:center;padding:15px 0;color:var(--t3);font-size:0.6rem">No gender data collected</div>
+                {% endif %}
+            </div>
+            <div class="c"><div class="c-h"><span class="c-t" data-tip="Not currently collected">Income</span></div><div style="text-align:center;padding:15px 0;color:var(--t3);font-size:0.6rem">Not collected</div></div>
+            <div class="c"><div class="c-h"><span class="c-t">Skill</span></div><div class="rw"><span class="rw-l">💎 Diamond</span><span class="rw-v">{{ analytics.skill_distribution.diamond if analytics.skill_distribution else 0 }}</span></div><div class="rw"><span class="rw-l">🏆 Platinum</span><span class="rw-v">{{ analytics.skill_distribution.platinum if analytics.skill_distribution else 0 }}</span></div><div class="rw"><span class="rw-l">🥇 Gold</span><span class="rw-v">{{ analytics.skill_distribution.gold if analytics.skill_distribution else 0 }}</span></div><div class="rw"><span class="rw-l">🥈 Silver</span><span class="rw-v">{{ analytics.skill_distribution.silver if analytics.skill_distribution else 0 }}</span></div><div class="rw"><span class="rw-l">🥉 Bronze</span><span class="rw-v">{{ analytics.skill_distribution.bronze if analytics.skill_distribution else 0 }}</span></div></div>
+            <div class="c"><div class="c-h"><span class="c-t" data-tip="Coming soon">Social</span></div><div style="text-align:center;padding:15px 0;color:var(--t3);font-size:0.6rem">Coming soon</div></div>
+            <div class="c"><div class="c-h"><span class="c-t">Session</span></div><div class="st st3"><div class="s"><div class="s-v">-</div><div class="s-l">Duration</div></div><div class="s"><div class="s-v">{% if analytics.pos and analytics.pos.avg_check_amount %}${{ "%.2f"|format(analytics.pos.avg_check_amount) }}{% else %}-{% endif %}</div><div class="s-l">Avg Tab</div></div><div class="s"><div class="s-v">{{ analytics.games_per_player or 0 }}</div><div class="s-l">Games/Player</div></div></div></div>
+        </div>
+        
+        <!-- Behavior Section -->
+        <div class="sec"><span class="sec-t">🎯 Behavior</span><div class="sec-l"></div></div>
+        <div class="g g21">
+            <div class="c"><div class="c-h"><span class="c-t" data-tip="Activity by day/hour">Heatmap</span><span class="c-b">Peak: {% if analytics.peak_activity and analytics.peak_activity.day %}{{ analytics.peak_activity.day }} {{ analytics.peak_activity.hour }}:00{% else %}-{% endif %}</span></div><div class="hm" id="hm"></div></div>
+            <div class="c">
+                <div class="c-h"><span class="c-t">Frequency</span></div>
+                {% set freq = analytics.frequency_distribution or {} %}
+                {% set freq_total = (freq.weekly_plus or 0) + (freq.biweekly or 0) + (freq.monthly or 0) + (freq.occasional or 0) %}
+                {% set wp_pct = ((freq.weekly_plus or 0) * 100 // freq_total) if freq_total > 0 else 0 %}
+                {% set bw_pct = ((freq.biweekly or 0) * 100 // freq_total) if freq_total > 0 else 0 %}
+                {% set mo_pct = ((freq.monthly or 0) * 100 // freq_total) if freq_total > 0 else 0 %}
+                {% set oc_pct = ((freq.occasional or 0) * 100 // freq_total) if freq_total > 0 else 0 %}
+                <div class="pr"><div class="pr-r"><span class="pr-l">Weekly+</span><span class="pr-v" style="color:var(--green)">{{ freq.weekly_plus or 0 }}</span></div><div class="pr-b"><div class="pr-f" style="width:{{ wp_pct }}%;background:var(--green)"></div></div></div>
+                <div class="pr"><div class="pr-r"><span class="pr-l">Bi-weekly</span><span class="pr-v">{{ freq.biweekly or 0 }}</span></div><div class="pr-b"><div class="pr-f" style="width:{{ bw_pct }}%;background:var(--blue)"></div></div></div>
+                <div class="pr"><div class="pr-r"><span class="pr-l">Monthly</span><span class="pr-v">{{ freq.monthly or 0 }}</span></div><div class="pr-b"><div class="pr-f" style="width:{{ mo_pct }}%;background:var(--purple)"></div></div></div>
+                <div class="pr"><div class="pr-r"><span class="pr-l">Occasional</span><span class="pr-v">{{ freq.occasional or 0 }}</span></div><div class="pr-b"><div class="pr-f" style="width:{{ oc_pct }}%;background:var(--t3)"></div></div></div>
+            </div>
+        </div>
+        
+        <!-- Cohorts Section -->
+        <div class="sec"><span class="sec-t" data-tip="Behavioral segments">🏷 Cohorts</span><div class="sec-l"></div></div>
+        {% set coh = analytics.cohorts or {} %}
+        <div class="coh">
+            <div class="co" data-tip="Fri-Sun players (70%+ games on weekends)"><div class="co-i">🌙</div><div class="co-n">Weekend Warriors</div><div class="co-v">{{ coh.weekend_warriors or 0 }}</div></div>
+            <div class="co" data-tip="5+ ranked games in 30 days"><div class="co-i">🏆</div><div class="co-n">Ranked Grinders</div><div class="co-v">{{ coh.ranked_grinders or 0 }}</div></div>
+            <div class="co" data-tip="80%+ games at same bar"><div class="co-i">🏠</div><div class="co-n">Bar Loyalists</div><div class="co-v">{{ coh.bar_loyalists or 0 }}</div></div>
+            <div class="co" data-tip="Games at 3+ different bars"><div class="co-i">🍻</div><div class="co-n">Bar Hoppers</div><div class="co-v">{{ coh.bar_hoppers or 0 }}</div></div>
+            <div class="co" data-tip="$65+ avg spend"><div class="co-i">💰</div><div class="co-n">Big Spenders</div><div class="co-v">{{ coh.big_spenders or 0 }}</div></div>
+            <div class="co" data-tip="4+ game win streaks"><div class="co-i">🔥</div><div class="co-n">Hot Streakers</div><div class="co-v">{{ coh.hot_streakers or 0 }}</div></div>
+            <div class="co" data-tip="Not yet computed"><div class="co-i">🎱</div><div class="co-n">Tastemakers</div><div class="co-v">-</div></div>
+            <div class="co dng" data-tip="14-60 days since last game"><div class="co-i">⚠️</div><div class="co-n">At Risk</div><div class="co-v">{{ coh.at_risk or 0 }}</div></div>
+        </div>
+        
+        <!-- Auto-Invite Funnel Section -->
+        <div class="sec"><span class="sec-t">📲 Auto-Invite Funnel</span><div class="sec-l"></div></div>
+        <div class="g g5">
+            <div class="c">
+                <div class="c-h"><span class="c-t" data-tip="Guests who've played {{ analytics.auto_invites.current_threshold or 3 }}+ times">Guest Usage</span></div>
+                <div class="st st3" style="margin-bottom:4px">
+                    <div class="s"><div class="s-v">{{ analytics.auto_invites.unique_phones or 0 }}</div><div class="s-l">Phone #s</div></div>
+                    <div class="s"><div class="s-v">{{ analytics.auto_invites.total_queue_joins or 0 }}</div><div class="s-l">Queue Joins</div></div>
+                    <div class="s"><div class="s-v" style="color:var(--cyan)">{{ analytics.auto_invites.current_threshold or 3 }}</div><div class="s-l">Threshold</div></div>
+                </div>
+            </div>
+            <div class="c">
+                <div class="c-h"><span class="c-t" data-tip="Invites generated and sent">Sent</span></div>
+                <div class="rw"><span class="rw-l">Created</span><span class="rw-v">{{ analytics.auto_invites.total_created or 0 }}</span></div>
+                <div class="rw"><span class="rw-l">Sent (SMS)</span><span class="rw-v hl">{{ analytics.auto_invites.total_sent or 0 }}</span></div>
+                <div class="rw"><span class="rw-l">Pending</span><span class="rw-v" style="color:var(--orange)">{{ analytics.auto_invites.pending or 0 }}</span></div>
+            </div>
+            <div class="c">
+                <div class="c-h"><span class="c-t" data-tip="Link clicks from SMS">Opened</span></div>
+                <div class="st st3">
+                    <div class="s"><div class="s-v" style="color:var(--blue)">{{ analytics.auto_invites.total_opened or 0 }}</div><div class="s-l">Opens</div></div>
+                    <div class="s"><div class="s-v" style="color:var(--blue)">{{ analytics.auto_invites.open_rate or 0 }}%</div><div class="s-l">Open Rate</div></div>
+                </div>
+            </div>
+            <div class="c">
+                <div class="c-h"><span class="c-t" data-tip="Completed account signups">Signups</span></div>
+                <div class="st st3">
+                    <div class="s"><div class="s-v" style="color:var(--green)">{{ analytics.auto_invites.total_completed or 0 }}</div><div class="s-l">Signups</div></div>
+                    <div class="s"><div class="s-v" style="color:var(--green)">{{ analytics.auto_invites.conversion_rate or 0 }}%</div><div class="s-l">Conv Rate</div></div>
+                </div>
+            </div>
+            <div class="c">
+                <div class="c-h"><span class="c-t">Funnel</span></div>
+                {% set sent = analytics.auto_invites.total_sent or 1 %}
+                {% set opened_pct = (analytics.auto_invites.total_opened or 0) * 100 // sent if sent > 0 else 0 %}
+                {% set conv_pct = (analytics.auto_invites.total_completed or 0) * 100 // sent if sent > 0 else 0 %}
+                <div class="pr"><div class="pr-r"><span class="pr-l">📤 Sent</span><span class="pr-v">100%</span></div><div class="pr-b"><div class="pr-f" style="width:100%;background:var(--blue)"></div></div></div>
+                <div class="pr"><div class="pr-r"><span class="pr-l">👀 Opened</span><span class="pr-v">{{ analytics.auto_invites.open_rate or 0 }}%</span></div><div class="pr-b"><div class="pr-f" style="width:{{ opened_pct }}%;background:var(--cyan)"></div></div></div>
+                <div class="pr"><div class="pr-r"><span class="pr-l">✅ Signed Up</span><span class="pr-v">{{ analytics.auto_invites.conversion_rate or 0 }}%</span></div><div class="pr-b"><div class="pr-f" style="width:{{ conv_pct }}%;background:var(--green)"></div></div></div>
+            </div>
+        </div>
+        <!-- Auto-Invite By Bar Breakdown -->
+        {% if analytics.auto_invites.by_bar and analytics.auto_invites.by_bar|length > 0 %}
+        <div class="g g3" style="margin-top:6px">
+            <div class="c" style="grid-column: span 3">
+                <div class="c-h"><span class="c-t" data-tip="Auto-invite performance by venue">By Bar</span></div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px">
+                    {% for bar in analytics.auto_invites.by_bar[:8] %}
+                    <div style="background:rgba(0,0,0,.3);border-radius:3px;padding:6px">
+                        <div style="font-size:0.6rem;font-weight:500;color:var(--t2);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ bar.bar_name or 'Unknown' }}</div>
+                        <div style="display:flex;gap:8px;font-size:0.55rem">
+                            <span><span style="color:var(--t3)">Sent:</span> <span style="color:var(--blue)">{{ bar.total_invites }}</span></span>
+                            <span><span style="color:var(--t3)">Opened:</span> <span style="color:var(--cyan)">{{ bar.opened or 0 }}</span></span>
+                            <span><span style="color:var(--t3)">Signups:</span> <span style="color:var(--green)">{{ bar.completed or 0 }}</span></span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Brands & Ads Section -->
+        <div class="sec"><span class="sec-t">🍺 Brands & Ads</span><div class="sec-l"></div></div>
+        <div class="g g5">
+            <div class="c"><div class="c-h"><span class="c-t">Drinks</span></div><div class="ch-s dw"><canvas id="drinkChart"></canvas><div class="dc"><div class="dv">{% if analytics.brands and analytics.brands|length > 0 %}{{ analytics.brands|length }}{% else %}-{% endif %}</div><div class="dl">Brands</div></div></div></div>
+            <div class="c">
+                <div class="c-h"><span class="c-t" data-tip="Top selling brands">Top Brands</span></div>
+                {% if analytics.brands and analytics.brands|length > 0 %}
+                    {% for brand in analytics.brands[:4] %}
+                    <div class="rw"><span class="rw-l">{{ brand.normalized_brand|title if brand.normalized_brand else brand.brand|title }}</span><span class="rw-v {% if loop.first %}hl{% endif %}">${{ "%.0f"|format(brand.revenue or 0) }}</span></div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">No brand sales data yet</div>
+                {% endif %}
+            </div>
+            <div class="c"><div class="c-h"><span class="c-t">Loyalty</span><span class="c-b" data-tip="Requires purchase tracking">Coming soon</span></div><div class="pr"><div class="pr-r"><span class="pr-l">🔒 Always Same</span><span class="pr-v hl">-</span></div><div class="pr-b"><div class="pr-f" style="width:0%;background:var(--gold)"></div></div></div><div class="pr"><div class="pr-r"><span class="pr-l">Usually Same</span><span class="pr-v">-</span></div><div class="pr-b"><div class="pr-f" style="width:0%;background:var(--orange)"></div></div></div><div class="pr"><div class="pr-r"><span class="pr-l">Mix Favorites</span><span class="pr-v">-</span></div><div class="pr-b"><div class="pr-f" style="width:0%;background:var(--blue)"></div></div></div><div class="pr"><div class="pr-r"><span class="pr-l">Try New</span><span class="pr-v">-</span></div><div class="pr-b"><div class="pr-f" style="width:0%;background:var(--purple)"></div></div></div></div>
+            <div class="c"><div class="c-h"><span class="c-t">Ad Impact</span><span class="c-b" data-tip="Requires conversion tracking">Coming soon</span></div><div class="st st3" style="margin-bottom:4px"><div class="s"><div class="s-v" style="color:var(--t3)">-</div><div class="s-l" data-tip="Ads influenced drink choice">Influence</div></div><div class="s"><div class="s-v" style="color:var(--t3)">-</div><div class="s-l">Switch/Mo</div></div><div class="s"><div class="s-v" style="color:var(--t3)">-</div><div class="s-l">Complete</div></div></div><div class="rw"><span class="rw-l" data-tip="Cost per 1000 impressions">eCPM</span><span class="rw-v" style="color:var(--t3)">-</span></div></div>
+            <div class="c">
+                <div class="c-h"><span class="c-t">Delivery</span><span class="c-b" style="color:var(--green)">● Live from ad_events</span></div>
+                <div class="rw"><span class="rw-l">Impressions</span><span class="rw-v hl">{{ analytics.ads_summary.total_impressions if analytics.ads_summary else 0 }}</span></div>
+                <div class="rw"><span class="rw-l">Clicks</span><span class="rw-v">{{ analytics.ads_summary.total_clicks if analytics.ads_summary else 0 }}</span></div>
+                <div class="rw"><span class="rw-l">CTR</span><span class="rw-v">{% if analytics.ads_summary and analytics.ads_summary.ctr %}{{ "%.1f"|format(analytics.ads_summary.ctr) }}%{% else %}0%{% endif %}</span></div>
+                <div class="rw"><span class="rw-l">Unique Viewers</span><span class="rw-v" style="color:var(--blue)">{{ analytics.ads_summary.unique_viewers if analytics.ads_summary else 0 }}</span></div>
+            </div>
+        </div>
+        
+        <!-- Ad Performance Breakdown (only show if there's data) -->
+        {% if analytics.ad_campaigns and analytics.ad_campaigns|length > 0 %}
+        <div class="g g2" style="margin-top:6px">
+            <div class="c">
+                <div class="c-h"><span class="c-t">📊 By Campaign</span><span class="c-b">Top {{ analytics.ad_campaigns|length }}</span></div>
+                <div style="max-height:140px;overflow-y:auto">
+                {% for camp in analytics.ad_campaigns[:8] %}
+                <div class="rw" style="padding:4px 0">
+                    <span class="rw-l" style="display:flex;flex-direction:column;gap:1px">
+                        <span style="font-weight:500">{{ camp.campaign_name }}</span>
+                        <span style="font-size:0.5rem;color:var(--t3)">{{ camp.advertiser_name }}</span>
+                    </span>
+                    <span style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+                        <span class="rw-v">{{ camp.impressions }} imp</span>
+                        <span style="font-size:0.5rem;color:var(--green)">{{ camp.ctr }}% CTR</span>
+                    </span>
+                </div>
+                {% endfor %}
+                </div>
+            </div>
+            <div class="c">
+                <div class="c-h"><span class="c-t">📍 By Placement</span></div>
+                {% if analytics.ad_by_placement and analytics.ad_by_placement|length > 0 %}
+                <div style="max-height:140px;overflow-y:auto">
+                {% for p in analytics.ad_by_placement %}
+                {% set max_imp = analytics.ad_by_placement[0].impressions if analytics.ad_by_placement else 1 %}
+                <div class="pr"><div class="pr-r"><span class="pr-l">{{ p.placement|replace('_', ' ')|title }}</span><span class="pr-v">{{ p.impressions }}</span></div><div class="pr-b"><div class="pr-f" style="width:{{ (p.impressions * 100 / max_imp)|round|int }}%;background:var(--blue)"></div></div></div>
+                {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">No placement data yet</div>
+                {% endif %}
+            </div>
+        </div>
+        {% elif analytics.ads_summary and (analytics.ads_summary.total_impressions or 0) == 0 %}
+        <div class="g g2" style="margin-top:6px">
+            <div class="c" style="grid-column: span 2">
+                <div style="text-align:center;padding:15px;color:var(--t3);font-size:0.65rem">
+                    <div style="font-size:1.2rem;margin-bottom:6px">📊</div>
+                    <div>No ad impressions recorded yet. Ad metrics will appear here once ads start running.</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Lifecycle & Revenue Section -->
+        <div class="sec"><span class="sec-t">📈 Lifecycle & Revenue</span><div class="sec-l"></div></div>
+        <div class="g g5">
+            <div class="c"><div class="c-h"><span class="c-t" data-tip="% returning at each milestone">Retention</span></div><div class="ch"><canvas id="retChart"></canvas></div></div>
+            <div class="c"><div class="c-h"><span class="c-t">Funnel</span></div><div class="pr"><div class="pr-r"><span class="pr-l">Signed Up</span><span class="pr-v">100%</span></div><div class="pr-b"><div class="pr-f" style="width:100%;background:var(--blue)"></div></div></div><div class="pr"><div class="pr-r"><span class="pr-l">First Game</span><span class="pr-v">-</span></div><div class="pr-b"><div class="pr-f" style="width:0%;background:var(--cyan)"></div></div></div><div class="pr"><div class="pr-r"><span class="pr-l">Profile Done</span><span class="pr-v">-</span></div><div class="pr-b"><div class="pr-f" style="width:0%;background:var(--green)"></div></div></div><div class="pr"><div class="pr-r"><span class="pr-l">First Survey</span><span class="pr-v">-</span></div><div class="pr-b"><div class="pr-f" style="width:0%;background:var(--gold)"></div></div></div><div class="pr"><div class="pr-r"><span class="pr-l">Referred</span><span class="pr-v">-</span></div><div class="pr-b"><div class="pr-f" style="width:0%;background:var(--orange)"></div></div></div></div>
+            <div class="c"><div class="c-h"><span class="c-t">Churn</span></div><div class="pr"><div class="pr-r"><span class="pr-l">🟢 Low Risk</span><span class="pr-v">-</span></div><div class="pr-b"><div class="pr-f" style="width:0%;background:var(--green)"></div></div></div><div class="pr"><div class="pr-r"><span class="pr-l">🟡 Medium</span><span class="pr-v">-</span></div><div class="pr-b"><div class="pr-f" style="width:0%;background:var(--gold)"></div></div></div><div class="pr"><div class="pr-r"><span class="pr-l">🔴 High</span><span class="pr-v">-</span></div><div class="pr-b"><div class="pr-f" style="width:0%;background:var(--red)"></div></div></div><div style="margin-top:4px;font-size:0.55rem;color:var(--t3)">Reactivated: <span style="color:var(--green)">-</span> · Churned: <span style="color:var(--red)">-</span></div></div>
+            <div class="c"><div class="c-h"><span class="c-t">Revenue</span><span class="c-b">${{ "%.0f"|format(analytics.pos.total_revenue or 0) }}/30d</span></div><div class="st st3" style="margin-bottom:4px"><div class="s"><div class="s-v">-</div><div class="s-l" data-tip="Avg Revenue Per User">ARPU</div></div><div class="s"><div class="s-v">-</div><div class="s-l" data-tip="Lifetime Value">LTV</div></div><div class="s"><div class="s-v">-</div><div class="s-l" data-tip="LTV to CAC ratio">LTV:CAC</div></div></div><div class="rw"><span class="rw-l">POS Revenue</span><span class="rw-v hl">${{ "%.0f"|format(analytics.pos.total_revenue or 0) }}</span></div><div class="rw"><span class="rw-l">Checks</span><span class="rw-v">{{ analytics.pos.total_checks if analytics.pos else 0 }}</span></div><div class="rw"><span class="rw-l">Avg Check</span><span class="rw-v">${{ "%.2f"|format(analytics.pos.avg_check_amount or 0) }}</span></div></div>
+            <div class="c"><div class="c-h"><span class="c-t">Tokens</span></div><div class="rw"><span class="rw-l">Circulation</span><span class="rw-v hl">-</span></div><div class="rw"><span class="rw-l">Earned/User</span><span class="rw-v">-</span></div><div class="rw"><span class="rw-l">Redeemed</span><span class="rw-v">-</span></div><div class="rw"><span class="rw-l">Redemption</span><span class="rw-v" style="color:var(--green)">-</span></div></div>
+        </div>
+        
+        <!-- NYC Markets Section -->
+        <div class="sec"><span class="sec-t">🗽 NYC Markets</span><div class="sec-l"></div></div>
+        <div class="g g5">
+            <div class="c">
+                <div class="c-h"><span class="c-t">Boroughs</span><span class="c-b">{{ analytics.total_boroughs or 5 }} NYC boroughs</span></div>
+                <div class="ch-s dw"><canvas id="boroChart"></canvas><div class="dc"><div class="dv">{{ analytics.active_boroughs or 0 }}</div><div class="dl">Active</div></div></div>
+                <div style="margin-top:6px;font-size:0.55rem;color:var(--t3)">{{ analytics.borough_total or 0 }} players mapped</div>
+            </div>
+            <div class="c">
+                <div class="c-h"><span class="c-t">Bars by Borough</span></div>
+                {% if analytics.bars_by_borough %}
+                    {% for boro in ['Brooklyn', 'Manhattan', 'Queens', 'The Bronx', 'Staten Island'] %}
+                    {% set bar_count = analytics.bars_by_borough.get(boro, 0) if analytics.bars_by_borough else 0 %}
+                    <div class="rw"><span class="rw-l">{{ boro|replace('The ', '') }}</span><span class="rw-v {% if bar_count > 0 %}hl{% endif %}">{{ bar_count }}</span></div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">No bar data</div>
+                {% endif %}
+            </div>
+            <div class="c">
+                <div class="c-h"><span class="c-t" data-tip="Month-over-month growth">Growth</span></div>
+                {% for boro in ['Queens', 'Brooklyn', 'Manhattan', 'The Bronx'] %}
+                {% set growth_data = analytics.borough_growth[boro] if analytics.borough_growth else {} %}
+                {% set growth_pct = growth_data.growth if growth_data else 0 %}
+                <div class="pr"><div class="pr-r"><span class="pr-l">{% if loop.first %}🏆 {% endif %}{{ boro|replace('The ', '') }}</span><span class="pr-v" style="color:{% if growth_pct > 0 %}var(--green){% elif growth_pct < 0 %}var(--red){% else %}var(--t3){% endif %}">{% if growth_pct > 0 %}+{% endif %}{{ growth_pct }}%</span></div><div class="pr-b"><div class="pr-f" style="width:{{ [growth_pct, 100]|min if growth_pct > 0 else 0 }}%;background:var(--green)"></div></div></div>
+                {% endfor %}
+            </div>
+            <div class="c"><div class="c-h"><span class="c-t">Neighborhoods</span></div>
+                {% if analytics.neighborhoods and analytics.neighborhoods|length > 0 %}
+                    {% for n in analytics.neighborhoods[:4] %}
+                    <div class="rw"><span class="rw-l">{{ n.name }}</span><span class="rw-v {% if loop.first %}hl{% endif %}">{{ n.count }}</span></div>
+                    {% endfor %}
+                {% else %}
+                    <div style="text-align:center;padding:8px;color:var(--t3);font-size:0.55rem">No neighborhood data</div>
+                {% endif %}
+            </div>
+            <div class="c"><div class="c-h"><span class="c-t">Expansion</span></div><div class="ins grn" style="margin:0"><div class="ins-t">🎯 Target</div><div class="ins-x">Add more bars to see expansion opportunities.</div></div></div>
+        </div>
+        
+        <!-- Geo Analytics Section -->
+        <div class="sec"><span class="sec-t">🌍 Geographic Coverage</span><div class="sec-l"></div></div>
+        <div class="g g3">
+            <div class="c">
+                <div class="c-h"><span class="c-t">By State</span><span class="c-b">{{ analytics.geo.total_states if analytics.geo else 0 }} states</span></div>
+                {% if analytics.geo and analytics.geo.states|length > 0 %}
+                    {% for s in analytics.geo.states[:5] %}
+                    <div class="rw"><span class="rw-l">{{ s.state }}</span><span class="rw-v">{{ s.bar_count }} bars · {{ s.player_count }} players</span></div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">No state data</div>
+                {% endif %}
+            </div>
+            <div class="c">
+                <div class="c-h"><span class="c-t">By City</span><span class="c-b">{{ analytics.geo.total_cities if analytics.geo else 0 }} cities</span></div>
+                {% if analytics.geo and analytics.geo.cities|length > 0 %}
+                    {% for c in analytics.geo.cities[:5] %}
+                    <div class="rw"><span class="rw-l">{{ c.city }}, {{ c.state }}</span><span class="rw-v">{{ c.bar_count }} bars</span></div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">No city data</div>
+                {% endif %}
+            </div>
+            <div class="c">
+                <div class="c-h"><span class="c-t">By ZIP Code</span></div>
+                {% if analytics.geo and analytics.geo.zip_codes|length > 0 %}
+                    {% for z in analytics.geo.zip_codes[:5] %}
+                    <div class="rw"><span class="rw-l">{{ z.zip }}{% if z.neighborhood %} ({{ z.neighborhood }}){% endif %}</span><span class="rw-v">{{ z.bar_count }} bars</span></div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">No ZIP data</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Status Bar -->
+        <div class="sb">
+            <div class="sb-i"><span class="dot g"></span>API OK</div>
+            <div class="sb-i"><span class="dot g"></span>DB OK</div>
+            <div class="sb-i"><span class="dot g"></span>Ads OK</div>
+            <div class="sb-i"><span class="dot g"></span>Queue sync</div>
+            <div class="sb-i"><span class="dot y"></span>Tokens OK</div>
+        </div>
+    </div>
+    
+    <script>
+        // Chart.js defaults
+        Chart.defaults.color='#52525b';
+        Chart.defaults.borderColor='rgba(255,255,255,0.03)';
+        Chart.defaults.font.family='Inter';
+        Chart.defaults.font.size=9;
+        const c={gold:'#eab308',orange:'#f97316',red:'#ef4444',green:'#22c55e',blue:'#3b82f6',purple:'#a855f7',cyan:'#06b6d4'};
+        const mkGrad=(ctx,col)=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,130);g.addColorStop(0,col+'40');g.addColorStop(1,col+'05');return g;};
+        
+        // Inject data from Python - with safe defaults
+        const gamesByDate = {{ analytics.games_by_date | tojson if analytics.games_by_date else '[]' | safe }};
+        const posByDate = {{ analytics.pos_by_date | tojson if analytics.pos_by_date else '[]' | safe }};
+        const gamesPerWeek = {{ analytics.games_per_week | tojson if analytics.games_per_week else '{"labels":[],"values":[]}' | safe }};
+        const ageDistribution = {{ analytics.age_distribution | tojson if analytics.age_distribution else '{"18-24":0,"25-34":0,"35-44":0,"45+":0}' | safe }};
+        const genderBreakdown = {{ analytics.gender_breakdown | tojson if analytics.gender_breakdown else '{"male":0,"female":0,"other":0}' | safe }};
+        const boroughDistribution = {{ analytics.borough_distribution | tojson if analytics.borough_distribution else '{"Brooklyn":0,"Manhattan":0,"Queens":0,"Bronx":0,"Staten Island":0}' | safe }};
+        const retentionData = {{ analytics.retention_data | tojson if analytics.retention_data else '{"labels":["D1","D7","D14","D30"],"values":[0,0,0,0]}' | safe }};
+        const brandsData = {{ analytics.brands | tojson if analytics.brands else '[]' | safe }};
+        
+        // Games/Day line chart - use real time-series data
+        let gamesLabels, gamesValues;
+        if (gamesByDate && gamesByDate.length > 0) {
+            // Use real data - format dates as short labels
+            gamesLabels = gamesByDate.map(d => d.date.substring(5)); // MM-DD format
+            gamesValues = gamesByDate.map(d => d.games_count);
+        } else if (gamesPerWeek.labels && gamesPerWeek.labels.length > 0) {
+            // Fallback to weekly aggregates
+            gamesLabels = gamesPerWeek.labels;
+            gamesValues = gamesPerWeek.values;
+        } else {
+            // Default empty state
+            gamesLabels = ['No data'];
+            gamesValues = [0];
+        }
+        new Chart(document.getElementById('revChart'),{type:'line',data:{labels:gamesLabels,datasets:[{data:gamesValues,borderColor:c.gold,borderWidth:1.5,fill:true,backgroundColor:ctx=>mkGrad(ctx,c.gold),tension:.3,pointRadius:0,pointHoverRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:8},maxTicksLimit:10}},y:{grid:{color:'rgba(255,255,255,0.02)'},ticks:{font:{size:8}}}}}});
+        
+        // Age doughnut chart - using real bucket keys from Python
+        new Chart(document.getElementById('ageChart'),{type:'doughnut',data:{labels:['18-24','25-34','35-44','45+'],datasets:[{data:[ageDistribution['18-24']||0,ageDistribution['25-34']||0,ageDistribution['35-44']||0,ageDistribution['45+']||0],backgroundColor:[c.blue,c.purple,c.orange,c.red],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'78%',plugins:{legend:{display:false}}}});
+        
+        // Gender doughnut chart
+        new Chart(document.getElementById('genderChart'),{type:'doughnut',data:{labels:['M','F','O'],datasets:[{data:[genderBreakdown.male||0,genderBreakdown.female||0,genderBreakdown.other||0],backgroundColor:[c.cyan,c.purple,'#71717a'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'78%',plugins:{legend:{display:false}}}});
+        
+        // Drink/brand doughnut chart - dynamically from brands data
+        let drinkLabels = ['No Data'];
+        let drinkValues = [1];
+        if (brandsData && brandsData.length > 0) {
+            drinkLabels = brandsData.slice(0, 5).map(b => (b.normalized_brand || b.brand || 'Unknown').substring(0, 10));
+            drinkValues = brandsData.slice(0, 5).map(b => b.revenue || b.units_sold || 0);
+        }
+        new Chart(document.getElementById('drinkChart'),{type:'doughnut',data:{labels:drinkLabels,datasets:[{data:drinkValues,backgroundColor:[c.gold,c.orange,c.purple,c.blue,c.green],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'78%',plugins:{legend:{display:false}}}});
+        
+        // Retention line chart
+        const retLabels = retentionData.labels && retentionData.labels.length > 0 ? retentionData.labels : ['D1','D7','D14','D30'];
+        const retValues = retentionData.values && retentionData.values.length > 0 ? retentionData.values : [0,0,0,0];
+        new Chart(document.getElementById('retChart'),{type:'line',data:{labels:retLabels,datasets:[{data:retValues,borderColor:c.green,borderWidth:1.5,fill:true,backgroundColor:ctx=>mkGrad(ctx,c.green),tension:.3,pointRadius:2,pointBackgroundColor:c.green}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:8}}},y:{grid:{color:'rgba(255,255,255,0.02)'},max:100,ticks:{callback:v=>v+'%',font:{size:8}}}}}});
+        
+        // Borough doughnut chart
+        new Chart(document.getElementById('boroChart'),{type:'doughnut',data:{labels:['BK','MN','QN','BX','SI'],datasets:[{data:[boroughDistribution.Brooklyn||0,boroughDistribution.Manhattan||0,boroughDistribution.Queens||0,boroughDistribution.Bronx||0,boroughDistribution['Staten Island']||0],backgroundColor:[c.blue,c.purple,c.orange,c.green,c.cyan],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'78%',plugins:{legend:{display:false}}}});
+        
+        // Heatmap - real hourly game data from Python
+        const hm=document.getElementById('hm'),days=['Su','Mo','Tu','We','Th','Fr','Sa'];
+        const activityHeatmap = {{ analytics.activity_heatmap | tojson if analytics.activity_heatmap else '[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]' | safe }};
+        // Find max value for color scaling
+        let maxVal = 1;
+        for (let d = 0; d < 7; d++) {
+            for (let h = 0; h < 24; h++) {
+                if (activityHeatmap[d] && activityHeatmap[d][h] > maxVal) maxVal = activityHeatmap[d][h];
+            }
+        }
+        let html='<div class="hm-l"></div>';
+        for(let h=0;h<24;h+=2)html+=`<div class="hm-h">${h}</div><div class="hm-h"></div>`;
+        for(let d=0;d<7;d++){
+            html+=`<div class="hm-l">${days[d]}</div>`;
+            for(let h=0;h<24;h++){
+                const v = (activityHeatmap[d] && activityHeatmap[d][h]) ? activityHeatmap[d][h] : 0;
+                const pct = (v / maxVal) * 100;
+                let cls = pct > 80 ? 'h5' : pct > 60 ? 'h4' : pct > 40 ? 'h3' : pct > 15 ? 'h2' : v > 0 ? 'h1' : 'h0';
+                html+=`<div class="hm-c ${cls}" title="${days[d]} ${h}:00 - ${v} games"></div>`;
+            }
+        }
+        hm.innerHTML=html;
+    </script>
+</body>
+</html>

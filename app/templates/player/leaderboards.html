@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <title>Rankings - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555;
+            --accent: #f5c518; --gold: #ffd700; --silver: #c0c0c0; --bronze: #cd7f32;
+            --border: rgba(255,255,255,0.08);
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding-bottom: 80px; }
+        
+        .dev-link { position: fixed; top: 8px; right: 8px; padding: 6px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-muted); font-size: 0.65rem; text-decoration: none; z-index: 1000; }
+        
+        .header { padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg-primary); z-index: 100; }
+        .header h1 { font-size: 1.25rem; font-weight: 700; }
+        
+        /* Your Rankings at Each Bar */
+        .your-rankings { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+        .section-title { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        
+        .bar-rank-cards { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+        .bar-rank-cards::-webkit-scrollbar { display: none; }
+        
+        .bar-rank-card { min-width: 140px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
+        .bar-rank-card.active { border-color: var(--accent); background: rgba(245,197,24,0.08); }
+        .bar-rank-card.best { border-color: var(--accent); }
+        .bar-rank-card:hover { border-color: rgba(255,255,255,0.2); }
+        .bar-rank-name { font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .bar-rank-location { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 8px; }
+        .bar-rank-stats { display: flex; justify-content: space-between; align-items: center; }
+        .bar-rank-num { font-size: 1.2rem; font-weight: 800; color: var(--accent); }
+        .bar-rank-badge { font-size: 0.6rem; padding: 3px 6px; background: rgba(245,197,24,0.15); border-radius: 3px; color: var(--accent); font-weight: 600; }
+        .bar-rank-games { font-size: 0.7rem; color: var(--text-muted); }
+        .best-label { font-size: 0.55rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        
+        /* Filter tabs */
+        .tabs { display: flex; gap: 4px; padding: 12px 20px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--border); }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab { padding: 10px 18px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-size: 0.85rem; font-weight: 500; font-family: inherit; white-space: nowrap; cursor: pointer; transition: all 0.15s; }
+        .tab.active { background: var(--text-primary); border-color: var(--text-primary); color: var(--bg-primary); }
+        
+        /* Selected bar header */
+        .selected-bar { padding: 16px 20px; background: var(--bg-secondary); border-bottom: 1px solid var(--border); }
+        .selected-bar-name { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .selected-bar-name .badge { font-size: 0.65rem; padding: 4px 8px; background: var(--accent); color: #111; border-radius: 4px; font-weight: 700; }
+        .selected-bar-info { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
+        
+        /* Podium */
+        .podium { display: flex; justify-content: center; align-items: flex-end; gap: 10px; padding: 24px 20px 16px; }
+        .podium-spot { text-align: center; width: 100px; }
+        .podium-spot.first { order: 2; }
+        .podium-spot.second { order: 1; }
+        .podium-spot.third { order: 3; }
+        .podium-avatar { width: 56px; height: 56px; margin: 0 auto 8px; background: var(--bg-tertiary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 600; border: 2px solid var(--border); }
+        .podium-spot.first .podium-avatar { width: 72px; height: 72px; background: linear-gradient(135deg, #ffd700, #ffb300); border-color: #ffd700; color: #111; font-size: 1.6rem; }
+        .podium-spot.second .podium-avatar { border-color: var(--silver); }
+        .podium-spot.third .podium-avatar { border-color: var(--bronze); }
+        .podium-name { font-size: 0.85rem; font-weight: 600; margin-bottom: 2px; }
+        .podium-stats { font-size: 0.7rem; color: var(--text-muted); }
+        .podium-medal { font-size: 1.2rem; margin-top: 4px; }
+        .podium-tokens { font-size: 0.7rem; color: var(--accent); font-weight: 600; margin-top: 2px; }
+        .podium-you { background: rgba(245,197,24,0.1); border-radius: 8px; padding: 8px; margin: -8px; }
+        
+        /* Leaderboard */
+        .leaderboard { padding: 0 20px; }
+        .leader-item { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+        .leader-item.you { background: rgba(245,197,24,0.05); margin: 0 -20px; padding: 14px 20px; border-left: 2px solid var(--accent); }
+        .leader-rank { min-width: 28px; font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
+        .leader-avatar { width: 44px; height: 44px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 600; }
+        .leader-info { flex: 1; }
+        .leader-name { font-weight: 500; display: flex; align-items: center; gap: 8px; }
+        .leader-badge { padding: 3px 8px; background: rgba(245,197,24,0.15); border-radius: 4px; font-size: 0.6rem; color: var(--accent); font-weight: 600; }
+        .leader-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+        .leader-stats { text-align: right; }
+        .leader-rating { font-size: 1rem; font-weight: 700; color: var(--accent); }
+        .leader-record { font-size: 0.75rem; color: var(--text-muted); }
+        
+        /* View panels */
+        .view-panel { display: none; }
+        .view-panel.active { display: block; }
+        
+        /* Friends view */
+        .friends-rank-header { padding: 16px 20px; background: var(--bg-secondary); border-bottom: 1px solid var(--border); }
+        .friends-rank-title { font-size: 1.1rem; font-weight: 700; }
+        .friends-rank-sub { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
+        
+        /* Weekly view */
+        .weekly-header { padding: 16px 20px; background: linear-gradient(135deg, rgba(245,197,24,0.1), rgba(245,197,24,0.05)); border-bottom: 1px solid var(--border); }
+        .weekly-title { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .weekly-sub { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
+        .weekly-prizes { display: flex; gap: 12px; margin-top: 12px; }
+        .prize-item { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: var(--bg-secondary); border-radius: 6px; }
+        .prize-medal { font-size: 1rem; }
+        .prize-tokens { font-size: 0.8rem; color: var(--accent); font-weight: 600; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-primary); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 6px 0 22px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 14px; color: var(--text-muted); text-decoration: none; font-size: 0.6rem; font-weight: 500; }
+        .nav-item .icon { font-size: 1.25rem; }
+        .nav-item.active { color: var(--text-primary); }
+    </style>
+</head>
+<body>
+    <a href="/master" class="dev-link">← Dashboard</a>
+    
+    <div class="header"><h1>🏆 Rankings</h1></div>
+    
+    <!-- Your rank at each bar -->
+    <div class="your-rankings">
+        <div class="section-title">📍 Your Rank at Each Table</div>
+        <div class="bar-rank-cards" id="barRankCards">
+            <div class="bar-rank-card best active" data-bar-id="1">
+                <div class="best-label">🏆 Best Rank</div>
+                <div class="bar-rank-name">The Corner Pocket</div>
+                <div class="bar-rank-location">Williamsburg</div>
+                <div class="bar-rank-stats">
+                    <div class="bar-rank-num">#3</div>
+                    <span class="bar-rank-badge">GOLD</span>
+                </div>
+                <div class="bar-rank-games">42 games</div>
+            </div>
+            <div class="bar-rank-card" data-bar-id="2">
+                <div class="bar-rank-name">Brooklyn Billiards</div>
+                <div class="bar-rank-location">Park Slope</div>
+                <div class="bar-rank-stats">
+                    <div class="bar-rank-num">#8</div>
+                    <span class="bar-rank-badge">SILVER</span>
+                </div>
+                <div class="bar-rank-games">28 games</div>
+            </div>
+            <div class="bar-rank-card" data-bar-id="3">
+                <div class="bar-rank-name">Rack 'Em Up</div>
+                <div class="bar-rank-location">Cobble Hill</div>
+                <div class="bar-rank-stats">
+                    <div class="bar-rank-num">#15</div>
+                    <span class="bar-rank-badge">BRONZE</span>
+                </div>
+                <div class="bar-rank-games">12 games</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filter tabs -->
+    <div class="tabs">
+        <button class="tab active" data-filter="all">All Players</button>
+        <button class="tab" data-filter="friends">Friends</button>
+        <button class="tab" data-filter="month">This Month</button>
+    </div>
+    
+    <!-- ALL PLAYERS VIEW -->
+    <div class="view-panel active" id="viewAll">
+        <div class="selected-bar">
+            <div class="selected-bar-name">The Corner Pocket <span class="badge">YOUR #3</span></div>
+            <div class="selected-bar-info">47 ranked players • 1,234 total games</div>
+        </div>
+        
+        <div class="podium">
+            <div class="podium-spot second"><div class="podium-avatar">M</div><div class="podium-name">Mike</div><div class="podium-stats">1,523 ELO</div><div class="podium-medal">🥈</div><div class="podium-tokens">🪙 +250/mo</div></div>
+            <div class="podium-spot first"><div class="podium-avatar">👑</div><div class="podium-name">TopShot</div><div class="podium-stats">1,687 ELO</div><div class="podium-medal">🥇</div><div class="podium-tokens">🪙 +500/mo</div></div>
+            <div class="podium-spot third"><div class="podium-avatar podium-you">Y</div><div class="podium-name">You</div><div class="podium-stats">1,489 ELO</div><div class="podium-medal">🥉</div><div class="podium-tokens">🪙 +100/mo</div></div>
+        </div>
+        
+        <div class="leaderboard">
+            <div class="leader-item"><div class="leader-rank">4</div><div class="leader-avatar">S</div><div class="leader-info"><div class="leader-name">Sarah <span class="leader-badge">GOLD</span></div><div class="leader-sub">38-12 • 76%</div></div><div class="leader-stats"><div class="leader-rating">1,456</div><div class="leader-record">50 games</div></div></div>
+            <div class="leader-item"><div class="leader-rank">5</div><div class="leader-avatar">D</div><div class="leader-info"><div class="leader-name">Dave <span class="leader-badge">GOLD</span></div><div class="leader-sub">35-15 • 70%</div></div><div class="leader-stats"><div class="leader-rating">1,423</div><div class="leader-record">50 games</div></div></div>
+            <div class="leader-item"><div class="leader-rank">6</div><div class="leader-avatar">C</div><div class="leader-info"><div class="leader-name">Chris</div><div class="leader-sub">31-19 • 62%</div></div><div class="leader-stats"><div class="leader-rating">1,389</div><div class="leader-record">50 games</div></div></div>
+        </div>
+    </div>
+    
+    <!-- FRIENDS VIEW -->
+    <div class="view-panel" id="viewFriends">
+        <div class="friends-rank-header">
+            <div class="friends-rank-title">👥 Rank Among Friends</div>
+            <div class="friends-rank-sub">You're #2 out of 8 friends • All-time</div>
+        </div>
+        
+        <div class="podium">
+            <div class="podium-spot second"><div class="podium-avatar podium-you">Y</div><div class="podium-name">You</div><div class="podium-stats">1,534 ELO</div><div class="podium-medal">🥈</div></div>
+            <div class="podium-spot first"><div class="podium-avatar">M</div><div class="podium-name">Mike</div><div class="podium-stats">1,847 ELO</div><div class="podium-medal">🥇</div></div>
+            <div class="podium-spot third"><div class="podium-avatar">S</div><div class="podium-name">Sarah</div><div class="podium-stats">1,756 ELO</div><div class="podium-medal">🥉</div></div>
+        </div>
+        
+        <div class="leaderboard">
+            <div class="leader-item"><div class="leader-rank">4</div><div class="leader-avatar">J</div><div class="leader-info"><div class="leader-name">Jake</div><div class="leader-sub">98-58 • 63%</div></div><div class="leader-stats"><div class="leader-rating">1,623</div><div class="leader-record">156 games</div></div></div>
+            <div class="leader-item"><div class="leader-rank">5</div><div class="leader-avatar">D</div><div class="leader-info"><div class="leader-name">Dave</div><div class="leader-sub">138-65 • 68%</div></div><div class="leader-stats"><div class="leader-rating">1,689</div><div class="leader-record">203 games</div></div></div>
+            <div class="leader-item"><div class="leader-rank">6</div><div class="leader-avatar">C</div><div class="leader-info"><div class="leader-name">Chris</div><div class="leader-sub">89-55 • 62%</div></div><div class="leader-stats"><div class="leader-rating">1,534</div><div class="leader-record">144 games</div></div></div>
+        </div>
+    </div>
+    
+    <!-- THIS MONTH VIEW -->
+    <div class="view-panel" id="viewMonth">
+        <div class="weekly-header">
+            <div class="weekly-title">📅 Monthly Rankings <span class="badge" style="font-size:0.6rem;padding:3px 8px;background:var(--accent);color:#111;border-radius:4px;">December 2024</span></div>
+            <div class="weekly-sub">You're #4 this month across all bars</div>
+            <div class="weekly-prizes">
+                <div class="prize-item"><span class="prize-medal">🥇</span><span class="prize-tokens">+500 tokens</span></div>
+                <div class="prize-item"><span class="prize-medal">🥈</span><span class="prize-tokens">+250 tokens</span></div>
+                <div class="prize-item"><span class="prize-medal">🥉</span><span class="prize-tokens">+100 tokens</span></div>
+            </div>
+        </div>
+        
+        <div class="podium">
+            <div class="podium-spot second"><div class="podium-avatar">J</div><div class="podium-name">Jake</div><div class="podium-stats">32-8 this month</div><div class="podium-medal">🥈</div><div class="podium-tokens">🪙 +250</div></div>
+            <div class="podium-spot first"><div class="podium-avatar">👑</div><div class="podium-name">TopShot</div><div class="podium-stats">45-5 this month</div><div class="podium-medal">🥇</div><div class="podium-tokens">🪙 +500</div></div>
+            <div class="podium-spot third"><div class="podium-avatar">M</div><div class="podium-name">Mike</div><div class="podium-stats">28-12 this month</div><div class="podium-medal">🥉</div><div class="podium-tokens">🪙 +100</div></div>
+        </div>
+        
+        <div class="leaderboard">
+            <div class="leader-item you"><div class="leader-rank">4</div><div class="leader-avatar">Y</div><div class="leader-info"><div class="leader-name">You <span class="leader-badge">+87 ELO</span></div><div class="leader-sub">24-10 this month • 71%</div></div><div class="leader-stats"><div class="leader-rating">1,534</div><div class="leader-record">34 games</div></div></div>
+            <div class="leader-item"><div class="leader-rank">5</div><div class="leader-avatar">S</div><div class="leader-info"><div class="leader-name">Sarah</div><div class="leader-sub">22-9 this month • 71%</div></div><div class="leader-stats"><div class="leader-rating">1,756</div><div class="leader-record">31 games</div></div></div>
+            <div class="leader-item"><div class="leader-rank">6</div><div class="leader-avatar">D</div><div class="leader-info"><div class="leader-name">Dave</div><div class="leader-sub">18-12 this month • 60%</div></div><div class="leader-stats"><div class="leader-rating">1,689</div><div class="leader-record">30 games</div></div></div>
+        </div>
+    </div>
+    
+        <nav class="bottom-nav">
+        <a href="{% if demo_mode %}/player/demo/home{% else %}/player/home{% endif %}" class="nav-item"><div class="icon">🎱</div><div>Home</div></a>
+        <a href="{% if demo_mode %}/player/demo/friends{% else %}/player/friends{% endif %}" class="nav-item"><div class="icon">👥</div><div>Friends</div></a>
+        <a href="{% if demo_mode %}/player/demo/challenges{% else %}/player/challenges{% endif %}" class="nav-item"><div class="icon">⚔️</div><div>Challenges</div></a>
+        <a href="{% if demo_mode %}/player/demo/leaderboards{% else %}/player/leaderboard{% endif %}" class="nav-item active"><div class="icon">🏆</div><div>Rankings</div></a>
+        <a href="{% if demo_mode %}/player/demo/profile{% else %}/player/profile{% endif %}" class="nav-item"><div class="icon">👤</div><div>Profile</div></a>
+    </nav>
+    
+    <script>
+        // Bar card selection
+        document.querySelectorAll('.bar-rank-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.bar-rank-card').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                const filter = this.dataset.filter;
+                document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+                
+                if (filter === 'all') {
+                    document.getElementById('viewAll').classList.add('active');
+                    document.querySelector('.your-rankings').style.display = 'block';
+                } else if (filter === 'friends') {
+                    document.getElementById('viewFriends').classList.add('active');
+                    document.querySelector('.your-rankings').style.display = 'none';
+                } else if (filter === 'month') {
+                    document.getElementById('viewMonth').classList.add('active');
+                    document.querySelector('.your-rankings').style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Pool Cue Bar Manager</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍺</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0f1a 0%, #0a0a0a 50%, #0a0a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .desktop-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 16px;
+            padding: 0 10px;
+        }
+        .app-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #f2f2f2;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        .app-title img { width: 36px; height: 36px; border-radius: 10px; }
+        .back-btn {
+            padding: 8px 16px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.15s;
+        }
+        .back-btn:hover { border-color: #3b82f6; color: #3b82f6; }
+        
+        .main-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+        }
+        
+        /* Phone Frame */
+        .phone-frame {
+            width: 375px;
+            height: 750px;
+            background: #1a1a1a;
+            border-radius: 45px;
+            padding: 12px;
+            box-shadow: 0 0 0 3px #333, 0 20px 60px rgba(0,0,0,0.5), inset 0 0 0 2px #0a0a0a;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .phone-notch {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 28px;
+            background: #1a1a1a;
+            border-radius: 0 0 16px 16px;
+            z-index: 10;
+        }
+        .phone-notch::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 5px;
+            background: #333;
+            border-radius: 3px;
+        }
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: #111;
+            border-radius: 36px;
+            overflow: hidden;
+        }
+        .phone-screen iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* Side Navigation */
+        .side-nav {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .nav-section {
+            background: #141414;
+            border: 1px solid #252525;
+            border-radius: 12px;
+            padding: 14px;
+        }
+        .nav-section-title {
+            font-size: 0.65rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #252525;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+        .nav-item:hover { background: #1a1a1a; color: #f2f2f2; }
+        .nav-item.active { background: rgba(59,130,246,0.15); color: #3b82f6; }
+        .nav-item .icon { font-size: 1.1rem; width: 24px; text-align: center; }
+        
+        .quick-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .quick-stat .label { font-size: 0.75rem; color: #666; }
+        .quick-stat .value { font-size: 1.2rem; font-weight: 700; color: #f5c518; }
+        
+        /* Mobile: Full screen, no frame */
+        @media (max-width: 500px) {
+            body { padding: 0; background: #111; }
+            .desktop-header { display: none; }
+            .main-container { max-width: 100%; }
+            .phone-frame { 
+                width: 100%; 
+                height: 100vh; 
+                border-radius: 0; 
+                padding: 0;
+                box-shadow: none;
+            }
+            .phone-notch { display: none; }
+            .phone-screen { border-radius: 0; }
+            .side-nav { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="desktop-header">
+        <div class="app-title">
+            <span style="width:36px;height:36px;background:#3b82f6;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🍺</span>
+            <span>Bar Manager</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+            <a href="/admin/" target="_blank" class="back-btn">Open Full Screen ↗</a>
+            <a href="/master/bars" class="back-btn">← Back to Bars</a>
+        </div>
+    </div>
+    
+    <div class="main-container">
+        <div class="phone-frame">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+                <iframe src="/admin/" id="manager-frame"></iframe>
+            </div>
+        </div>
+        
+        <div class="side-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">📊 Live Stats</div>
+                <div class="quick-stat">
+                    <div>
+                        <div class="label">Queue Size</div>
+                        <div class="value" id="queue-count">--</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="label">Shot Caller</div>
+                        <div class="value" id="shot-caller" style="font-size:0.9rem;color:#22c55e;">--</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">📋 Queue Control</div>
+                <button class="nav-item active" onclick="loadPage('/admin/', this)"><span class="icon">📋</span> Queue Management</button>
+                <button class="nav-item" onclick="loadPage('/admin/pool-nights', this)"><span class="icon">🌙</span> Pool Nights</button>
+                <button class="nav-item" onclick="loadPage('/admin/settings', this)"><span class="icon">⚙️</span> Bar Settings</button>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">📺 Display</div>
+                <button class="nav-item" onclick="loadPage('/display', this)"><span class="icon">🎱</span> Queue Board</button>
+                <button class="nav-item" onclick="loadPage('/qr_code', this)"><span class="icon">📷</span> QR Code</button>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">📱 Player View</div>
+                <button class="nav-item" onclick="loadPage('/join', this)"><span class="icon">📝</span> Join Queue Page</button>
+            </div>
+            
+            <div class="nav-section" style="margin-top:auto;">
+                <div class="nav-section-title">🔗 Quick Links</div>
+                <a href="/display" class="nav-item" target="_blank"><span class="icon">📺</span> Open Board Display</a>
+                <a href="/display" class="nav-item" target="_blank"><span class="icon">🖥️</span> Fullscreen Display</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function loadPage(url, btn) {
+            document.getElementById('manager-frame').src = url;
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+        }
+        
+        // Fetch live stats
+        function updateStats() {
+            fetch('/admin/api/stats')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('queue-count').textContent = data.queue_length || 0;
+                    document.getElementById('shot-caller').textContent = data.king || 'None';
+                })
+                .catch(() => {});
+        }
+        updateStats();
+        setInterval(updateStats, 5000);
+    </script>
+</body>
+</html>

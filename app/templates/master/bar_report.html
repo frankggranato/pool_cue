@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ bar.name }} Report - Pool Cue</title>
+    <link rel="stylesheet" href="/static/css/master-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.05);--t1:#e4e4e7;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--blue:#3b82f6}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:11px}
+        .p{padding:12px 16px;max-width:1000px;margin:0 auto}
+        .back{display:inline-flex;align-items:center;gap:4px;color:var(--t3);text-decoration:none;font-size:0.65rem;margin-bottom:10px}
+        .back:hover{color:var(--gold)}
+        .report-hdr{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:16px;text-align:center;margin-bottom:12px}
+        .report-hdr h2{font-size:0.9rem;font-weight:600;margin-bottom:4px}
+        .report-hdr .period{color:var(--t2);font-size:0.7rem;margin-bottom:8px}
+        .report-hdr .generated{font-size:0.6rem;color:var(--t3)}
+        .kpi{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}
+        .k{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:12px;text-align:center}
+        .k-v{font-size:1.2rem;font-weight:600;color:var(--gold)}.k-l{font-size:0.55rem;color:var(--t3);text-transform:uppercase;margin-top:2px}
+        .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+        .c{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:12px;margin-bottom:8px}
+        .c-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+        .c-t{font-size:0.65rem;font-weight:600;color:var(--t2);text-transform:uppercase}
+        .tbl{width:100%;border-collapse:collapse;font-size:0.7rem}
+        .tbl th{text-align:left;padding:6px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase;border-bottom:1px solid var(--border)}
+        .tbl td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.02)}
+        .tbl tr:hover{background:rgba(255,255,255,0.02)}
+        .tbl a{color:var(--gold);text-decoration:none}
+        .empty{text-align:center;padding:20px;color:var(--t3);font-size:0.7rem}
+    </style>
+</head>
+<body>
+    {% include 'master/_nav.html' %}
+    <div class="p">
+        <a href="/master/bar/{{ bar.id }}" class="back">← Back to {{ bar.name }}</a>
+        
+        <div class="report-hdr">
+            <h2>🎱 {{ bar.name }} - Performance Report</h2>
+            <div class="period">{{ report.period }}</div>
+            <div class="generated">Generated {{ report.created_at }}</div>
+        </div>
+        
+        <div class="kpi">
+            <div class="k"><div class="k-v">{{ report.games_week or 0 }}</div><div class="k-l">Games This Week</div></div>
+            <div class="k"><div class="k-v">{{ report.games_month or 0 }}</div><div class="k-l">Games This Month</div></div>
+            <div class="k"><div class="k-v">{{ report.games_total or 0 }}</div><div class="k-l">Total Games</div></div>
+            <div class="k"><div class="k-v">{{ report.players_week or 0 }}</div><div class="k-l">Active Players</div></div>
+            <div class="k"><div class="k-v">{{ report.queue_entries_week or 0 }}</div><div class="k-l">Queue Joins</div></div>
+        </div>
+        
+        <div class="g2">
+            <!-- Top Players -->
+            <div class="c">
+                <div class="c-h"><span class="c-t">🏆 Top Players at This Bar</span></div>
+                {% if top_players and top_players|length > 0 %}
+                <table class="tbl">
+                    <thead><tr><th>#</th><th>Player</th><th>Games</th><th>Wins</th><th>Win %</th></tr></thead>
+                    <tbody>
+                    {% for p in top_players %}
+                    <tr>
+                        <td style="color:var(--t3)">{{ loop.index }}</td>
+                        <td><a href="/master/player/{{ p.id }}">{{ p.nickname }}</a></td>
+                        <td>{{ p.games }}</td>
+                        <td style="color:var(--green)">{{ p.wins }}</td>
+                        <td style="color:var(--gold)">{{ ((p.wins / p.games) * 100)|round|int if p.games > 0 else 0 }}%</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty">No player data yet</div>
+                {% endif %}
+            </div>
+            
+            <!-- Recent Games -->
+            <div class="c">
+                <div class="c-h"><span class="c-t">🎯 Recent Games</span></div>
+                {% if recent_games and recent_games|length > 0 %}
+                <table class="tbl">
+                    <thead><tr><th>Winner</th><th>Loser</th><th>Date</th></tr></thead>
+                    <tbody>
+                    {% for g in recent_games %}
+                    <tr>
+                        <td style="color:var(--green)">{{ g.winner_name or 'Unknown' }}</td>
+                        <td style="color:var(--t3)">{{ g.loser_name or 'Unknown' }}</td>
+                        <td style="color:var(--t3);font-size:0.6rem">{{ g.created_at[:16] if g.created_at else '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty">No games recorded yet</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <title>Token Shop - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --bg-primary: #111111;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #222222;
+            --text-primary: #f2f2f2;
+            --text-secondary: #888888;
+            --text-muted: #555555;
+            --accent: #f5c518;
+            --accent-dim: rgba(245, 197, 24, 0.15);
+            --success: #22c55e;
+            --border: rgba(255,255,255,0.08);
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg-primary);
+            z-index: 100;
+        }
+        .back-btn {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 1.3rem;
+            line-height: 1;
+        }
+        .header h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        /* Balance Card */
+        .balance-card {
+            margin: 20px;
+            padding: 24px;
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+            border: 1px solid rgba(245,197,24,0.2);
+            border-radius: 12px;
+        }
+        .balance-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        .balance-amount {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .balance-amount .icon { font-size: 2rem; }
+        .earn-link {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 10px 20px;
+            background: var(--accent);
+            border-radius: 6px;
+            color: #111;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        /* Categories */
+        .categories {
+            display: flex;
+            gap: 8px;
+            padding: 16px 20px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .categories::-webkit-scrollbar { display: none; }
+        .cat-btn {
+            padding: 10px 18px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            font-family: inherit;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .cat-btn.active {
+            background: var(--text-primary);
+            border-color: var(--text-primary);
+            color: var(--bg-primary);
+        }
+        
+        /* Section Headers */
+        .section-header {
+            padding: 20px 20px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .section-title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Product Grid */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 0 20px;
+        }
+        
+        .product-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.15s;
+            cursor: pointer;
+        }
+        .product-card:active {
+            transform: scale(0.98);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 120px;
+            background: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+        }
+        .product-info {
+            padding: 14px;
+        }
+        .product-brand {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .product-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .product-price {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        .product-original {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-decoration: line-through;
+        }
+        
+        /* Featured Banner */
+        .featured-banner {
+            margin: 0 20px 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e, #2a2a4e);
+            border: 1px solid rgba(139,92,246,0.3);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        .featured-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 4px 10px;
+            background: rgba(139,92,246,0.2);
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #a78bfa;
+        }
+        .featured-brand {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .featured-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .featured-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+        }
+        .featured-price {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 0 22px;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            padding: 8px 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.6rem;
+            font-weight: 500;
+        }
+        .nav-item .icon { font-size: 1.25rem; }
+        .nav-item.active { color: var(--text-primary); }
+    </style>
+</head>
+<body>
+    <a href="/master" class="dev-link" style="position:fixed;top:8px;right:8px;padding:6px 12px;background:#1a1a1a;border:1px solid #252525;border-radius:4px;color:#888;font-size:0.65rem;text-decoration:none;z-index:1000;">← Dashboard</a>
+    <div class="header">
+        <a href="/player/profile" class="back-btn">←</a>
+        <h1>Token Shop</h1>
+    </div>
+    
+    <div class="balance-card">
+        <div class="balance-label">Your Balance</div>
+        <div class="balance-amount">
+            <span class="icon">🪙</span>
+            <span>2,450</span>
+        </div>
+        <a href="/player/earn" class="earn-link">+ Earn More Tokens</a>
+    </div>
+    
+    <div class="categories">
+        <button class="cat-btn active">All</button>
+        <button class="cat-btn">🍺 Beer</button>
+        <button class="cat-btn">🥃 Spirits</button>
+        <button class="cat-btn">👕 Apparel</button>
+        <button class="cat-btn">🎱 Gear</button>
+        <button class="cat-btn">🎟️ Experiences</button>
+    </div>
+    
+    <!-- Featured Item -->
+    <div class="featured-banner">
+        <span class="featured-badge">LIMITED</span>
+        <div class="featured-brand">BUDWEISER × POOL CUE</div>
+        <div class="featured-name">Vintage Neon Sign</div>
+        <div class="featured-desc">Exclusive collab piece. Only 50 available.</div>
+        <div class="featured-price">🪙 8,500 tokens</div>
+    </div>
+    
+    <div class="section-header">
+        <span class="section-title">🍺 Beer Merch</span>
+    </div>
+    <div class="product-grid">
+        <div class="product-card">
+            <div class="product-image">🧢</div>
+            <div class="product-info">
+                <div class="product-brand">Budweiser</div>
+                <div class="product-name">Classic Snapback</div>
+                <div class="product-price">🪙 1,200</div>
+            </div>
+        </div>
+        <div class="product-card">
+            <div class="product-image">👕</div>
+            <div class="product-info">
+                <div class="product-brand">Miller Lite</div>
+                <div class="product-name">Retro Tee</div>
+                <div class="product-price">🪙 950</div>
+            </div>
+        </div>
+        <div class="product-card">
+            <div class="product-image">🍺</div>
+            <div class="product-info">
+                <div class="product-brand">Coors Light</div>
+                <div class="product-name">Neon Pint Glass Set</div>
+                <div class="product-price">🪙 800</div>
+            </div>
+        </div>
+        <div class="product-card">
+            <div class="product-image">🎒</div>
+            <div class="product-info">
+                <div class="product-brand">Stella Artois</div>
+                <div class="product-name">Canvas Cooler Bag</div>
+                <div class="product-price">🪙 1,500</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section-header">
+        <span class="section-title">🥃 Spirits Merch</span>
+    </div>
+    <div class="product-grid">
+        <div class="product-card">
+            <div class="product-image">🥃</div>
+            <div class="product-info">
+                <div class="product-brand">Jack Daniel's</div>
+                <div class="product-name">Whiskey Stones Set</div>
+                <div class="product-price">🪙 1,800</div>
+            </div>
+        </div>
+        <div class="product-card">
+            <div class="product-image">🧥</div>
+            <div class="product-info">
+                <div class="product-brand">Jameson</div>
+                <div class="product-name">Bomber Jacket</div>
+                <div class="product-price">🪙 4,500</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section-header">
+        <span class="section-title">🎱 Pool Gear</span>
+    </div>
+    <div class="product-grid">
+        <div class="product-card">
+            <div class="product-image">🧤</div>
+            <div class="product-info">
+                <div class="product-brand">Pool Cue</div>
+                <div class="product-name">Pro Billiard Glove</div>
+                <div class="product-price">🪙 600</div>
+            </div>
+        </div>
+        <div class="product-card">
+            <div class="product-image">🧊</div>
+            <div class="product-info">
+                <div class="product-brand">Pool Cue</div>
+                <div class="product-name">Cue Chalk 12-Pack</div>
+                <div class="product-price">🪙 300</div>
+            </div>
+        </div>
+        <div class="product-card">
+            <div class="product-image">💼</div>
+            <div class="product-info">
+                <div class="product-brand">Pool Cue</div>
+                <div class="product-name">Hard Cue Case</div>
+                <div class="product-price">🪙 3,200</div>
+            </div>
+        </div>
+        <div class="product-card">
+            <div class="product-image">🎯</div>
+            <div class="product-info">
+                <div class="product-brand">Predator</div>
+                <div class="product-name">Training Balls</div>
+                <div class="product-price">🪙 2,100</div>
+            </div>
+        </div>
+    </div>
+    
+        <nav class="bottom-nav">
+        <a href="{% if demo_mode %}/player/demo/home{% else %}/player/home{% endif %}" class="nav-item"><div class="icon">🎱</div><div>Home</div></a>
+        <a href="{% if demo_mode %}/player/demo/friends{% else %}/player/friends{% endif %}" class="nav-item"><div class="icon">👥</div><div>Friends</div></a>
+        <a href="{% if demo_mode %}/player/demo/challenges{% else %}/player/challenges{% endif %}" class="nav-item"><div class="icon">⚔️</div><div>Challenges</div></a>
+        <a href="{% if demo_mode %}/player/demo/leaderboards{% else %}/player/leaderboard{% endif %}" class="nav-item"><div class="icon">🏆</div><div>Rankings</div></a>
+        <a href="{% if demo_mode %}/player/demo/profile{% else %}/player/profile{% endif %}" class="nav-item active"><div class="icon">👤</div><div>Profile</div></a>
+    </nav>
+    
+    <!-- Product Detail Modal -->
+    <div id="productModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:200;padding:20px;overflow-y:auto;">
+        <div style="max-width:400px;margin:0 auto;background:var(--bg-secondary);border-radius:12px;overflow:hidden;">
+            <div id="modalImage" style="height:200px;background:var(--bg-tertiary);display:flex;align-items:center;justify-content:center;font-size:4rem;"></div>
+            <div style="padding:20px;">
+                <div id="modalBrand" style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;"></div>
+                <div id="modalName" style="font-size:1.3rem;font-weight:700;margin-bottom:8px;"></div>
+                <div id="modalDesc" style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.5;"></div>
+                <div id="modalPrice" style="font-size:1.2rem;font-weight:700;color:var(--accent);margin-bottom:20px;"></div>
+                <button onclick="redeemProduct()" style="width:100%;padding:16px;background:var(--accent);border:none;border-radius:8px;color:#111;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:12px;">Redeem with Tokens</button>
+                <button onclick="closeModal()" style="width:100%;padding:14px;background:var(--bg-tertiary);border:none;border-radius:8px;color:var(--text-secondary);font-size:0.9rem;cursor:pointer;">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Get or create session ID
+        const sessionId = localStorage.getItem('poolcue_session') || (() => {
+            const id = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('poolcue_session', id);
+            return id;
+        })();
+        
+        // Get player ID from localStorage
+        const playerId = JSON.parse(localStorage.getItem('poolcue_user') || '{}').id || null;
+        
+        // Track merch interactions - sends to backend
+        function trackEvent(eventType, productData) {
+            const data = {
+                action: eventType,
+                product_id: productData.id,
+                product_name: productData.name,
+                category: productData.brand,
+                tokens: productData.price,
+                player_id: playerId,
+                session_id: sessionId
+            };
+            
+            // Send to backend
+            fetch('/player/api/shop/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).catch(() => {});
+            
+            console.log('Track:', data);
+        }
+        
+        // Track page view on load
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/player/api/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    event: 'page_view',
+                    data: 'shop',
+                    player_id: playerId,
+                    session_id: sessionId
+                })
+            }).catch(() => {});
+        });
+        
+        // Product data
+        const products = {
+            'bud-snapback': { id: 'bud-snapback', name: 'Classic Snapback', brand: 'Budweiser', price: 1200, icon: '🧢', desc: 'Classic trucker-style snapback with embroidered Budweiser logo. One size fits all.' },
+            'miller-tee': { id: 'miller-tee', name: 'Retro Tee', brand: 'Miller Lite', price: 950, icon: '👕', desc: 'Vintage-style cotton t-shirt with classic Miller Lite branding.' },
+            'coors-glass': { id: 'coors-glass', name: 'Neon Pint Glass Set', brand: 'Coors Light', price: 800, icon: '🍺', desc: 'Set of 4 neon-rim pint glasses. Dishwasher safe.' },
+            'stella-cooler': { id: 'stella-cooler', name: 'Canvas Cooler Bag', brand: 'Stella Artois', price: 1500, icon: '🎒', desc: 'Premium canvas cooler bag. Holds 12 cans. Shoulder strap included.' }
+        };
+        
+        // Current product being viewed
+        let currentProduct = null;
+        let viewStartTime = null;
+        
+        // Click on product card
+        document.querySelectorAll('.product-card').forEach((card, index) => {
+            card.addEventListener('click', function() {
+                const productId = Object.keys(products)[index] || 'bud-snapback';
+                const product = products[productId] || products['bud-snapback'];
+                
+                // Track view event
+                trackEvent('product_view', product);
+                viewStartTime = Date.now();
+                currentProduct = product;
+                
+                // Show modal
+                document.getElementById('modalImage').textContent = product.icon;
+                document.getElementById('modalBrand').textContent = product.brand;
+                document.getElementById('modalName').textContent = product.name;
+                document.getElementById('modalDesc').textContent = product.desc;
+                document.getElementById('modalPrice').textContent = '🪙 ' + product.price.toLocaleString() + ' tokens';
+                document.getElementById('productModal').style.display = 'block';
+            });
+        });
+        
+        function closeModal() {
+            // Track consideration time
+            if (currentProduct && viewStartTime) {
+                const viewTime = (Date.now() - viewStartTime) / 1000;
+                trackEvent('product_consideration', { ...currentProduct, view_time_seconds: viewTime });
+            }
+            document.getElementById('productModal').style.display = 'none';
+            currentProduct = null;
+            viewStartTime = null;
+        }
+        
+        function redeemProduct() {
+            if (currentProduct) {
+                trackEvent('product_redeem', currentProduct);
+                alert('🎉 Redeemed! Check your email for shipping details.');
+                closeModal();
+            }
+        }
+        
+        // Category tracking
+        document.querySelectorAll('.cat-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                trackEvent('category_view', { category: this.textContent.trim() });
+            });
+        });
+    </script>
+</body>
+</html>

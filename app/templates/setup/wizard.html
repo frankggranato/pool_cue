@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pool Cue - Setup</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #222222;
+            --text-primary: #f2f2f2;
+            --text-secondary: #888888;
+            --text-muted: #555555;
+            --accent: #f5c518;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --border: rgba(255,255,255,0.08);
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .setup-container {
+            width: 100%;
+            max-width: 480px;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .logo-icon {
+            font-size: 4rem;
+            margin-bottom: 12px;
+        }
+        .logo-text {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+        .logo-sub {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+        .setup-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+        }
+        .step {
+            display: none;
+        }
+        .step.active {
+            display: block;
+        }
+        .step-header {
+            margin-bottom: 24px;
+        }
+        .step-number {
+            font-size: 0.7rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .step-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+        .step-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: opacity 0.15s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-primary {
+            background: var(--accent);
+            color: #111;
+        }
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .btn-row .btn { flex: 1; }
+        .progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 24px;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+        }
+        .dot.active { background: var(--accent); }
+        .dot.done { background: var(--success); }
+        .flash {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        .flash.error {
+            background: rgba(239,68,68,0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239,68,68,0.3);
+        }
+        .flash.success {
+            background: rgba(34,197,94,0.15);
+            color: #22c55e;
+            border: 1px solid rgba(34,197,94,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="logo">
+            <div class="logo-icon">🎱</div>
+            <div class="logo-text">Pool Cue</div>
+            <div class="logo-sub">First Time Setup</div>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+        
+        <div class="setup-card">
+            <form method="POST" action="{{ url_for('setup.complete_setup') }}" id="setupForm">
+                <!-- Step 1: Bar Info -->
+                <div class="step active" data-step="1">
+                    <div class="step-header">
+                        <div class="step-number">Step 1 of 2</div>
+                        <div class="step-title">Your Venue</div>
+                        <div class="step-desc">Tell us about your pool hall or bar</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Venue Name *</label>
+                        <input type="text" name="bar_name" class="form-input" placeholder="The Corner Pocket" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Address</label>
+                        <input type="text" name="bar_address" class="form-input" placeholder="123 Main St">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">City</label>
+                            <input type="text" name="bar_city" class="form-input" placeholder="Brooklyn">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">State</label>
+                            <input type="text" name="bar_state" class="form-input" placeholder="NY" maxlength="2">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">ZIP Code</label>
+                        <input type="text" name="bar_zip" class="form-input" placeholder="11211" maxlength="10">
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary" onclick="nextStep()">Continue →</button>
+                </div>
+                
+                <!-- Step 2: Admin Account -->
+                <div class="step" data-step="2">
+                    <div class="step-header">
+                        <div class="step-number">Step 2 of 2</div>
+                        <div class="step-title">Admin Account</div>
+                        <div class="step-desc">Create your master admin login</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Admin Username</label>
+                        <input type="text" name="admin_username" class="form-input" value="admin" placeholder="admin">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Admin Password *</label>
+                        <input type="password" name="admin_password" class="form-input" placeholder="••••••••" required minlength="4">
+                    </div>
+                    
+                    <div class="btn-row">
+                        <button type="button" class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                        <button type="submit" class="btn btn-primary">Complete Setup</button>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="progress-dots">
+                <div class="dot active" data-dot="1"></div>
+                <div class="dot" data-dot="2"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentStep = 1;
+        
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.querySelector(`.step[data-step="${step}"]`).classList.add('active');
+            
+            document.querySelectorAll('.dot').forEach((d, i) => {
+                d.classList.remove('active', 'done');
+                if (i + 1 < step) d.classList.add('done');
+                if (i + 1 === step) d.classList.add('active');
+            });
+        }
+        
+        function nextStep() {
+            if (currentStep === 1) {
+                const barName = document.querySelector('input[name="bar_name"]').value;
+                if (!barName) {
+                    alert('Please enter your venue name');
+                    return;
+                }
+            }
+            currentStep++;
+            showStep(currentStep);
+        }
+        
+        function prevStep() {
+            currentStep--;
+            showStep(currentStep);
+        }
+    </script>
+</body>
+</html>

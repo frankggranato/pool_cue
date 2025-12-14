@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#111111">
+    <title>Verify Account - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;  --border: rgba(255,255,255,0.1);
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555; --accent: #f5c518; --success: #22c55e;
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary); color: var(--text-primary);
+            min-height: 100vh; padding: 40px 24px;
+        }
+        .logo { text-align: center; margin-bottom: 32px; }
+        .logo h1 { font-size: 2rem; color: var(--accent); }
+        .logo p { color: var(--text-secondary); margin-top: 8px; font-size: 0.95rem; }
+        
+        .card {
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: 16px; padding: 24px; margin-bottom: 20px;
+        }
+        .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; }
+        .card-desc { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px; }
+        
+        .option-btn {
+            width: 100%; padding: 18px 20px;
+            background: var(--bg-primary); border: 1px solid var(--border); border-radius: 12px;
+            color: var(--text-primary); font-size: 1rem; font-family: inherit;
+            cursor: pointer; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 14px;
+            text-decoration: none; transition: border-color 0.2s;
+        }
+        .option-btn:hover { border-color: var(--accent); }
+        .option-icon { font-size: 1.5rem; }
+        .option-text { flex: 1; text-align: left; }
+        .option-label { font-weight: 500; }
+        .option-value { font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; }
+        .option-arrow { color: var(--text-secondary); }
+        
+        .verified-badge {
+            background: rgba(34,197,94,0.15); color: var(--success);
+            padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 500;
+        }
+        
+        .skip-link {
+            display: block; text-align: center; margin-top: 24px;
+            color: var(--text-secondary); font-size: 0.9rem; text-decoration: none;
+        }
+        .skip-link:hover { color: var(--text-primary); }
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <h1>🎱 Pool Cue</h1>
+        <p>Verify your account</p>
+    </div>
+    
+    <div class="card">
+        <div class="card-title">Choose verification method</div>
+        <div class="card-desc">We'll send you a code to verify your contact info. This helps keep your account secure.</div>
+        
+        {% if status.has_phone %}
+        <a href="{{ url_for('auth.verify_start', channel='phone') }}" class="option-btn">
+            <span class="option-icon">📱</span>
+            <div class="option-text">
+                <div class="option-label">Text Message (SMS)</div>
+                <div class="option-value">***-***-{{ status.phone[-4:] if status.phone else '****' }}</div>
+            </div>
+            {% if status.phone_verified %}
+            <span class="verified-badge">✓ Verified</span>
+            {% else %}
+            <span class="option-arrow">→</span>
+            {% endif %}
+        </a>
+        {% endif %}
+        
+        {% if status.has_email %}
+        <a href="{{ url_for('auth.verify_start', channel='email') }}" class="option-btn">
+            <span class="option-icon">📧</span>
+            <div class="option-text">
+                <div class="option-label">Email</div>
+                <div class="option-value">{{ status.email[:2] if status.email else '' }}***@{{ status.email.split('@')[1] if status.email and '@' in status.email else '***' }}</div>
+            </div>
+            {% if status.email_verified %}
+            <span class="verified-badge">✓ Verified</span>
+            {% else %}
+            <span class="option-arrow">→</span>
+            {% endif %}
+        </a>
+        {% endif %}
+    </div>
+    
+    <a href="{{ url_for('auth.verify_skip') }}" class="skip-link">Skip for now →</a>
+</body>
+</html>

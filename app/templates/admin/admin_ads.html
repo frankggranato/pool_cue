@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <title>Manage Ads - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555;
+            --accent: #f5c518; --success: #22c55e; --danger: #ef4444;
+            --border: rgba(255,255,255,0.08);
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 16px 30px; background: var(--bg-primary); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+        .logo-icon { font-size: 1.5rem; }
+        .nav { display: flex; gap: 4px; background: var(--bg-secondary); padding: 4px; border-radius: 10px; }
+        .nav-link { padding: 10px 20px; background: transparent; border: none; border-radius: 8px; color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: all 0.15s; }
+        .nav-link:hover { color: var(--text-primary); background: var(--bg-tertiary); }
+        .nav-link.active { background: var(--accent); color: #111; font-weight: 600; }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .page-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+        .page-subtitle { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 24px; }
+        
+        .placement-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 30px; }
+        @media (max-width: 900px) { .placement-grid { grid-template-columns: 1fr; } }
+        
+        .placement-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+        .placement-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+        .placement-icon { font-size: 1.5rem; }
+        .placement-info { flex: 1; }
+        .placement-title { font-size: 0.95rem; font-weight: 600; }
+        .placement-path { font-size: 0.7rem; color: var(--text-muted); font-family: monospace; margin-top: 2px; }
+        .placement-size { font-size: 0.65rem; color: var(--accent); background: rgba(245,197,24,0.1); padding: 3px 8px; border-radius: 4px; }
+        
+        .upload-mini { background: var(--bg-tertiary); border: 2px dashed var(--border); border-radius: 8px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.15s; }
+        .upload-mini:hover { border-color: var(--accent); }
+        .upload-mini input { display: none; }
+        .upload-mini-text { font-size: 0.75rem; color: var(--text-muted); }
+        
+        .ad-preview { margin-top: 12px; }
+        .ad-thumb { width: 100%; height: 60px; object-fit: cover; border-radius: 6px; background: var(--bg-tertiary); display: block; }
+        .ad-name { font-size: 0.7rem; color: var(--text-secondary); margin-top: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .ad-delete { background: none; border: none; color: var(--danger); font-size: 0.7rem; cursor: pointer; }
+        
+        .section-divider { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 30px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+        .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+        
+        .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 20px; background: var(--success); color: #fff; border-radius: 8px; font-size: 0.85rem; font-weight: 500; display: none; z-index: 1000; }
+        .toast.error { background: var(--danger); }
+        .toast.show { display: block; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/master" class="logo"><span class="logo-icon">🎱</span> Pool Cue</a>
+        <nav class="nav">
+            <a href="/master" class="nav-link">Dashboard</a>
+            <a href="/master/bars" class="nav-link">Bars</a>
+            <a href="/master/players" class="nav-link">Players</a>
+            <a href="/master/advertisers" class="nav-link active">Advertisers</a>
+            <a href="/master/analytics" class="nav-link">Analytics</a>
+        </nav>
+    </div>
+    
+    <div class="container">
+        <h1 class="page-title">📣 Ad Placement Manager</h1>
+        <p class="page-subtitle">Upload ads for each specific location in the app. Each slot can have multiple ads that rotate.</p>
+        
+        <!-- DISPLAY/BOARD ADS -->
+        <div class="section-divider">📺 Display Board (TV Screens)</div>
+        <div class="placement-grid">
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">📺</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Board - Main Banner</div>
+                        <div class="placement-path">/display</div>
+                    </div>
+                    <span class="placement-size">1920×200</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('board_main').click()">
+                    <input type="file" id="board_main" accept="image/*" onchange="uploadAd(this, 'board_main')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_board_main"></div>
+            </div>
+            
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">🔄</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Board - Rotating Sponsor</div>
+                        <div class="placement-path">/display (rotates)</div>
+                    </div>
+                    <span class="placement-size">400×300</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('board_sponsor').click()">
+                    <input type="file" id="board_sponsor" accept="image/*" onchange="uploadAd(this, 'board_sponsor')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_board_sponsor"></div>
+            </div>
+            
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">⏱️</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Board - Idle Screen</div>
+                        <div class="placement-path">/display (no activity)</div>
+                    </div>
+                    <span class="placement-size">1920×1080</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('board_idle').click()">
+                    <input type="file" id="board_idle" accept="image/*" onchange="uploadAd(this, 'board_idle')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_board_idle"></div>
+            </div>
+        </div>
+        
+        <!-- QR CODE & JOIN ADS -->
+        <div class="section-divider">📱 QR Code & Join Queue</div>
+        <div class="placement-grid">
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">📷</span>
+                    <div class="placement-info">
+                        <div class="placement-title">QR Scan - Banner</div>
+                        <div class="placement-path">/q/{bar_id}</div>
+                    </div>
+                    <span class="placement-size">360×100</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('qr_banner').click()">
+                    <input type="file" id="qr_banner" accept="image/*" onchange="uploadAd(this, 'qr_banner')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_qr_banner"></div>
+            </div>
+            
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">📝</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Join Queue - Banner</div>
+                        <div class="placement-path">/join</div>
+                    </div>
+                    <span class="placement-size">360×100</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('join_banner').click()">
+                    <input type="file" id="join_banner" accept="image/*" onchange="uploadAd(this, 'join_banner')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_join_banner"></div>
+            </div>
+            
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">🎯</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Shot Caller - Banner</div>
+                        <div class="placement-path">/join (shot caller tab)</div>
+                    </div>
+                    <span class="placement-size">360×100</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('shotcaller_banner').click()">
+                    <input type="file" id="shotcaller_banner" accept="image/*" onchange="uploadAd(this, 'shotcaller_banner')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_shotcaller_banner"></div>
+            </div>
+        </div>
+        
+        <!-- PLAYER APP ADS -->
+        <div class="section-divider">👤 Player App</div>
+        <div class="placement-grid">
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">🏠</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Home - Featured Bar</div>
+                        <div class="placement-path">/player/home</div>
+                    </div>
+                    <span class="placement-size">360×120</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('player_home').click()">
+                    <input type="file" id="player_home" accept="image/*" onchange="uploadAd(this, 'player_home')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_player_home"></div>
+            </div>
+            
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">👤</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Profile - Banner</div>
+                        <div class="placement-path">/player/profile</div>
+                    </div>
+                    <span class="placement-size">360×80</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('player_profile').click()">
+                    <input type="file" id="player_profile" accept="image/*" onchange="uploadAd(this, 'player_profile')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_player_profile"></div>
+            </div>
+            
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">🛒</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Shop - Featured Product</div>
+                        <div class="placement-path">/player/shop</div>
+                    </div>
+                    <span class="placement-size">360×200</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('player_shop').click()">
+                    <input type="file" id="player_shop" accept="image/*" onchange="uploadAd(this, 'player_shop')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_player_shop"></div>
+            </div>
+            
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">🏆</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Leaderboard - Sponsor</div>
+                        <div class="placement-path">/player/leaderboards</div>
+                    </div>
+                    <span class="placement-size">360×100</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('player_leaderboard').click()">
+                    <input type="file" id="player_leaderboard" accept="image/*" onchange="uploadAd(this, 'player_leaderboard')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_player_leaderboard"></div>
+            </div>
+            
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">🪙</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Tokens - Earn More</div>
+                        <div class="placement-path">/player/tokens, /player/earn</div>
+                    </div>
+                    <span class="placement-size">360×150</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('player_tokens').click()">
+                    <input type="file" id="player_tokens" accept="image/*" onchange="uploadAd(this, 'player_tokens')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_player_tokens"></div>
+            </div>
+            
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">🔔</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Notifications - Promo</div>
+                        <div class="placement-path">/player/notifications</div>
+                    </div>
+                    <span class="placement-size">360×80</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('player_notifications').click()">
+                    <input type="file" id="player_notifications" accept="image/*" onchange="uploadAd(this, 'player_notifications')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_player_notifications"></div>
+            </div>
+        </div>
+        
+        <!-- BAR DETAIL & QUEUE ADS -->
+        <div class="section-divider">🏪 Bar & Queue Views</div>
+        <div class="placement-grid">
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">🏪</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Bar Detail - Featured</div>
+                        <div class="placement-path">/player/bar/{id}</div>
+                    </div>
+                    <span class="placement-size">360×150</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('bar_detail').click()">
+                    <input type="file" id="bar_detail" accept="image/*" onchange="uploadAd(this, 'bar_detail')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_bar_detail"></div>
+            </div>
+            
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">📋</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Queue Status - Banner</div>
+                        <div class="placement-path">/player/queue/{id}</div>
+                    </div>
+                    <span class="placement-size">360×100</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('queue_status').click()">
+                    <input type="file" id="queue_status" accept="image/*" onchange="uploadAd(this, 'queue_status')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_queue_status"></div>
+            </div>
+            
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">⭐</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Rating Complete - Thank You</div>
+                        <div class="placement-path">/player/bar/{id}/rate (after submit)</div>
+                    </div>
+                    <span class="placement-size">360×200</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('rating_complete').click()">
+                    <input type="file" id="rating_complete" accept="image/*" onchange="uploadAd(this, 'rating_complete')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_rating_complete"></div>
+            </div>
+        </div>
+        
+        <!-- SPECIAL MOMENTS -->
+        <div class="section-divider">🎉 Special Moments (High Engagement)</div>
+        <div class="placement-grid">
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">🏆</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Win Celebration</div>
+                        <div class="placement-path">After recording a win</div>
+                    </div>
+                    <span class="placement-size">360×250</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('win_celebration').click()">
+                    <input type="file" id="win_celebration" accept="image/*" onchange="uploadAd(this, 'win_celebration')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_win_celebration"></div>
+            </div>
+            
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">🔥</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Win Streak (3+)</div>
+                        <div class="placement-path">After 3+ consecutive wins</div>
+                    </div>
+                    <span class="placement-size">360×250</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('win_streak').click()">
+                    <input type="file" id="win_streak" accept="image/*" onchange="uploadAd(this, 'win_streak')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_win_streak"></div>
+            </div>
+            
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">📈</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Rank Up</div>
+                        <div class="placement-path">Division promotion</div>
+                    </div>
+                    <span class="placement-size">360×250</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('rank_up').click()">
+                    <input type="file" id="rank_up" accept="image/*" onchange="uploadAd(this, 'rank_up')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_rank_up"></div>
+            </div>
+            
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">🎁</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Token Reward</div>
+                        <div class="placement-path">After earning tokens</div>
+                    </div>
+                    <span class="placement-size">360×200</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('token_reward').click()">
+                    <input type="file" id="token_reward" accept="image/*" onchange="uploadAd(this, 'token_reward')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_token_reward"></div>
+            </div>
+            
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">👋</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Welcome New User</div>
+                        <div class="placement-path">First login / signup</div>
+                    </div>
+                    <span class="placement-size">360×300</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('welcome').click()">
+                    <input type="file" id="welcome" accept="image/*" onchange="uploadAd(this, 'welcome')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_welcome"></div>
+            </div>
+            
+            <div class="placement-card">
+                <div class="placement-header">
+                    <span class="placement-icon">🌙</span>
+                    <div class="placement-info">
+                        <div class="placement-title">Pool Night Event</div>
+                        <div class="placement-path">/player/pool-nights</div>
+                    </div>
+                    <span class="placement-size">360×200</span>
+                </div>
+                <div class="upload-mini" onclick="document.getElementById('pool_night').click()">
+                    <input type="file" id="pool_night" accept="image/*" onchange="uploadAd(this, 'pool_night')">
+                    <div class="upload-mini-text">📤 Drop or click to upload</div>
+                </div>
+                <div class="ad-preview" id="preview_pool_night"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show' + (isError ? ' error' : '');
+            setTimeout(() => toast.className = 'toast', 3000);
+        }
+        
+        async function uploadAd(input, placement) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('placement', placement);
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/admin/ads/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showToast('Ad uploaded successfully');
+                    // Show preview
+                    const preview = document.getElementById('preview_' + placement);
+                    preview.innerHTML = `
+                        <img src="${URL.createObjectURL(file)}" class="ad-thumb">
+                        <div class="ad-name">
+                            <span>${file.name}</span>
+                            <button class="ad-delete" onclick="deleteAd('${placement}', '${result.filename}')">✕ Remove</button>
+                        </div>
+                    `;
+                } else {
+                    showToast(result.error || 'Upload failed', true);
+                }
+            } catch (err) {
+                showToast('Upload failed', true);
+            }
+        }
+        
+        async function deleteAd(placement, filename) {
+            try {
+                const response = await fetch('/admin/ads/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ placement, filename })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showToast('Ad removed');
+                    document.getElementById('preview_' + placement).innerHTML = '';
+                }
+            } catch (err) {
+                showToast('Delete failed', true);
+            }
+        }
+    </script>
+</body>
+</html>

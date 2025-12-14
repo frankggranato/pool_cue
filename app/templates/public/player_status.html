@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pool Cue - My Status</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #222222;
+            --text-primary: #f2f2f2;
+            --text-secondary: #888888;
+            --text-muted: #555555;
+            --accent: #f5c518;
+            --success: #22c55e;
+            --warning: #f97316;
+            --danger: #ef4444;
+            --border: rgba(255,255,255,0.08);
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+            padding: 0;
+            padding-bottom: 100px;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg-primary);
+            z-index: 100;
+        }
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .logo-mark {
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        .back-btn {
+            padding: 10px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-decoration: none;
+        }
+        
+        .container { max-width: 500px; margin: 0 auto; padding: 20px; }
+</style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <div class="logo-mark">🎱</div>
+            <span>Pool Cue</span>
+        </div>
+        {% if has_account %}
+        <a href="#" onclick="goBack(); return false;" class="back-btn">← Back</a>
+        {% endif %}
+    </div>
+    
+    {% if has_account %}
+    <script>
+        function goBack() {
+            if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
+                window.history.back();
+            } else {
+                window.location.href = '/player/home';
+            }
+        }
+    </script>
+    {% endif %}
+    
+    <div class="container">
+        <!-- CONFIRMATION BANNER - ONLY FOR POSITION 3 (NEXT UP) -->
+        <div id="confirmBanner" style="display:none; margin-bottom:20px;">
+            <div style="background:linear-gradient(135deg, rgba(34,197,94,0.25), rgba(34,197,94,0.1)); border:2px solid #22c55e; border-radius:16px; padding:24px; text-align:center; animation:pulse-border 1.5s ease-in-out infinite;">
+                <div style="font-size:1.4rem; font-weight:700; color:#22c55e; margin-bottom:8px;">🎯 YOU'RE NEXT UP!</div>
+                <div style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:16px;">Confirm you're ready to play</div>
+                <div id="confirmCountdown" style="font-size:3.5rem; font-weight:800; color:white; margin:16px 0;">15</div>
+                <button onclick="confirmReady()" style="width:100%; padding:18px; background:linear-gradient(135deg, #22c55e, #16a34a); border:none; border-radius:12px; color:white; font-size:1.2rem; font-weight:700; cursor:pointer; font-family:inherit;">
+                    ✅ I'M READY!
+                </button>
+            </div>
+        </div>
+        
+        <!-- PUSHED DOWN WARNING -->
+        <div id="pushedWarning" style="display:none; margin-bottom:20px;">
+            <div style="background:rgba(249,115,22,0.15); border:2px solid #f97316; border-radius:16px; padding:20px; text-align:center;">
+                <div style="font-size:1.2rem; font-weight:700; color:#f97316; margin-bottom:8px;">⚠️ You were pushed back</div>
+                <div style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:12px;">You didn't confirm in time. Confirm now or you'll be removed in:</div>
+                <div id="removalCountdown" style="font-size:2.5rem; font-weight:800; color:white; margin:12px 0;">2:00</div>
+                <button onclick="confirmReady()" style="width:100%; padding:16px; background:#f97316; border:none; border-radius:10px; color:white; font-size:1.1rem; font-weight:600; cursor:pointer; font-family:inherit;">
+                    ✅ I'M STILL HERE!
+                </button>
+            </div>
+        </div>
+        
+        <!-- CONFIRMED BADGE -->
+        <div id="confirmedBadge" style="display:none; text-align:center; margin-bottom:20px;">
+            <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(34,197,94,0.15); border:1px solid #22c55e; color:#22c55e; padding:12px 24px; border-radius:30px; font-weight:600;">
+                ✅ Confirmed & Ready
+            </div>
+        </div>
+
+        <!-- STATUS CARD -->
+        {% if is_king %}
+        <div style="background:linear-gradient(135deg, rgba(245,197,24,0.2), rgba(245,197,24,0.05)); border:2px solid rgba(245,197,24,0.4); border-radius:16px; padding:24px; margin-bottom:20px;">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+                <div style="font-size:2.5rem;">👑</div>
+                <div>
+                    <div style="font-size:0.75rem; color:var(--accent); text-transform:uppercase; letter-spacing:1px; font-weight:600;">Shot Caller</div>
+                    <div style="font-size:1.8rem; font-weight:800;">{{ entry.nickname }}</div>
+                </div>
+            </div>
+            {% if entry.partner_name %}
+            <div style="font-size:1.1rem; color:var(--text-secondary); margin-bottom:12px;">& {{ entry.partner_name }}</div>
+            {% endif %}
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:1.5rem; font-weight:700; color:var(--accent);">{{ entry.wins_on_table or 0 }}</span>
+                <span style="color:var(--text-secondary);">wins on table</span>
+            </div>
+        </div>
+        
+        <!-- RANKED MATCH CONTROLS FOR SHOT CALLER -->
+        {% if event_ranked %}
+        <div style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);border-radius:12px;padding:14px;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:10px;">
+            <span style="font-size:1.3rem;">🏆</span>
+            <span style="color:#a855f7;font-weight:600;">Ranked Event Active - All matches ranked</span>
+        </div>
+        {% elif challenger %}
+        <div id="rankedKingSection" style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px;">
+            <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">🏆 Ranked Match</div>
+            {% if entry.ranked_request and entry.ranked_accepted == 1 %}
+            <!-- Accepted -->
+            <div style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;">
+                <span style="font-size:1.2rem;">🏆</span>
+                <div style="flex:1;">
+                    <div style="color:#22c55e;font-weight:600;">Ranked Match Confirmed</div>
+                    <div style="font-size:0.8rem;color:var(--text-muted);">{{ challenger.nickname }} accepted</div>
+                </div>
+            </div>
+            {% elif entry.ranked_request and entry.ranked_accepted is none %}
+            <!-- Pending -->
+            <div style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.3);border-radius:8px;">
+                <span style="font-size:1.2rem;">⏳</span>
+                <div style="flex:1;">
+                    <div style="color:var(--warning);font-weight:600;">Waiting for Response</div>
+                    <div style="font-size:0.8rem;color:var(--text-muted);">{{ challenger.nickname }} must accept for ranked</div>
+                </div>
+                <button onclick="cancelRankedRequest()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);font-size:0.75rem;cursor:pointer;font-family:inherit;">Cancel</button>
+            </div>
+            {% elif entry.ranked_request and entry.ranked_accepted == 0 %}
+            <!-- Declined -->
+            <div style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;">
+                <span style="font-size:1.2rem;">🎱</span>
+                <div style="flex:1;">
+                    <div style="font-weight:500;">Playing Unranked</div>
+                    <div style="font-size:0.8rem;color:var(--text-muted);">{{ challenger.nickname }} declined ranked</div>
+                </div>
+                <button onclick="requestRanked()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);font-size:0.75rem;cursor:pointer;font-family:inherit;">Try Again</button>
+            </div>
+            {% else %}
+            <!-- Not requested yet -->
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <div style="font-weight:500;margin-bottom:4px;">Request Ranked Match</div>
+                    <div style="font-size:0.8rem;color:var(--text-muted);">Affects ELO for both players</div>
+                </div>
+                <button id="requestRankedBtn" onclick="requestRanked()" style="padding:10px 16px;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.4);border-radius:8px;color:#a855f7;font-weight:600;font-size:0.9rem;cursor:pointer;font-family:inherit;">Request</button>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        {% elif is_challenger %}
+        <div style="background:linear-gradient(135deg, rgba(239,68,68,0.2), rgba(239,68,68,0.05)); border:2px solid rgba(239,68,68,0.4); border-radius:16px; padding:24px; margin-bottom:20px;">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                <div style="font-size:2.5rem;">⚔️</div>
+                <div>
+                    <div style="font-size:0.75rem; color:#ef4444; text-transform:uppercase; letter-spacing:1px; font-weight:600;">Challenger</div>
+                    <div style="font-size:1.8rem; font-weight:800;">{{ entry.nickname }}</div>
+                </div>
+            </div>
+            {% if entry.partner_name %}
+            <div style="font-size:1.1rem; color:var(--text-secondary); margin-bottom:12px;">& {{ entry.partner_name }}</div>
+            {% endif %}
+            <div style="color:var(--text-secondary);">Playing against <strong style="color:white;">{{ king.nickname }}</strong></div>
+        </div>
+        
+        <!-- RANKED MATCH REQUEST FOR CHALLENGER -->
+        {% if ranked_request and not ranked_accepted %}
+        <div id="rankedRequestBanner" style="background:linear-gradient(135deg,rgba(168,85,247,0.3),rgba(168,85,247,0.1));border:2px solid #a855f7;border-radius:16px;padding:20px;margin-bottom:20px;text-align:center;">
+            <div style="font-size:2rem;margin-bottom:10px;">🏆</div>
+            <div style="color:#a855f7;font-size:1.1rem;font-weight:700;margin-bottom:8px;">Ranked Match Request</div>
+            <div style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:8px;">{{ king.nickname }} wants this to be a <strong style="color:white;">ranked match</strong></div>
+            <div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:16px;">This will affect your ELO rating. Decline to play unranked instead.</div>
+            <div style="display:flex;gap:12px;">
+                <button onclick="respondRanked(true)" style="flex:1;padding:14px;background:rgba(34,197,94,0.3);border:1px solid rgba(34,197,94,0.5);border-radius:10px;color:#22c55e;font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit;">✓ Accept</button>
+                <button onclick="respondRanked(false)" style="flex:1;padding:14px;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);border-radius:10px;color:#ef4444;font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit;">✗ Decline</button>
+            </div>
+        </div>
+        {% elif ranked_accepted %}
+        <div style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:12px;padding:14px;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:10px;">
+            <span style="font-size:1.3rem;">🏆</span>
+            <span style="color:#22c55e;font-weight:600;">Ranked Match - ELO affects both players</span>
+        </div>
+        {% elif event_ranked %}
+        <div style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);border-radius:12px;padding:14px;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:10px;">
+            <span style="font-size:1.3rem;">🏆</span>
+            <span style="color:#a855f7;font-weight:600;">Ranked Event Active</span>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <!-- POSITION 3 = NEXT UP (special styling) -->
+        {% if position == 3 %}
+        <div style="background:linear-gradient(135deg, rgba(34,197,94,0.2), rgba(34,197,94,0.05)); border:2px solid rgba(34,197,94,0.4); border-radius:16px; padding:24px; margin-bottom:20px;">
+            <div style="display:flex; align-items:center; gap:16px;">
+                <div style="width:64px; height:64px; background:#22c55e; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:2rem;">🎯</div>
+                <div>
+                    <div style="font-size:0.75rem; color:#22c55e; text-transform:uppercase; letter-spacing:1px; font-weight:600;">Next Up</div>
+                    <div style="font-size:1.5rem; font-weight:700;">{{ entry.nickname }}</div>
+                    {% if entry.partner_name %}
+                    <div style="font-size:0.9rem; color:var(--text-secondary);">& {{ entry.partner_name }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- CONFIRM READY BUTTON -->
+            <div id="confirmSection" style="margin-top:16px; padding-top:16px; border-top:1px solid rgba(34,197,94,0.3);">
+                {% if entry.confirmed %}
+                <div style="display:flex; align-items:center; justify-content:center; gap:8px; color:#22c55e; font-weight:600;">
+                    <span style="font-size:1.2rem;">✓</span>
+                    <span>You're confirmed and ready!</span>
+                </div>
+                {% else %}
+                <button id="confirmReadyBtn" onclick="confirmReady()" style="width:100%; padding:16px; background:linear-gradient(135deg, #22c55e, #16a34a); border:none; border-radius:12px; color:white; font-size:1.1rem; font-weight:700; cursor:pointer; font-family:inherit;">
+                    ✓ I'm Here & Ready
+                </button>
+                <p style="text-align:center; color:var(--text-muted); font-size:0.8rem; margin-top:8px;">Tap to confirm you're ready to play next</p>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <!-- POSITION 4+ = WAITING -->
+        <div style="background:var(--bg-secondary); border:1px solid var(--border); border-radius:16px; padding:24px; margin-bottom:20px;">
+            <div style="display:flex; align-items:center; gap:16px;">
+                <div style="width:60px; height:60px; background:var(--bg-tertiary); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.8rem; font-weight:800;">#{{ position }}</div>
+                <div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">In Line</div>
+                    <div style="font-size:1.5rem; font-weight:700;">{{ entry.nickname }}</div>
+                    {% if entry.partner_name %}
+                    <div style="font-size:0.9rem; color:var(--text-secondary);">& {{ entry.partner_name }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border); color:var(--text-secondary); font-size:0.9rem;">
+                {{ position - 2 }} {{ 'game' if position - 2 == 1 else 'games' }} until you play • ~{{ (position - 2) * 8 }} min wait
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+        
+        <!-- CURRENT RULES -->
+        <div style="background:var(--bg-secondary); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:20px;">
+            <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Current Rules</div>
+            <div style="font-size:1.1rem; font-weight:600;">
+                {{ rules.game_type|capitalize }} • {{ rules.rule_type|replace('_', ' ')|title }}
+            </div>
+        </div>
+        
+        <!-- GAME RESULT BUTTONS - DISABLED FOR NON-RANKED (removed for beta) -->
+        {% if false %}
+        <div style="display:flex; gap:12px; margin-bottom:20px;">
+            <button onclick="reportResult('king-wins')" style="flex:1; padding:18px; background:rgba(34,197,94,0.2); border:1px solid rgba(34,197,94,0.4); border-radius:12px; color:#22c55e; font-size:1rem; font-weight:600; cursor:pointer; font-family:inherit;">
+                {% if is_king %}I Won! 👑{% else %}{{ king.nickname }} Won{% endif %}
+            </button>
+            <button onclick="reportResult('challenger-wins')" style="flex:1; padding:18px; background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.4); border-radius:12px; color:#ef4444; font-size:1rem; font-weight:600; cursor:pointer; font-family:inherit;">
+                {% if is_challenger %}I Won! 🎉{% else %}{{ challenger.nickname }} Won{% endif %}
+            </button>
+        </div>
+        {% endif %}
+        
+        <!-- KING RULES SELECTOR -->
+        {% if is_king %}
+        <div style="background:var(--bg-secondary); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:20px;">
+            <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">Set Rules (Shot Caller)</div>
+            <div style="display:flex; gap:8px; margin-bottom:8px;">
+                <select id="gameType" onchange="saveRules()" style="flex:1; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:8px; color:white; font-size:0.9rem; font-family:inherit;">
+                    <option value="singles" {% if rules.game_type == 'singles' %}selected{% endif %}>Singles</option>
+                    <option value="doubles" {% if rules.game_type == 'doubles' %}selected{% endif %}>Doubles</option>
+                    <option value="cutthroat" {% if rules.game_type == 'cutthroat' %}selected{% endif %}>Cutthroat</option>
+                </select>
+                <select id="ruleType" onchange="saveRules()" style="flex:1; padding:12px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:8px; color:white; font-size:0.9rem; font-family:inherit;">
+                    <option value="bar_rules" {% if rules.rule_type == 'bar_rules' %}selected{% endif %}>Bar Rules</option>
+                    <option value="apa" {% if rules.rule_type == 'apa' %}selected{% endif %}>APA</option>
+                    <option value="bca" {% if rules.rule_type == 'bca' %}selected{% endif %}>BCA</option>
+                </select>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- QUEUE PREVIEW -->
+        <div style="background:var(--bg-secondary); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:20px;">
+            <div style="padding:12px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Queue (<span id="queueCount">{{ queue|length }}</span>)</span>
+                {% if is_king %}
+                <span style="font-size:0.65rem; color:var(--text-muted);">Tap player to manage</span>
+                {% endif %}
+            </div>
+            <div id="queueList">
+            {% for q in queue[:8] %}
+            <div class="queue-item" data-player-id="{{ q.player_id }}" data-nickname="{{ q.nickname }}" 
+                 style="display:flex; align-items:center; padding:12px 16px; {% if not loop.last %}border-bottom:1px solid var(--border);{% endif %} {% if q.id == entry.id %}background:rgba(34,197,94,0.1);{% endif %} cursor:pointer;"
+                 onclick="{% if q.id != entry.id %}showPlayerMenu({{ q.player_id }}, '{{ q.nickname }}', {{ loop.index }}){% endif %}">
+                <div style="width:28px; height:28px; background:{% if loop.index == 1 %}var(--accent){% elif loop.index == 2 %}#ef4444{% elif loop.index == 3 %}#22c55e{% else %}var(--bg-tertiary){% endif %}; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; margin-right:12px; {% if loop.index <= 3 %}color:#111;{% endif %}">
+                    {% if loop.index == 1 %}👑{% elif loop.index == 2 %}⚔️{% elif loop.index == 3 %}🎯{% else %}{{ loop.index }}{% endif %}
+                </div>
+                <div style="flex:1;">
+                    <span style="font-weight:{% if q.id == entry.id %}600{% else %}400{% endif %}; {% if q.id == entry.id %}color:#22c55e;{% endif %}">
+                        {{ q.nickname }}{% if q.partner_name %} & {{ q.partner_name }}{% endif %}
+                        {% if q.id == entry.id %} (You){% endif %}
+                    </span>
+                    {% if loop.index == 3 %}
+                    <span style="margin-left:6px; font-size:0.65rem; padding:2px 6px; background:rgba(34,197,94,0.2); color:#22c55e; border-radius:4px;">Next Up</span>
+                    {% endif %}
+                    <!-- Confirmation status indicator -->
+                    <span id="confirmStatus{{ q.player_id }}" style="display:none; margin-left:8px; font-size:0.7rem; padding:2px 6px; border-radius:4px;"></span>
+                </div>
+                {% if q.wins_on_table and q.wins_on_table > 0 %}
+                <div style="font-size:0.8rem; color:var(--accent); font-weight:600; margin-right:8px;">{{ q.wins_on_table }}W</div>
+                {% endif %}
+                {% if q.id != entry.id %}
+                <div style="font-size:0.7rem; color:var(--text-muted);">⋮</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            </div><!-- end queueList -->
+            {% if queue|length > 8 %}
+            <div id="queueMore" style="padding:10px 16px; text-align:center; color:var(--text-muted); font-size:0.8rem;">
+                +{{ queue|length - 8 }} more in queue
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- PLAYER ACTION MENU (Modal) -->
+        <div id="playerMenu" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:1000; align-items:flex-end; justify-content:center;" onclick="closePlayerMenu(event)">
+            <div style="background:var(--bg-secondary); border-radius:16px 16px 0 0; width:100%; max-width:500px; padding:20px; padding-bottom:40px;" onclick="event.stopPropagation()">
+                <div style="width:40px; height:4px; background:var(--text-muted); border-radius:2px; margin:0 auto 16px;"></div>
+                <div id="menuPlayerName" style="font-size:1.2rem; font-weight:700; text-align:center; margin-bottom:16px;"></div>
+                
+                <!-- Shot Caller: Confirm for them -->
+                {% if is_king %}
+                <button id="confirmForThemBtn" onclick="confirmForPlayer()" style="display:none; width:100%; padding:16px; margin-bottom:10px; background:rgba(34,197,94,0.2); border:1px solid #22c55e; border-radius:12px; color:#22c55e; font-size:1rem; font-weight:600; cursor:pointer; font-family:inherit;">
+                    ✅ Confirm for Them
+                </button>
+                {% endif %}
+                
+                <!-- Challenge -->
+                <button onclick="challengePlayer()" style="width:100%; padding:16px; margin-bottom:10px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:12px; color:var(--text-primary); font-size:1rem; font-weight:500; cursor:pointer; font-family:inherit;">
+                    ⚔️ Challenge to Match
+                </button>
+                
+                <!-- Add Friend -->
+                <button onclick="addFriend()" style="width:100%; padding:16px; margin-bottom:10px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:12px; color:var(--text-primary); font-size:1rem; font-weight:500; cursor:pointer; font-family:inherit;">
+                    👥 Add as Friend
+                </button>
+                
+                <!-- Report -->
+                <button onclick="reportPlayer()" style="width:100%; padding:16px; margin-bottom:10px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:12px; color:#ef4444; font-size:1rem; font-weight:500; cursor:pointer; font-family:inherit;">
+                    🚩 Report Player
+                </button>
+                
+                <button onclick="closePlayerMenu()" style="width:100%; padding:16px; background:transparent; border:1px solid var(--border); border-radius:12px; color:var(--text-muted); font-size:0.95rem; cursor:pointer; font-family:inherit;">
+                    Cancel
+                </button>
+            </div>
+        </div>
+        
+        <!-- LEAVE BUTTON -->
+        <button onclick="leaveQueue()" style="width:100%; padding:16px; background:transparent; border:1px solid var(--border); border-radius:12px; color:var(--text-secondary); font-size:0.95rem; font-weight:500; cursor:pointer; font-family:inherit;">
+            Leave Queue
+        </button>
+        
+        {% if not has_account %}
+        <!-- CREATE ACCOUNT BUTTON FOR GUESTS -->
+        <a href="/player/signup" style="display:block; width:100%; padding:16px; margin-top:12px; background:linear-gradient(135deg, rgba(139,92,246,0.2), rgba(139,92,246,0.1)); border:1px solid rgba(139,92,246,0.4); border-radius:12px; color:#a855f7; font-size:0.95rem; font-weight:600; text-align:center; text-decoration:none; font-family:inherit;">
+            ✨ Create Account
+        </a>
+        {% endif %}
+        
+        <p style="text-align:center; color:var(--text-muted); font-size:0.75rem; margin-top:16px;">
+            Status updates automatically
+        </p>
+    </div>
+    
+    <style>
+        @keyframes pulse-border {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+            50% { box-shadow: 0 0 0 12px rgba(239,68,68,0); }
+        }
+        .urgent { color: #ef4444 !important; animation: blink 0.5s ease-in-out infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    </style>
+    
+    <script>
+        // Confirmation system - check status every 2 seconds
+        // ONLY position 3 (next up) needs to confirm
+        async function checkMyStatus() {
+            try {
+                const res = await fetch('/api/player-app-data');
+                const data = await res.json();
+                
+                if (!data.in_queue) {
+                    location.href = '/join';
+                    return;
+                }
+                
+                // Check if position changed significantly (role change) - reload for major UI changes
+                const currentPosition = {{ position }};
+                const currentRole = '{{ "shot_caller" if is_king else "challenger" if is_challenger else "next_up" if position == 3 else "waiting" }}';
+                
+                if (data.role !== currentRole) {
+                    // Role changed - need full page reload for new UI
+                    location.reload();
+                    return;
+                }
+                
+                // Soft update the queue display
+                softUpdateQueue(data);
+                
+                // Update confirmation UI elements
+                updateConfirmationUI(data);
+                
+            } catch (e) {
+                console.error('Status check failed:', e);
+            }
+        }
+        
+        function softUpdateQueue(data) {
+            // Update queue count
+            const queueCount = document.getElementById('queueCount');
+            if (queueCount) {
+                queueCount.textContent = data.total_in_queue;
+            }
+            
+            // Update queue list - rebuild it fresh
+            const queueContainer = document.getElementById('queueList');
+            if (queueContainer && data.queue_list) {
+                // Include king and challenger in the full list for display
+                let fullQueue = [];
+                if (data.king) {
+                    fullQueue.push({
+                        position: 1,
+                        nickname: data.king.nickname,
+                        partner_name: data.king.partner_name,
+                        wins_on_table: data.king.wins_on_table,
+                        is_me: data.role === 'shot_caller'
+                    });
+                }
+                if (data.challenger) {
+                    fullQueue.push({
+                        position: 2,
+                        nickname: data.challenger.nickname,
+                        partner_name: data.challenger.partner_name,
+                        is_me: data.role === 'challenger'
+                    });
+                }
+                // Add rest of queue
+                fullQueue = fullQueue.concat(data.queue_list);
+                
+                // Only show first 8
+                const displayQueue = fullQueue.slice(0, 8);
+                
+                let html = '';
+                displayQueue.forEach((player, index) => {
+                    const pos = player.position;
+                    const isMe = player.is_me;
+                    const isLast = index === displayQueue.length - 1;
+                    
+                    // Position icon
+                    let posIcon = pos;
+                    let posBg = 'var(--bg-tertiary)';
+                    let posColor = '';
+                    if (pos === 1) { posIcon = '👑'; posBg = 'var(--accent)'; posColor = 'color:#111;'; }
+                    else if (pos === 2) { posIcon = '⚔️'; posBg = '#ef4444'; posColor = 'color:#111;'; }
+                    else if (pos === 3) { posIcon = '🎯'; posBg = '#22c55e'; posColor = 'color:#111;'; }
+                    
+                    // Next up badge and confirm status
+                    let extras = '';
+                    if (pos === 3) {
+                        extras += '<span style="margin-left:6px; font-size:0.65rem; padding:2px 6px; background:rgba(34,197,94,0.2); color:#22c55e; border-radius:4px;">Next Up</span>';
+                        if (player.confirmed) {
+                            extras += '<span style="margin-left:6px; color:#22c55e; font-size:0.75rem;">✓</span>';
+                        } else {
+                            extras += '<span style="margin-left:6px; color:#eab308; font-size:0.75rem;">⏳</span>';
+                        }
+                    }
+                    
+                    html += `
+                        <div class="queue-item" style="display:flex; align-items:center; padding:12px 16px; ${!isLast ? 'border-bottom:1px solid var(--border);' : ''} ${isMe ? 'background:rgba(34,197,94,0.1);' : ''}">
+                            <div style="width:28px; height:28px; background:${posBg}; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; margin-right:12px; ${posColor}">${posIcon}</div>
+                            <div style="flex:1;">
+                                <span style="font-weight:${isMe ? '600' : '400'}; ${isMe ? 'color:#22c55e;' : ''}">
+                                    ${player.nickname}${player.partner_name ? ' & ' + player.partner_name : ''}${isMe ? ' (You)' : ''}
+                                </span>
+                                ${extras}
+                            </div>
+                            ${player.wins_on_table ? `<div style="font-size:0.8rem; color:var(--accent); font-weight:600; margin-right:8px;">${player.wins_on_table}W</div>` : ''}
+                        </div>
+                    `;
+                });
+                queueContainer.innerHTML = html;
+            }
+            
+            // Update "more in queue" display
+            const queueMore = document.getElementById('queueMore');
+            if (data.total_in_queue > 8) {
+                if (queueMore) {
+                    queueMore.style.display = 'block';
+                    queueMore.textContent = '+' + (data.total_in_queue - 8) + ' more in queue';
+                }
+            } else if (queueMore) {
+                queueMore.style.display = 'none';
+            }
+        }
+        
+        function updateConfirmationUI(data) {
+            const confirmBanner = document.getElementById('confirmBanner');
+            const pushedWarning = document.getElementById('pushedWarning');
+            const confirmedBadge = document.getElementById('confirmedBadge');
+            const confirmSection = document.getElementById('confirmSection');
+            
+            // If confirmed, update UI
+            if (data.confirmed) {
+                if (confirmBanner) confirmBanner.style.display = 'none';
+                if (pushedWarning) pushedWarning.style.display = 'none';
+                if (confirmedBadge) confirmedBadge.style.display = 'block';
+                if (confirmSection) {
+                    confirmSection.innerHTML = `
+                        <div style="display:flex; align-items:center; justify-content:center; gap:8px; color:#22c55e; font-weight:600;">
+                            <span style="font-size:1.2rem;">✓</span>
+                            <span>You're confirmed and ready!</span>
+                        </div>
+                    `;
+                }
+            }
+        }
+        
+        async function confirmReady() {
+            try {
+                const res = await fetch('/api/confirm-ready', { method: 'POST' });
+                const data = await res.json();
+                
+                if (data.success) {
+                    // Hide any confirm banners
+                    const confirmBanner = document.getElementById('confirmBanner');
+                    if (confirmBanner) confirmBanner.style.display = 'none';
+                    
+                    const pushedWarning = document.getElementById('pushedWarning');
+                    if (pushedWarning) pushedWarning.style.display = 'none';
+                    
+                    const confirmedBadge = document.getElementById('confirmedBadge');
+                    if (confirmedBadge) confirmedBadge.style.display = 'block';
+                    
+                    // Update position 3 confirm section
+                    const confirmSection = document.getElementById('confirmSection');
+                    if (confirmSection) {
+                        confirmSection.innerHTML = `
+                            <div style="display:flex; align-items:center; justify-content:center; gap:8px; color:#22c55e; font-weight:600;">
+                                <span style="font-size:1.2rem;">✓</span>
+                                <span>You're confirmed and ready!</span>
+                            </div>
+                        `;
+                    }
+                    
+                    showToast('✅ Confirmed! The board will show you\'re ready.', 'success');
+                }
+            } catch (e) {
+                console.error('Confirm failed:', e);
+            }
+        }
+        
+        function vibrate() {
+            if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+        }
+        
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position:fixed; top:80px; left:50%; transform:translateX(-50%); z-index:9999;
+                padding:14px 24px; border-radius:10px; font-weight:600;
+                background:${type === 'success' ? 'rgba(34,197,94,0.95)' : 'rgba(239,68,68,0.95)'};
+                color:white; box-shadow:0 8px 32px rgba(0,0,0,0.3);
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        function saveRules() {
+            fetch('/api/set-rules', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    game_type: document.getElementById('gameType')?.value || 'singles',
+                    rule_type: document.getElementById('ruleType')?.value || 'bar_rules'
+                })
+            });
+        }
+        
+        function reportResult(endpoint) {
+            fetch('/api/' + endpoint, { method: 'POST' })
+                .then(r => r.json())
+                .then(data => { if (data.success) location.reload(); });
+        }
+        
+        function leaveQueue() {
+            if (confirm('Leave the queue?')) {
+                fetch('/api/leave', { method: 'POST' }).then(() => location.href = '/join');
+            }
+        }
+        
+        // Player menu functions
+        let selectedPlayerId = null;
+        let selectedPlayerName = '';
+        let selectedPlayerPosition = 0;
+        
+        function showPlayerMenu(playerId, nickname, position) {
+            selectedPlayerId = playerId;
+            selectedPlayerName = nickname;
+            selectedPlayerPosition = position;
+            
+            document.getElementById('menuPlayerName').textContent = nickname;
+            document.getElementById('playerMenu').style.display = 'flex';
+            
+            // Show "confirm for them" button if this player needs confirmation
+            const confirmBtn = document.getElementById('confirmForThemBtn');
+            if (confirmBtn) {
+                // Check queue status to see if player needs confirmation
+                fetch('/api/queue/confirmation-status')
+                    .then(r => r.json())
+                    .then(data => {
+                        const player = data.queue.find(p => p.player_id === playerId);
+                        if (player && player.needs_confirmation && !player.confirmed) {
+                            confirmBtn.style.display = 'block';
+                            confirmBtn.textContent = '✅ Confirm ' + nickname + ' is Ready';
+                        } else {
+                            confirmBtn.style.display = 'none';
+                        }
+                    });
+            }
+        }
+        
+        function closePlayerMenu(event) {
+            if (!event || event.target.id === 'playerMenu') {
+                document.getElementById('playerMenu').style.display = 'none';
+            }
+        }
+        
+        async function confirmForPlayer() {
+            if (!selectedPlayerId) return;
+            
+            try {
+                const res = await fetch('/api/confirm-player/' + selectedPlayerId, { method: 'POST' });
+                const data = await res.json();
+                
+                if (data.success) {
+                    showToast('✅ ' + selectedPlayerName + ' confirmed!', 'success');
+                    closePlayerMenu();
+                } else {
+                    showToast(data.error || 'Could not confirm', 'error');
+                }
+            } catch (e) {
+                showToast('Connection error', 'error');
+            }
+        }
+        
+        function challengePlayer() {
+            if (selectedPlayerId) {
+                window.location.href = '/player/challenges?challenge=' + selectedPlayerId;
+            }
+        }
+        
+        async function addFriend() {
+            if (!selectedPlayerId) return;
+            
+            try {
+                const res = await fetch('/api/social/friends/request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ friend_id: selectedPlayerId })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    showToast('👥 Friend request sent!', 'success');
+                    closePlayerMenu();
+                } else {
+                    showToast(data.error || 'Could not send request', 'error');
+                }
+            } catch (e) {
+                showToast('Connection error', 'error');
+            }
+        }
+        
+        function reportPlayer() {
+            if (selectedPlayerId) {
+                window.location.href = '/report/' + selectedPlayerId;
+            }
+        }
+        
+        // Update queue confirmation statuses - ONLY position 3 needs confirmation
+        async function updateQueueStatuses() {
+            try {
+                const res = await fetch('/api/queue/confirmation-status');
+                const data = await res.json();
+                
+                data.queue.forEach((player, index) => {
+                    const statusEl = document.getElementById('confirmStatus' + player.player_id);
+                    if (statusEl) {
+                        // Only show confirmation status for position 3 (next up)
+                        const isNextUp = index === 2; // 0-indexed, so position 3 is index 2
+                        
+                        if (isNextUp && player.needs_confirmation && !player.confirmed) {
+                            statusEl.style.display = 'inline';
+                            statusEl.style.background = 'rgba(34,197,94,0.2)';
+                            statusEl.style.color = '#22c55e';
+                            statusEl.textContent = '⏳ Confirming...';
+                        } else if (isNextUp && player.confirmed) {
+                            statusEl.style.display = 'inline';
+                            statusEl.style.background = 'rgba(34,197,94,0.2)';
+                            statusEl.style.color = '#22c55e';
+                            statusEl.textContent = '✓ Ready';
+                        } else {
+                            statusEl.style.display = 'none';
+                        }
+                    }
+                });
+            } catch (e) {}
+        }
+        
+        // Start soft refresh - update queue every 3 seconds
+        setInterval(checkMyStatus, 3000);
+        setInterval(checkRankedStatus, 5000);
+        checkMyStatus();
+        checkRankedStatus();
+        
+        // Poll ranked status and update UI dynamically
+        async function checkRankedStatus() {
+            try {
+                const res = await fetch('/api/ranked-status');
+                const data = await res.json();
+                
+                let banner = document.getElementById('rankedRequestBanner');
+                const isChallenger = {{ 'true' if is_challenger else 'false' }};
+                const isKing = {{ 'true' if is_king else 'false' }};
+                
+                // For challenger: show/hide ranked request banner
+                if (isChallenger && data.pending_request) {
+                    if (!banner) {
+                        banner = document.createElement('div');
+                        banner.id = 'rankedRequestBanner';
+                        banner.style.cssText = 'background:linear-gradient(135deg,rgba(168,85,247,0.3),rgba(168,85,247,0.1));border:2px solid #a855f7;border-radius:16px;padding:20px;margin-bottom:20px;text-align:center;';
+                        banner.innerHTML = `
+                            <div style="font-size:2rem;margin-bottom:10px;">🏆</div>
+                            <div style="color:#a855f7;font-size:1.1rem;font-weight:700;margin-bottom:8px;">Ranked Match Request</div>
+                            <div style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:8px;">${data.pending_request.from} wants this to be a <strong style="color:white;">ranked match</strong></div>
+                            <div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:16px;">This will affect your ELO rating. Decline to play unranked instead.</div>
+                            <div style="display:flex;gap:12px;">
+                                <button onclick="respondRanked(true)" style="flex:1;padding:14px;background:rgba(34,197,94,0.3);border:1px solid rgba(34,197,94,0.5);border-radius:10px;color:#22c55e;font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit;">✓ Accept</button>
+                                <button onclick="respondRanked(false)" style="flex:1;padding:14px;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);border-radius:10px;color:#ef4444;font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit;">✗ Decline</button>
+                            </div>
+                        `;
+                        const content = document.querySelector('.content');
+                        content.insertBefore(banner, content.children[1]);
+                    }
+                    banner.style.display = 'block';
+                } else if (banner && !data.pending_request) {
+                    banner.style.display = 'none';
+                }
+                
+                // For shot caller: update request status when challenger responds
+                if (isKing) {
+                    const rankedSection = document.getElementById('rankedKingSection');
+                    if (rankedSection) {
+                        if (data.my_request_accepted === true) {
+                            if (!rankedSection.dataset.wasAccepted) {
+                                rankedSection.dataset.wasAccepted = 'true';
+                                location.reload();
+                            }
+                        } else if (data.my_request_accepted === false && data.my_request_pending === false) {
+                            if (!rankedSection.dataset.wasDeclined) {
+                                rankedSection.dataset.wasDeclined = 'true';
+                                location.reload();
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Ranked status check failed:', e);
+            }
+        }
+        
+        // Respond to ranked match request
+        function respondRanked(accept) {
+            fetch('/api/respond-ranked', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accept: accept })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const msg = accept ? '✅ Ranked match accepted!' : 'Playing unranked';
+                    showToast(msg, accept ? 'success' : 'info');
+                    // Hide the request banner
+                    const banner = document.getElementById('rankedRequestBanner');
+                    if (banner) banner.style.display = 'none';
+                    // Reload to show updated status
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(data.error || 'Could not respond', 'error');
+                }
+            })
+            .catch(() => showToast('Connection error', 'error'));
+        }
+        
+        // Request ranked match (shot caller)
+        function requestRanked() {
+            const btn = document.getElementById('requestRankedBtn');
+            if (btn) btn.disabled = true;
+            
+            fetch('/api/request-ranked', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.auto_ranked) {
+                        showToast(data.message, 'success');
+                    } else {
+                        showToast('Ranked request sent!', 'success');
+                    }
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(data.message || 'Could not request ranked', 'error');
+                    if (btn) btn.disabled = false;
+                }
+            })
+            .catch(() => {
+                showToast('Connection error', 'error');
+                if (btn) btn.disabled = false;
+            });
+        }
+        
+        // Cancel ranked request (shot caller)
+        function cancelRankedRequest() {
+            fetch('/api/request-ranked', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Request cancelled', 'info');
+                    setTimeout(() => location.reload(), 500);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

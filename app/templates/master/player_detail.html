@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ player.nickname }} - Pool Cue</title>
+    <link rel="stylesheet" href="/static/css/master-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.05);--t1:#e4e4e7;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;--orange:#f97316;--cyan:#06b6d4}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:11px}
+        .p{padding:12px 16px;max-width:1200px;margin:0 auto}
+        .back{display:inline-flex;align-items:center;gap:4px;color:var(--t3);text-decoration:none;font-size:0.65rem;margin-bottom:10px}
+        .back:hover{color:var(--gold)}
+        .profile{display:flex;gap:16px;align-items:flex-start;margin-bottom:12px}
+        .avatar{width:60px;height:60px;background:var(--card);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.8rem}
+        .profile-info h1{font-size:1rem;font-weight:600;margin-bottom:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+        .profile-sub{font-size:0.7rem;color:var(--t3)}
+        .badge{padding:3px 8px;border-radius:3px;font-size:0.55rem;font-weight:600}
+        .badge-gold{background:rgba(234,179,8,0.15);color:var(--gold)}
+        .badge-green{background:rgba(34,197,94,0.15);color:var(--green)}
+        .badge-blue{background:rgba(59,130,246,0.15);color:var(--blue)}
+        .badge-purple{background:rgba(168,85,247,0.15);color:var(--purple)}
+        .badge-orange{background:rgba(249,115,22,0.15);color:var(--orange)}
+        .badge-gray{background:rgba(255,255,255,0.08);color:var(--t3)}
+        .badge-red{background:rgba(239,68,68,0.15);color:var(--red)}
+        .badge-cyan{background:rgba(6,182,212,0.15);color:var(--cyan)}
+</style>
+</head>
+<body>
+    {% include 'master/_nav.html' %}
+    <div class="p">
+        <a href="/master/players" class="back">← Back to Players</a>
+        
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div style="margin-bottom:12px;">
+            {% for category, message in messages %}
+            <div style="padding:8px 12px;border-radius:4px;font-size:0.7rem;margin-bottom:4px;
+                {% if category == 'error' %}background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:var(--red);
+                {% else %}background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:var(--green);{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        
+        <div class="profile">
+            <div class="avatar">🎱</div>
+            <div class="profile-info">
+                <h1>{{ player.display_name or player.nickname }}
+                    {% if player.is_active == 0 %}
+                    <span class="badge badge-red">⛔ Deactivated</span>
+                    {% endif %}
+                    {% if tier and tier.tier != 'Unranked' %}
+                    <span class="badge badge-gold">{{ tier.emoji }} {{ tier.tier }}</span>
+                    {% endif %}
+                    {% if player.phone_verified %}<span class="badge badge-green">📱 Verified</span>{% endif %}
+                    {% if player.email_verified %}<span class="badge badge-green">📧 Verified</span>{% endif %}
+                </h1>
+                <div class="profile-sub">
+                    ID: {{ player.id }} · Member since {{ player.created_at[:10] if player.created_at else 'Unknown' }} · {{ player.home_bar_name or 'No home bar' }}
+                    {% if detailed_stats and detailed_stats.play_frequency_label %}
+                    · <span style="color:var(--cyan)">{{ detailed_stats.play_frequency_label }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards Row -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;">
+            <!-- Overall Stats -->
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:4px;padding:12px;">
+                <div style="font-size:0.55rem;color:var(--t3);text-transform:uppercase;margin-bottom:8px;">📊 Overall Stats</div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
+                    <div>
+                        <div style="font-size:1.2rem;font-weight:600;color:var(--gold)">{{ detailed_stats.overall.total if detailed_stats else (player.games_played or 0) }}</div>
+                        <div style="font-size:0.5rem;color:var(--t3)">Games</div>
+                    </div>
+                    <div>
+                        <div style="font-size:1.2rem;font-weight:600;color:var(--green)">{{ detailed_stats.overall.wins if detailed_stats else (player.wins or 0) }}</div>
+                        <div style="font-size:0.5rem;color:var(--t3)">Wins</div>
+                    </div>
+                    <div>
+                        <div style="font-size:1.2rem;font-weight:600;color:{% if (detailed_stats.overall.win_rate if detailed_stats else (player.win_rate or 0)) >= 50 %}var(--green){% else %}var(--red){% endif %}">{{ detailed_stats.overall.win_rate if detailed_stats else (player.win_rate or 0) }}%</div>
+                        <div style="font-size:0.5rem;color:var(--t3)">Win Rate</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ranked Stats -->
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:4px;padding:12px;">
+                <div style="font-size:0.55rem;color:var(--t3);text-transform:uppercase;margin-bottom:8px;">🏆 Ranked Stats</div>
+                {% if detailed_stats and detailed_stats.ranked.total > 0 %}
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
+                    <div>
+                        <div style="font-size:1.2rem;font-weight:600;color:var(--purple)">{{ detailed_stats.ranked.total }}</div>
+                        <div style="font-size:0.5rem;color:var(--t3)">Games</div>
+                    </div>
+                    <div>
+                        <div style="font-size:1.2rem;font-weight:600;color:var(--green)">{{ detailed_stats.ranked.wins }}/{{ detailed_stats.ranked.losses }}</div>
+                        <div style="font-size:0.5rem;color:var(--t3)">W/L</div>
+                    </div>
+                    <div>
+                        <div style="font-size:1.2rem;font-weight:600;color:var(--gold)">{{ detailed_stats.ranked.rating }}</div>
+                        <div style="font-size:0.5rem;color:var(--t3)">Rating</div>
+                    </div>
+                </div>
+                {% else %}
+                <div style="text-align:center;padding:10px;color:var(--t3);font-size:0.65rem;">No ranked games yet</div>
+                {% endif %}
+            </div>
+            
+            <!-- Unranked Stats -->
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:4px;padding:12px;">
+                <div style="font-size:0.55rem;color:var(--t3);text-transform:uppercase;margin-bottom:8px;">🎱 Unranked Stats</div>
+                {% if detailed_stats and detailed_stats.unranked.total > 0 %}
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
+                    <div>
+                        <div style="font-size:1.2rem;font-weight:600;color:var(--blue)">{{ detailed_stats.unranked.total }}</div>
+                        <div style="font-size:0.5rem;color:var(--t3)">Games</div>
+                    </div>
+                    <div>
+                        <div style="font-size:1.2rem;font-weight:600;color:var(--green)">{{ detailed_stats.unranked.wins }}/{{ detailed_stats.unranked.losses }}</div>
+                        <div style="font-size:0.5rem;color:var(--t3)">W/L</div>
+                    </div>
+                    <div>
+                        <div style="font-size:1.2rem;font-weight:600;{% if detailed_stats.unranked.win_rate >= 50 %}color:var(--green){% else %}color:var(--red){% endif %}">{{ detailed_stats.unranked.win_rate }}%</div>
+                        <div style="font-size:0.5rem;color:var(--t3)">Win Rate</div>
+                    </div>
+                </div>
+                {% else %}
+                <div style="text-align:center;padding:10px;color:var(--t3);font-size:0.65rem;">No casual games yet</div>
+                {% endif %}
+            </div>
+            
+            <!-- Tier/Rank Card -->
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:4px;padding:12px;">
+                <div style="font-size:0.55rem;color:var(--t3);text-transform:uppercase;margin-bottom:8px;">🎖️ Rank & Tokens</div>
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;text-align:center;">
+                    <div>
+                        {% if tier %}
+                        <div style="font-size:1.5rem;">{{ tier.emoji }}</div>
+                        <div style="font-size:0.6rem;font-weight:600;{% if tier.tier == 'Diamond' %}color:var(--cyan){% elif tier.tier == 'Platinum' %}color:var(--purple){% elif tier.tier == 'Gold' %}color:var(--gold){% elif tier.tier == 'Silver' %}color:var(--t2){% else %}color:var(--orange){% endif %}">{{ tier.tier }}</div>
+                        {% if tier.percentile is not none %}
+                        <div style="font-size:0.5rem;color:var(--t3)">Top {{ tier.percentile }}%</div>
+                        {% elif tier.games_needed %}
+                        <div style="font-size:0.5rem;color:var(--t3)">{{ tier.games_needed }} more ranked</div>
+                        {% endif %}
+                        {% else %}
+                        <div style="font-size:1.5rem;">🎱</div>
+                        <div style="font-size:0.6rem;color:var(--t3)">Unranked</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div style="font-size:1.2rem;font-weight:600;color:var(--gold)">{{ player.tokens_balance or 0 }}</div>
+                        <div style="font-size:0.5rem;color:var(--t3)">Tokens</div>
+                        {% if detailed_stats and detailed_stats.current_streak > 0 %}
+                        <div style="font-size:0.5rem;color:var(--green);margin-top:4px">🔥 {{ detailed_stats.current_streak }} streak</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: Account Info + Edit Form -->
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-bottom:8px;">
+            <!-- Account Info Card -->
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:4px;padding:12px;">
+                <div style="font-size:0.65rem;font-weight:600;color:var(--t2);text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid var(--border);margin-bottom:8px;">Account Info</div>
+                <div style="font-size:0.7rem;">
+                    <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
+                        <span style="color:var(--t3)">Status</span>
+                        <span>{% if player.account_id %}<span class="badge badge-green">Account</span>{% else %}<span class="badge badge-gray">Guest</span>{% endif %}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
+                        <span style="color:var(--t3)">Email</span>
+                        <span>{{ player.email or '-' }} {% if player.email_verified %}<span style="color:var(--green)">✓</span>{% elif player.email %}<span style="color:var(--orange)">⚠</span>{% endif %}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
+                        <span style="color:var(--t3)">Phone</span>
+                        <span>{{ player.phone_number or '-' }} {% if player.phone_verified %}<span style="color:var(--green)">✓</span>{% elif player.phone_number %}<span style="color:var(--orange)">⚠</span>{% endif %}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
+                        <span style="color:var(--t3)">Birthday</span>
+                        <span>{{ player.birthday or '-' }}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
+                        <span style="color:var(--t3)">Wallet</span>
+                        <span style="color:var(--green)">${{ "%.2f"|format(player.wallet_balance or 0) }}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
+                        <span style="color:var(--t3)">Marketing Opt-in</span>
+                        <span>{% if player.marketing_opt_in %}Yes{% else %}No{% endif %}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:5px 0">
+                        <span style="color:var(--t3)">Contact Pref</span>
+                        <span>{{ player.preferred_contact_method or 'email' }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Edit Form Card -->
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:4px;padding:12px;">
+                <div style="font-size:0.65rem;font-weight:600;color:var(--t2);text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid var(--border);margin-bottom:8px;">✏️ Edit Profile</div>
+                <form action="/master/player/{{ player.id }}/edit" method="POST" style="font-size:0.7rem;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div>
+                            <label style="display:block;color:var(--t3);margin-bottom:4px;">Display Name</label>
+                            <input type="text" name="display_name" value="{{ player.display_name or '' }}" 
+                                   placeholder="{{ player.nickname }}"
+                                   style="width:100%;padding:6px 10px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.7rem;">
+                        </div>
+                        <div>
+                            <label style="display:block;color:var(--t3);margin-bottom:4px;">Home Bar</label>
+                            <select name="home_bar_id" style="width:100%;padding:6px 10px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.7rem;">
+                                <option value="">No home bar</option>
+                                {% for bar in bars %}
+                                <option value="{{ bar.id }}" {% if player.home_bar_id == bar.id %}selected{% endif %}>{{ bar.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display:block;color:var(--t3);margin-bottom:4px;">Contact Preference</label>
+                            <select name="preferred_contact_method" style="width:100%;padding:6px 10px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.7rem;">
+                                <option value="email" {% if player.preferred_contact_method == 'email' %}selected{% endif %}>Email</option>
+                                <option value="sms" {% if player.preferred_contact_method == 'sms' %}selected{% endif %}>SMS</option>
+                                <option value="both" {% if player.preferred_contact_method == 'both' %}selected{% endif %}>Both</option>
+                                <option value="none" {% if player.preferred_contact_method == 'none' %}selected{% endif %}>None</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display:block;color:var(--t3);margin-bottom:4px;">Marketing</label>
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 0;">
+                                <input type="checkbox" name="marketing_opt_in" {% if player.marketing_opt_in %}checked{% endif %}>
+                                <span style="color:var(--t2)">Opt-in to marketing</span>
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" style="margin-top:12px;padding:8px 20px;background:var(--gold);color:#000;border:none;border-radius:4px;font-size:0.7rem;font-weight:600;cursor:pointer;">
+                        Save Changes
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Row 3: Recent Games with Tabs + Account Actions -->
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-bottom:8px;">
+            <!-- Games Card with Tabs -->
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:4px;padding:12px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">
+                    <span style="font-size:0.65rem;font-weight:600;color:var(--t2);text-transform:uppercase;">Recent Games</span>
+                    <div style="display:flex;gap:4px;">
+                        <button class="game-tab active" data-filter="all" style="padding:3px 8px;font-size:0.55rem;border-radius:3px;border:1px solid var(--border);background:var(--gold);color:#000;cursor:pointer;">All</button>
+                        <button class="game-tab" data-filter="ranked" style="padding:3px 8px;font-size:0.55rem;border-radius:3px;border:1px solid var(--border);background:transparent;color:var(--t2);cursor:pointer;">🏆 Ranked</button>
+                        <button class="game-tab" data-filter="unranked" style="padding:3px 8px;font-size:0.55rem;border-radius:3px;border:1px solid var(--border);background:transparent;color:var(--t2);cursor:pointer;">🎱 Casual</button>
+                    </div>
+                </div>
+                {% if games and games|length > 0 %}
+                <table style="width:100%;border-collapse:collapse;font-size:0.65rem;">
+                    <thead><tr style="color:var(--t3);text-transform:uppercase;font-size:0.5rem;">
+                        <th style="text-align:left;padding:4px;">Result</th>
+                        <th style="text-align:left;padding:4px;">Opponent</th>
+                        <th style="text-align:left;padding:4px;">Type</th>
+                        <th style="text-align:left;padding:4px;">Bar</th>
+                        <th style="text-align:left;padding:4px;">Date</th>
+                    </tr></thead>
+                    <tbody id="gamesTable">
+                    {% for g in games[:15] %}
+                    <tr style="border-bottom:1px solid var(--border);" data-ranked="{{ '1' if g.is_ranked else '0' }}">
+                        <td style="padding:5px 4px;color:{% if g.won %}var(--green){% else %}var(--red){% endif %}">{% if g.won %}Win{% else %}Loss{% endif %}</td>
+                        <td style="padding:5px 4px;"><a href="/master/player/{{ g.opponent_id }}" style="color:var(--gold);text-decoration:none;">{{ g.opponent_name }}</a></td>
+                        <td style="padding:5px 4px;">
+                            {% if g.is_ranked %}
+                            <span class="badge badge-purple">Ranked</span>
+                            {% else %}
+                            <span class="badge badge-gray">Casual</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding:5px 4px;">{{ g.bar_name or '-' }}</td>
+                        <td style="padding:5px 4px;color:var(--t3);">{{ g.played_at[:10] if g.played_at else '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div style="text-align:center;padding:20px;color:var(--t3);font-size:0.7rem;">No games yet</div>
+                {% endif %}
+            </div>
+            
+            <!-- Account Actions Card -->
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:4px;padding:12px;">
+                <div style="font-size:0.65rem;font-weight:600;color:var(--t2);text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid var(--border);margin-bottom:8px;">⚡ Account Actions</div>
+                <div style="font-size:0.7rem;">
+                    {% if player.is_active == 0 %}
+                    <div style="padding:10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:4px;margin-bottom:10px;">
+                        <div style="color:var(--red);font-weight:600;margin-bottom:4px;">⛔ Account Deactivated</div>
+                        <div style="color:var(--t3);font-size:0.6rem;">Deactivated: {{ player.deactivated_at[:16] if player.deactivated_at else 'Unknown' }}</div>
+                    </div>
+                    <form action="/master/player/{{ player.id }}/reactivate" method="POST">
+                        <input type="hidden" name="reason" value="Reactivated by admin">
+                        <button type="submit" style="width:100%;padding:10px;background:var(--green);color:#fff;border:none;border-radius:4px;font-size:0.7rem;font-weight:600;cursor:pointer;">
+                            ✓ Reactivate Account
+                        </button>
+                    </form>
+                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+                        <div style="padding:8px;background:rgba(239,68,68,0.05);border-radius:4px;margin-bottom:8px;color:var(--t3);font-size:0.6rem;">
+                            ⚠️ <strong>Permanent deletion</strong> removes all player data including game history, tokens, and stats. This cannot be undone.
+                        </div>
+                        <form action="/master/player/{{ player.id }}/delete-permanent" method="POST" onsubmit="return confirm('⚠️ PERMANENT DELETE\n\nThis will completely remove this player and all their data.\n\nThis action CANNOT be undone.\n\nAre you absolutely sure?');">
+                            <button type="submit" style="width:100%;padding:8px;background:#111;color:var(--red);border:2px solid var(--red);border-radius:4px;font-size:0.65rem;font-weight:600;cursor:pointer;">
+                                🗑️ Permanently Delete Account
+                            </button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <div style="padding:8px;background:rgba(255,255,255,0.03);border-radius:4px;margin-bottom:10px;color:var(--t3);font-size:0.65rem;">
+                        Deactivating an account prevents login but preserves game history and analytics.
+                    </div>
+                    <form action="/master/player/{{ player.id }}/deactivate" method="POST" onsubmit="return confirm('Are you sure you want to deactivate this account?');">
+                        <input type="text" name="reason" placeholder="Reason (optional)" 
+                               style="width:100%;padding:6px 10px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.65rem;margin-bottom:8px;">
+                        <button type="submit" style="width:100%;padding:8px;background:var(--red);color:#fff;border:none;border-radius:4px;font-size:0.7rem;font-weight:600;cursor:pointer;">
+                            ⛔ Deactivate Account
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 4: Potential Duplicates + Audit Log -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:4px;padding:12px;">
+                <div style="font-size:0.65rem;font-weight:600;color:var(--t2);text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid var(--border);margin-bottom:8px;">🔍 Potential Duplicates</div>
+                {% if duplicates and duplicates|length > 0 %}
+                <table style="width:100%;border-collapse:collapse;font-size:0.65rem;">
+                    <thead><tr style="color:var(--t3);text-transform:uppercase;font-size:0.5rem;">
+                        <th style="text-align:left;padding:4px;">Player</th>
+                        <th style="text-align:left;padding:4px;">Match Reason</th>
+                        <th style="text-align:left;padding:4px;">Status</th>
+                    </tr></thead>
+                    <tbody>
+                    {% for d in duplicates %}
+                    <tr style="border-bottom:1px solid var(--border);">
+                        <td style="padding:5px 4px;"><a href="/master/player/{{ d.id }}" style="color:var(--gold);text-decoration:none;">{{ d.nickname }}</a></td>
+                        <td style="padding:5px 4px;">
+                            <span class="badge {% if d.match_strength == 'high' %}badge-red{% else %}badge-orange{% endif %}">{{ d.match_reason }}</span>
+                        </td>
+                        <td style="padding:5px 4px;">{% if d.is_active == 0 %}<span style="color:var(--red)">Inactive</span>{% else %}<span style="color:var(--green)">Active</span>{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <div style="margin-top:8px;padding:8px;background:rgba(249,115,22,0.1);border-radius:4px;color:var(--orange);font-size:0.55rem;">
+                    ⚠️ These are suggestions only. Review each account before taking action.
+                </div>
+                {% else %}
+                <div style="text-align:center;padding:20px;color:var(--t3);font-size:0.7rem;">✓ No potential duplicates found</div>
+                {% endif %}
+            </div>
+            
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:4px;padding:12px;">
+                <div style="font-size:0.65rem;font-weight:600;color:var(--t2);text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid var(--border);margin-bottom:8px;">📋 Admin Audit Log</div>
+                {% if audit_log and audit_log|length > 0 %}
+                <div style="font-size:0.6rem;max-height:200px;overflow-y:auto;">
+                    {% for log in audit_log %}
+                    <div style="padding:6px 0;border-bottom:1px solid var(--border);">
+                        <div style="display:flex;justify-content:space-between;">
+                            <span style="color:{% if log.action == 'deactivate' %}var(--red){% elif log.action == 'reactivate' %}var(--green){% else %}var(--blue){% endif %};font-weight:500;">{{ log.action }}</span>
+                            <span style="color:var(--t3);">{{ log.created_at[:16] if log.created_at else '-' }}</span>
+                        </div>
+                        {% if log.details %}
+                        <div style="color:var(--t3);margin-top:2px;">{{ log.details }}</div>
+                        {% endif %}
+                        <div style="color:var(--t3);font-size:0.5rem;">By: {{ log.admin_name or 'System' }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div style="text-align:center;padding:20px;color:var(--t3);font-size:0.7rem;">No admin actions logged</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/page-state.js"></script>
+    <script>
+        // Game filter tabs
+        document.querySelectorAll('.game-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Update active tab styling
+                document.querySelectorAll('.game-tab').forEach(t => {
+                    t.style.background = 'transparent';
+                    t.style.color = 'var(--t2)';
+                    t.classList.remove('active');
+                });
+                this.style.background = 'var(--gold)';
+                this.style.color = '#000';
+                this.classList.add('active');
+                
+                // Filter rows
+                const filter = this.dataset.filter;
+                document.querySelectorAll('#gamesTable tr').forEach(row => {
+                    const isRanked = row.dataset.ranked === '1';
+                    if (filter === 'all') {
+                        row.style.display = '';
+                    } else if (filter === 'ranked') {
+                        row.style.display = isRanked ? '' : 'none';
+                    } else {
+                        row.style.display = !isRanked ? '' : 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 {{ night.title or 'Tournament' }} - Pool Cue</title>
+    <link rel="stylesheet" href="/static/css/master-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.05);--t1:#e4e4e7;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;--orange:#f97316;--cyan:#06b6d4}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:11px;line-height:1.3}
+        .p{padding:12px 16px}
+        .hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px}
+        .hdr h1{font-size:1rem;font-weight:600;display:flex;align-items:center;gap:8px}
+        .hdr-meta{font-size:0.7rem;color:var(--t3)}
+        .btn{padding:6px 14px;border-radius:4px;font-size:0.65rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:0;color:var(--t2);text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+        .btn:hover{border-color:var(--gold);color:var(--gold)}
+        .btn-p{background:var(--gold);border-color:var(--gold);color:#000}
+        .btn-green{background:var(--green);border-color:var(--green);color:#000}
+        .btn-red{background:transparent;border-color:var(--red);color:var(--red)}
+        .badge{padding:3px 8px;border-radius:3px;font-size:0.55rem;font-weight:600;text-transform:uppercase}
+        .badge-gold{background:rgba(234,179,8,0.15);color:var(--gold)}
+        .badge-green{background:rgba(34,197,94,0.15);color:var(--green)}
+        .badge-orange{background:rgba(249,115,22,0.15);color:var(--orange)}
+        .badge-purple{background:rgba(168,85,247,0.15);color:var(--purple)}
+        .badge-cyan{background:rgba(6,182,212,0.15);color:var(--cyan)}
+        
+        /* Layout */
+        .layout{display:grid;grid-template-columns:280px 1fr;gap:16px}
+        @media(max-width:900px){.layout{grid-template-columns:1fr}}
+        
+        /* Sidebar */
+        .sidebar{display:flex;flex-direction:column;gap:12px}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+        .card-h{padding:10px 12px;border-bottom:1px solid var(--border);font-size:0.7rem;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+        .card-b{padding:12px}
+        .info-row{display:flex;justify-content:space-between;padding:6px 0;font-size:0.7rem;border-bottom:1px solid rgba(255,255,255,0.03)}
+        .info-row:last-child{border:0}
+        .info-l{color:var(--t3)}.info-v{font-weight:500}
+        
+        /* Participants list */
+        .participant{display:flex;align-items:center;gap:8px;padding:8px;border-radius:4px;margin-bottom:4px;background:rgba(0,0,0,0.2)}
+        .participant:hover{background:rgba(255,255,255,0.03)}
+        .p-seed{width:22px;height:22px;background:var(--gold);color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700}
+        .p-seed.elim{background:var(--t3);color:#fff}
+        .p-name{flex:1;font-size:0.75rem;font-weight:500}
+        .p-elim{font-size:0.55rem;color:var(--red)}
+        .p-rating{font-size:0.6rem;color:var(--t3)}
+        
+        /* Bracket */
+        .bracket-container{overflow-x:auto;padding-bottom:20px}
+        .bracket{display:flex;gap:40px;min-width:max-content;padding:20px}
+        .round{display:flex;flex-direction:column;gap:20px}
+        .round-title{font-size:0.65rem;font-weight:600;color:var(--t3);text-transform:uppercase;margin-bottom:12px;text-align:center}
+        
+        /* Match card */
+        .match{background:var(--card);border:1px solid var(--border);border-radius:6px;width:200px;position:relative}
+        .match.completed{border-color:var(--green)}
+        .match.in-progress{border-color:var(--gold);box-shadow:0 0 10px rgba(234,179,8,0.2)}
+        .match-header{padding:6px 10px;border-bottom:1px solid var(--border);font-size:0.55rem;color:var(--t3);display:flex;justify-content:space-between}
+        .match-num{font-weight:600}
+        .match-status{text-transform:uppercase}
+        .match-status.completed{color:var(--green)}
+        .match-status.in-progress{color:var(--gold)}
+        .match-status.scheduled{color:var(--cyan)}
+        
+        .match-players{padding:0}
+        .match-player{display:flex;align-items:center;gap:8px;padding:10px;border-bottom:1px solid var(--border)}
+        .match-player:last-child{border:0}
+        .match-player.winner{background:rgba(34,197,94,0.1)}
+        .match-player.loser{opacity:0.5}
+        .mp-seed{width:18px;height:18px;background:rgba(255,255,255,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:600}
+        .mp-name{flex:1;font-size:0.7rem;font-weight:500}
+        .mp-score{font-size:0.8rem;font-weight:700;color:var(--gold)}
+        .mp-tbd{color:var(--t3);font-style:italic;font-size:0.65rem}
+        .mp-bye{color:var(--t3);font-size:0.6rem}
+        
+        /* Connector lines */
+        .match::after{content:'';position:absolute;right:-20px;top:50%;width:20px;height:2px;background:var(--border)}
+        .round:last-child .match::after{display:none}
+        
+        /* Action buttons in match */
+        .match-actions{padding:8px;border-top:1px solid var(--border);display:flex;gap:6px}
+        .match-actions .btn{flex:1;justify-content:center;font-size:0.6rem;padding:5px 8px}
+        
+        /* Empty state */
+        .empty{text-align:center;padding:40px;color:var(--t3)}
+        .empty-icon{font-size:2rem;margin-bottom:12px}
+        .empty-title{font-size:0.9rem;font-weight:600;color:var(--t1);margin-bottom:8px}
+        
+        /* Add participant form */
+        .add-form{display:flex;gap:6px;margin-top:12px}
+        .add-form select,.add-form input{flex:1;padding:6px 8px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.7rem}
+        .add-form button{padding:6px 12px}
+        
+        /* Modal */
+        .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;align-items:center;justify-content:center}
+        .modal-bg.show{display:flex}
+        .modal{background:var(--card);border:1px solid var(--border);border-radius:8px;width:90%;max-width:400px}
+        .modal-h{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+        .modal-t{font-size:0.85rem;font-weight:600}.modal-x{background:0;border:0;color:var(--t3);font-size:1.4rem;cursor:pointer}
+        .modal-b{padding:16px}
+        .modal-f{padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+        .form-g{margin-bottom:12px}
+        .form-l{display:block;font-size:0.65rem;color:var(--t2);margin-bottom:4px}
+        .form-c{width:100%;padding:8px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.75rem}
+    </style>
+</head>
+<body>
+    {% include 'master/_nav.html' %}
+    
+    <div class="p">
+        <div class="hdr">
+            <div>
+                <h1>
+                    🏆 {{ night.title or 'Tournament' }}
+                    {% if night.tournament_status == 'completed' %}
+                    <span class="badge badge-green">Completed</span>
+                    {% elif night.tournament_status == 'in_progress' %}
+                    <span class="badge badge-gold">In Progress</span>
+                    {% elif night.bracket_generated %}
+                    <span class="badge badge-cyan">Bracket Ready</span>
+                    {% else %}
+                    <span class="badge badge-orange">Registration</span>
+                    {% endif %}
+                </h1>
+                <div class="hdr-meta">{{ night.bar_name }} · {{ night.event_date }} · {{ night.start_time or 'TBD' }}</div>
+            </div>
+            <div style="display:flex;gap:8px">
+                <a href="{{ url_for('master.pool_nights') }}" class="btn">← Back to Pool Nights</a>
+                {% if not night.bracket_generated and participants|length >= 2 %}
+                <form action="{{ url_for('master.generate_bracket', night_id=night.id) }}" method="POST" style="display:inline">
+                    <button type="submit" class="btn btn-p" onclick="return confirm('Generate bracket with {{ participants|length }} players?')">🎲 Generate Bracket</button>
+                </form>
+                {% endif %}
+                {% if night.bracket_generated and night.tournament_status != 'in_progress' and night.tournament_status != 'completed' %}
+                <form action="{{ url_for('master.start_tournament', night_id=night.id) }}" method="POST" style="display:inline">
+                    <button type="submit" class="btn btn-green">▶️ Start Tournament</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="layout">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Tournament Info -->
+                <div class="card">
+                    <div class="card-h">Tournament Info</div>
+                    <div class="card-b">
+                        <div class="info-row"><span class="info-l">Format</span><span class="info-v">{{ night.elimination_type|title }} Elimination</span></div>
+                        <div class="info-row"><span class="info-l">Seeding</span><span class="info-v">{{ night.seeding_method|title }}</span></div>
+                        <div class="info-row"><span class="info-l">Race To</span><span class="info-v">{{ night.race_to or 1 }}</span></div>
+                        <div class="info-row"><span class="info-l">Game</span><span class="info-v">{{ night.game_type|title if night.game_type else '8-Ball' }}</span></div>
+                        {% if night.entry_fee %}
+                        <div class="info-row"><span class="info-l">Entry Fee</span><span class="info-v">${{ "%.2f"|format(night.entry_fee) }}</span></div>
+                        {% endif %}
+                        {% if night.prize_pool %}
+                        <div class="info-row"><span class="info-l">Prize Pool</span><span class="info-v" style="color:var(--gold)">${{ "%.2f"|format(night.prize_pool) }}</span></div>
+                        {% endif %}
+                        {% if night.ranked_required %}
+                        <div class="info-row"><span class="info-l">Ranked</span><span class="info-v" style="color:var(--purple)">🏆 Yes</span></div>
+                        {% endif %}
+                        {% if night.bracket_size %}
+                        <div class="info-row"><span class="info-l">Bracket Size</span><span class="info-v">{{ night.bracket_size }}</span></div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Participants -->
+                <div class="card">
+                    <div class="card-h">
+                        <span>Participants ({{ participants|length }})</span>
+                        {% if not night.bracket_generated %}
+                        <button class="btn" onclick="document.getElementById('addPlayerModal').classList.add('show')" style="padding:3px 8px;font-size:0.55rem">+ Add</button>
+                        {% endif %}
+                    </div>
+                    <div class="card-b" style="max-height:400px;overflow-y:auto">
+                        {% if participants %}
+                        {% for p in participants %}
+                        <div class="participant">
+                            <span class="p-seed {% if p.eliminated %}elim{% endif %}">{{ p.seed or loop.index }}</span>
+                            <span class="p-name">{{ p.nickname }}</span>
+                            <span class="p-rating">{{ p.rating or 1000 }}</span>
+                            {% if p.eliminated %}
+                            <span class="p-elim">R{{ p.eliminated_round }}</span>
+                            {% endif %}
+                            {% if p.final_placement == 1 %}
+                            <span style="font-size:0.9rem">🥇</span>
+                            {% elif p.final_placement == 2 %}
+                            <span style="font-size:0.9rem">🥈</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="empty" style="padding:20px">
+                            <div style="font-size:1.2rem;margin-bottom:8px">👥</div>
+                            <div style="font-size:0.7rem">No participants yet</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bracket Area -->
+            <div class="card">
+                <div class="card-h">
+                    <span>Bracket</span>
+                    {% if bracket.total_rounds %}
+                    <span style="font-size:0.6rem;color:var(--t3)">{{ bracket.total_rounds }} rounds</span>
+                    {% endif %}
+                </div>
+                <div class="bracket-container">
+                    {% if bracket.rounds %}
+                    <div class="bracket">
+                        {% for round_num in range(1, bracket.total_rounds + 1) %}
+                        <div class="round">
+                            <div class="round-title">
+                                {% if round_num == bracket.total_rounds %}
+                                Finals
+                                {% elif round_num == bracket.total_rounds - 1 %}
+                                Semi-Finals
+                                {% elif round_num == bracket.total_rounds - 2 %}
+                                Quarter-Finals
+                                {% else %}
+                                Round {{ round_num }}
+                                {% endif %}
+                            </div>
+                            {% for match in bracket.rounds.get(round_num, []) %}
+                            <div class="match {% if match.status == 'completed' %}completed{% elif match.status == 'in_progress' %}in-progress{% endif %}">
+                                <div class="match-header">
+                                    <span class="match-num">Match {{ match.match_number }}</span>
+                                    <span class="match-status {{ match.status }}">{{ match.status }}</span>
+                                </div>
+                                <div class="match-players">
+                                    <!-- Player 1 -->
+                                    <div class="match-player {% if match.winner_id == match.player1_id %}winner{% elif match.winner_id and match.winner_id != match.player1_id %}loser{% endif %}">
+                                        {% if match.player1_id %}
+                                        <span class="mp-seed">{{ match.player1_seed or '?' }}</span>
+                                        <span class="mp-name">{{ match.player1_name or 'Unknown' }}</span>
+                                        {% if match.status == 'completed' %}
+                                        <span class="mp-score">{{ match.player1_score }}</span>
+                                        {% endif %}
+                                        {% elif match.is_bye %}
+                                        <span class="mp-bye">— BYE —</span>
+                                        {% else %}
+                                        <span class="mp-tbd">TBD</span>
+                                        {% endif %}
+                                    </div>
+                                    <!-- Player 2 -->
+                                    <div class="match-player {% if match.winner_id == match.player2_id %}winner{% elif match.winner_id and match.winner_id != match.player2_id %}loser{% endif %}">
+                                        {% if match.player2_id %}
+                                        <span class="mp-seed">{{ match.player2_seed or '?' }}</span>
+                                        <span class="mp-name">{{ match.player2_name or 'Unknown' }}</span>
+                                        {% if match.status == 'completed' %}
+                                        <span class="mp-score">{{ match.player2_score }}</span>
+                                        {% endif %}
+                                        {% elif match.is_bye %}
+                                        <span class="mp-bye">— BYE —</span>
+                                        {% else %}
+                                        <span class="mp-tbd">TBD</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if match.player1_id and match.player2_id and match.status != 'completed' and not match.is_bye %}
+                                <div class="match-actions">
+                                    <button class="btn" onclick="openResultModal({{ match.id }}, {{ match.player1_id }}, '{{ match.player1_name }}', {{ match.player2_id }}, '{{ match.player2_name }}')">Record Result</button>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty">
+                        <div class="empty-icon">🎱</div>
+                        <div class="empty-title">No Bracket Yet</div>
+                        <p>Add participants and generate the bracket to begin the tournament.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Player Modal -->
+    <div class="modal-bg" id="addPlayerModal">
+        <div class="modal">
+            <div class="modal-h">
+                <span class="modal-t">Add Participant</span>
+                <button class="modal-x" onclick="document.getElementById('addPlayerModal').classList.remove('show')">&times;</button>
+            </div>
+            <form action="{{ url_for('master.add_tournament_participant', night_id=night.id) }}" method="POST">
+                <div class="modal-b">
+                    <div class="form-g">
+                        <label class="form-l">Select Player</label>
+                        <select name="player_id" class="form-c" required>
+                            <option value="">Choose player...</option>
+                            {% for player in available_players %}
+                            <option value="{{ player.id }}">{{ player.nickname }} ({{ player.rating or 1000 }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-f">
+                    <button type="button" class="btn" onclick="document.getElementById('addPlayerModal').classList.remove('show')">Cancel</button>
+                    <button type="submit" class="btn btn-p">Add to Tournament</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Record Result Modal -->
+    <div class="modal-bg" id="resultModal">
+        <div class="modal">
+            <div class="modal-h">
+                <span class="modal-t">Record Match Result</span>
+                <button class="modal-x" onclick="closeResultModal()">&times;</button>
+            </div>
+            <form id="resultForm" method="POST">
+                <div class="modal-b">
+                    <input type="hidden" name="match_id" id="resultMatchId">
+                    <div class="form-g">
+                        <label class="form-l">Winner</label>
+                        <div style="display:flex;flex-direction:column;gap:8px">
+                            <label style="display:flex;align-items:center;gap:8px;padding:10px;background:rgba(0,0,0,0.2);border-radius:4px;cursor:pointer">
+                                <input type="radio" name="winner_id" id="winner1" value="" required>
+                                <span id="player1Label">Player 1</span>
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;padding:10px;background:rgba(0,0,0,0.2);border-radius:4px;cursor:pointer">
+                                <input type="radio" name="winner_id" id="winner2" value="">
+                                <span id="player2Label">Player 2</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div class="form-g">
+                            <label class="form-l" id="score1Label">Player 1 Score</label>
+                            <input type="number" name="player1_score" class="form-c" value="0" min="0">
+                        </div>
+                        <div class="form-g">
+                            <label class="form-l" id="score2Label">Player 2 Score</label>
+                            <input type="number" name="player2_score" class="form-c" value="0" min="0">
+                        </div>
+                    </div>
+                    <div class="form-g">
+                        <label style="display:flex;align-items:center;gap:8px">
+                            <input type="checkbox" name="forfeit" value="1" onchange="toggleForfeit(this)">
+                            <span class="form-l" style="margin:0">Forfeit</span>
+                        </label>
+                    </div>
+                    <div class="form-g" id="forfeitPlayerGroup" style="display:none">
+                        <label class="form-l">Who forfeited?</label>
+                        <select name="forfeit_player_id" class="form-c" id="forfeitPlayerSelect">
+                            <option value="">Select...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-f">
+                    <button type="button" class="btn" onclick="closeResultModal()">Cancel</button>
+                    <button type="submit" class="btn btn-green">✓ Save Result</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        function openResultModal(matchId, p1Id, p1Name, p2Id, p2Name) {
+            document.getElementById('resultForm').action = '/master/tournament/match/' + matchId + '/result';
+            document.getElementById('winner1').value = p1Id;
+            document.getElementById('winner2').value = p2Id;
+            document.getElementById('player1Label').textContent = p1Name;
+            document.getElementById('player2Label').textContent = p2Name;
+            document.getElementById('score1Label').textContent = p1Name + ' Score';
+            document.getElementById('score2Label').textContent = p2Name + ' Score';
+            
+            // Reset forfeit select
+            const forfeitSelect = document.getElementById('forfeitPlayerSelect');
+            forfeitSelect.innerHTML = `<option value="">Select...</option><option value="${p1Id}">${p1Name}</option><option value="${p2Id}">${p2Name}</option>`;
+            
+            document.getElementById('resultModal').classList.add('show');
+        }
+        
+        function closeResultModal() {
+            document.getElementById('resultModal').classList.remove('show');
+        }
+        
+        function toggleForfeit(checkbox) {
+            document.getElementById('forfeitPlayerGroup').style.display = checkbox.checked ? 'block' : 'none';
+        }
+        
+        // Close modals on background click
+        document.querySelectorAll('.modal-bg').forEach(modal => {
+            modal.addEventListener('click', e => {
+                if (e.target === modal) modal.classList.remove('show');
+            });
+        });
+        
+        // Auto-refresh every 30 seconds if tournament in progress
+        {% if night.tournament_status == 'in_progress' %}
+        setTimeout(() => location.reload(), 30000);
+        {% endif %}
+    </script>
+</body>
+</html>

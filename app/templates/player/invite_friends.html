@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#111111">
+    <title>Invite Friends - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222; --border: rgba(255,255,255,0.1);
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555; --accent: #f5c518; --success: #22c55e;
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding-bottom: 100px; }
+        
+        .header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+        .back-btn { width: 36px; height: 36px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .header h1 { font-size: 1.2rem; font-weight: 600; }
+        
+        .reward-banner { margin: 20px; padding: 20px; background: linear-gradient(135deg, rgba(245,197,24,0.15), rgba(34,197,94,0.1)); border: 1px solid rgba(245,197,24,0.3); border-radius: 14px; text-align: center; }
+        .reward-icon { font-size: 3rem; margin-bottom: 10px; }
+        .reward-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 6px; }
+        .reward-desc { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; }
+        .reward-amount { display: inline-block; margin-top: 12px; padding: 8px 16px; background: var(--accent); color: #111; border-radius: 20px; font-weight: 700; font-size: 0.9rem; }
+        
+        .section { padding: 0 20px; margin-bottom: 24px; }
+        .section-title { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        
+        .tabs { display: flex; gap: 8px; margin: 0 20px 20px; }
+        .tab { flex: 1; padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; text-align: center; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; }
+        .tab.active { background: var(--accent); color: #111; border-color: var(--accent); }
+        .tab:hover:not(.active) { border-color: var(--accent); }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .invite-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+        .invite-label { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 8px; }
+        .invite-code { font-size: 1.8rem; font-weight: 700; letter-spacing: 4px; color: var(--accent); margin-bottom: 12px; font-family: monospace; }
+        .invite-link { padding: 12px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; font-size: 0.8rem; color: var(--text-primary); word-break: break-all; margin-bottom: 12px; }
+        .copy-btn { width: 100%; padding: 14px; background: var(--accent); color: #111; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+        .copy-btn:active { transform: scale(0.98); }
+        .share-btns { display: flex; gap: 10px; margin-top: 12px; }
+        .share-btn { flex: 1; padding: 12px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; text-align: center; font-size: 0.85rem; color: var(--text-primary); cursor: pointer; text-decoration: none; }
+        .share-btn:hover { border-color: var(--accent); }
+        
+        /* Manual invite form */
+        .manual-form { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+        .form-row { margin-bottom: 14px; }
+        .form-label { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+        .form-input { width: 100%; padding: 12px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 1rem; font-family: inherit; }
+        .form-input:focus { outline: none; border-color: var(--accent); }
+        .type-toggle { display: flex; gap: 8px; margin-bottom: 14px; }
+        .type-btn { flex: 1; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; text-align: center; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+        .type-btn.active { background: rgba(245,197,24,0.15); border-color: var(--accent); color: var(--accent); }
+        .send-btn { width: 100%; padding: 14px; background: var(--success); color: #fff; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+        .send-btn:disabled { background: #444; color: #888; cursor: not-allowed; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .stat-box { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 14px; text-align: center; }
+        .stat-value { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+        .stat-label { font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px; }
+        
+        .invite-list { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .invite-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+        .invite-item:last-child { border-bottom: none; }
+        .invite-name { font-weight: 500; }
+        .invite-contact { font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; }
+        .invite-date { font-size: 0.7rem; color: var(--text-secondary); }
+        .invite-status { padding: 4px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+        .status-sent { background: rgba(249,115,22,0.15); color: #f97316; }
+        .status-joined { background: rgba(34,197,94,0.15); color: var(--success); }
+        .status-pending { background: rgba(249,115,22,0.15); color: #f97316; }
+        .status-completed { background: rgba(34,197,94,0.15); color: var(--success); }
+        .status-recent { background: rgba(107,114,128,0.15); color: #6b7280; }
+        
+        .status-legend { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; }
+        .legend-title { font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; color: var(--text-primary); }
+        .legend-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 0.75rem; color: var(--text-secondary); }
+        .legend-item:last-child { margin-bottom: 0; }
+        
+        .empty-state { text-align: center; padding: 30px; color: var(--text-secondary); }
+        .empty-icon { font-size: 2.5rem; margin-bottom: 10px; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-primary); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 6px 0 22px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 14px; color: var(--text-muted); text-decoration: none; font-size: 0.6rem; font-weight: 500; }
+        .nav-item .icon { font-size: 1.25rem; }
+        .nav-item.active { color: var(--text-primary); }
+        
+        
+        .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; opacity: 0; transition: opacity 0.3s; z-index: 1000; }
+        .toast.show { opacity: 1; }
+        .toast.success { background: var(--success); color: white; }
+        .toast.error { background: #ef4444; color: white; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/player/profile" class="back-btn">←</a>
+        <h1>🎁 Invite Friends</h1>
+    </div>
+    
+    <div id="toast" class="toast"></div>
+    
+    <div class="reward-banner">
+        <div class="reward-icon">🎁</div>
+        <div class="reward-title">Earn Tokens for Every Friend!</div>
+        <div class="reward-desc">When your friend signs up and plays their first game, you both earn tokens!</div>
+        <div class="reward-amount">🪙 You: 100 tokens • Friend: 50 tokens</div>
+    </div>
+    
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('share')">📤 Share Link</div>
+        <div class="tab" onclick="switchTab('send')">✉️ Send Invite</div>
+        <div class="tab" onclick="switchTab('history')">📋 History</div>
+    </div>
+    
+    <!-- TAB 1: Share Link -->
+    <div id="tab-share" class="tab-content active">
+        <div class="section">
+            <div class="section-title">📤 Your Invite Link</div>
+            <div class="invite-card">
+                <div class="invite-label">Your Referral Code</div>
+                <div class="invite-code">{{ referral_code }}</div>
+                <div class="invite-label">Share this link</div>
+                <div class="invite-link" id="inviteLink">{{ invite_link }}</div>
+                <button class="copy-btn" onclick="copyLink()">📋 Copy Invite Link</button>
+                <div class="share-btns">
+                    <a href="sms:?body=Join%20me%20on%20Pool%20Cue!%20{{ invite_link | urlencode }}" class="share-btn">📱 Text</a>
+                    <a href="mailto:?subject=Join%20Pool%20Cue&body=Join%20me%20on%20Pool%20Cue!%20{{ invite_link | urlencode }}" class="share-btn">📧 Email</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- TAB 2: Send Direct Invite -->
+    <div id="tab-send" class="tab-content">
+        <div class="section">
+            <div class="section-title">✉️ Send a Direct Invite</div>
+            <div class="manual-form">
+                <div class="type-toggle">
+                    <div class="type-btn active" onclick="setContactType('email')" id="type-email">📧 Email</div>
+                    <div class="type-btn" onclick="setContactType('phone')" id="type-phone">📱 Phone</div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label">Friend's Name (optional)</label>
+                    <input type="text" class="form-input" id="contactName" placeholder="e.g. John">
+                </div>
+                <div class="form-row">
+                    <label class="form-label" id="contactLabel">Friend's Email</label>
+                    <input type="text" class="form-input" id="contactValue" placeholder="friend@email.com">
+                </div>
+                <div id="inviteError" style="display:none;margin-bottom:12px;padding:10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;font-size:0.8rem;color:#ef4444;"></div>
+                <button class="send-btn" onclick="sendInvite()" id="sendBtn">📤 Send Invite</button>
+                <div style="margin-top:12px;font-size:0.75rem;color:var(--text-secondary);text-align:center;">
+                    We'll track when they sign up so you get your reward!<br>
+                    <span style="color:#888;">Note: You can re-invite the same person after 7 days.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- TAB 3: History -->
+    <div id="tab-history" class="tab-content">
+        <!-- Status Legend - Prominent at top -->
+        <div class="section">
+            <div class="status-legend">
+                <div class="legend-title">📋 What the statuses mean:</div>
+                <div class="legend-item">
+                    <span class="invite-status status-sent">Invited</span>
+                    <span>You sent an invite, waiting for them to sign up</span>
+                </div>
+                <div class="legend-item">
+                    <span class="invite-status status-pending">Pending</span>
+                    <span>They signed up! Waiting for first game to complete</span>
+                </div>
+                <div class="legend-item">
+                    <span class="invite-status status-joined">Joined</span>
+                    <span>Signed up & played — you earned your tokens! 🎉</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">📊 Your Stats</div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-value">{{ stats.completed + (manual_stats.total_joined or 0) }}</div>
+                    <div class="stat-label">Friends Joined</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">{{ stats.pending + (manual_stats.total_pending or 0) }}</div>
+                    <div class="stat-label">Invites Sent</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">🪙 {{ stats.tokens_earned }}</div>
+                    <div class="stat-label">Tokens Earned</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">📋 Invite History</div>
+            <div class="invite-list">
+                {% set all_invites = [] %}
+                
+                <!-- Manual Invites -->
+                {% if manual_invites and manual_invites|length > 0 %}
+                    {% for inv in manual_invites %}
+                    <div class="invite-item">
+                        <div>
+                            <div class="invite-name">{{ inv.contact_name or 'Friend' }}</div>
+                            <div class="invite-contact">
+                                {% if inv.contact_type == 'email' %}📧{% else %}📱{% endif %} 
+                                {{ inv.contact_value[:20] }}{% if inv.contact_value|length > 20 %}...{% endif %}
+                            </div>
+                            <div class="invite-date">Invited {{ inv.last_sent_at[:10] if inv.last_sent_at else '' }}</div>
+                        </div>
+                        <div class="invite-status {{ 'status-joined' if inv.status == 'joined' else 'status-sent' }}">
+                            {% if inv.status == 'joined' %}✓ Joined{% else %}Invited{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <!-- Referrals (people who used your code) -->
+                {% if referrals and referrals|length > 0 %}
+                    {% for ref in referrals %}
+                    <div class="invite-item">
+                        <div>
+                            <div class="invite-name">{{ ref.referred_nickname or 'Player' }}</div>
+                            <div class="invite-contact">Used your code</div>
+                            <div class="invite-date">{{ ref.created_at[:10] if ref.created_at else '' }}</div>
+                        </div>
+                        <div class="invite-status {{ 'status-completed' if ref.status == 'completed' else 'status-pending' }}">
+                            {% if ref.status == 'completed' %}✓ Completed{% else %}Pending{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+                
+                {% if not (manual_invites and manual_invites|length > 0) and not (referrals and referrals|length > 0) %}
+                <div class="empty-state">
+                    <div class="empty-icon">👥</div>
+                    <div>No invites yet</div>
+                    <div style="font-size:0.85rem;margin-top:4px;">Share your link or send invites to start earning!</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+        <nav class="bottom-nav">
+        <a href="{% if demo_mode %}/player/demo/home{% else %}/player/home{% endif %}" class="nav-item"><div class="icon">🎱</div><div>Home</div></a>
+        <a href="{% if demo_mode %}/player/demo/friends{% else %}/player/friends{% endif %}" class="nav-item active"><div class="icon">👥</div><div>Friends</div></a>
+        <a href="{% if demo_mode %}/player/demo/challenges{% else %}/player/challenges{% endif %}" class="nav-item"><div class="icon">⚔️</div><div>Challenges</div></a>
+        <a href="{% if demo_mode %}/player/demo/leaderboards{% else %}/player/leaderboard{% endif %}" class="nav-item"><div class="icon">🏆</div><div>Rankings</div></a>
+        <a href="{% if demo_mode %}/player/demo/profile{% else %}/player/profile{% endif %}" class="nav-item"><div class="icon">👤</div><div>Profile</div></a>
+    </nav>
+    
+    <script>
+        let contactType = 'email';
+        
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tab).classList.add('active');
+        }
+        
+        function setContactType(type) {
+            contactType = type;
+            document.getElementById('type-email').classList.toggle('active', type === 'email');
+            document.getElementById('type-phone').classList.toggle('active', type === 'phone');
+            
+            const label = document.getElementById('contactLabel');
+            const input = document.getElementById('contactValue');
+            
+            if (type === 'email') {
+                label.textContent = "Friend's Email";
+                input.placeholder = "friend@email.com";
+                input.type = "email";
+            } else {
+                label.textContent = "Friend's Phone Number";
+                input.placeholder = "(555) 123-4567";
+                input.type = "tel";
+            }
+        }
+        
+        async function sendInvite() {
+            const name = document.getElementById('contactName').value.trim();
+            const contact = document.getElementById('contactValue').value.trim();
+            const btn = document.getElementById('sendBtn');
+            const errorDiv = document.getElementById('inviteError');
+            
+            // Hide previous error
+            errorDiv.style.display = 'none';
+            
+            if (!contact) {
+                errorDiv.textContent = 'Please enter an email or phone number';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            
+            try {
+                const res = await fetch('/player/api/send-invite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: contactType,
+                        contact: contact,
+                        name: name
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    showToast('🎉 Invite tracked! Opening your messaging app...', 'success');
+                    document.getElementById('contactName').value = '';
+                    document.getElementById('contactValue').value = '';
+                    
+                    // Open email/sms app with pre-filled message
+                    if (contactType === 'email') {
+                        const msg = `Hey! Join me on Pool Cue - it's a fun app for tracking pool games. Sign up here: ${data.invite_link}`;
+                        window.open(`mailto:${contact}?subject=Join me on Pool Cue!&body=${encodeURIComponent(msg)}`);
+                    } else {
+                        const msg = `Hey! Join me on Pool Cue 🎱 Sign up here: ${data.invite_link}`;
+                        window.open(`sms:${contact}?body=${encodeURIComponent(msg)}`);
+                    }
+                } else {
+                    // Show error in dedicated error div
+                    errorDiv.textContent = data.error || 'Failed to send invite';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (e) {
+                errorDiv.textContent = 'Something went wrong. Please try again.';
+                errorDiv.style.display = 'block';
+            }
+            
+            btn.disabled = false;
+            btn.textContent = '📤 Send Invite';
+        }
+        
+        function copyLink() {
+            const link = document.getElementById('inviteLink').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                showToast('Link copied!', 'success');
+            }).catch(() => {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = link;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('Link copied!', 'success');
+            });
+        }
+        
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show ' + type;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Pool Cue Board</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📺</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; overflow: hidden; background: #0a0a0a; }
+        
+        .app-container { height: 100vh; display: flex; flex-direction: column; }
+        
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: #111;
+            border-bottom: 1px solid #222;
+            flex-shrink: 0;
+        }
+        
+        .app-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #f2f2f2;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        .app-icon { width: 32px; height: 32px; border-radius: 8px; }
+        
+        .app-actions { display: flex; gap: 8px; align-items: center; }
+        .app-btn {
+            padding: 8px 14px;
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #888;
+            font-size: 0.8rem;
+            text-decoration: none;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .app-btn:hover { background: #2a2a2a; color: #f2f2f2; border-color: #444; }
+        .app-btn.primary { background: #f5c518; color: #111; border-color: #f5c518; }
+        .app-btn.primary:hover { background: #e0b015; }
+        
+        .status-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .status-text { font-size: 0.75rem; color: #888; font-family: 'Inter', sans-serif; }
+        
+        .app-content { flex: 1; overflow: hidden; }
+        .app-content iframe { width: 100%; height: 100%; border: none; }
+        
+        /* Fullscreen mode hides header */
+        .app-container.fullscreen .app-header { display: none; }
+        .app-container.fullscreen .app-content { height: 100vh; }
+        
+        .bar-select {
+            padding: 6px 12px;
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #f2f2f2;
+            font-size: 0.8rem;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Bar selection screen */
+        .bar-selector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 20px;
+            color: #f2f2f2;
+            font-family: 'Inter', sans-serif;
+        }
+        .bar-selector h2 { font-size: 1.5rem; font-weight: 600; }
+        .bar-list { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 400px; padding: 0 20px; }
+        .bar-list a {
+            padding: 20px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 10px;
+            color: #f2f2f2;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.15s;
+        }
+        .bar-list a:hover { background: #222; border-color: #f5c518; }
+    </style>
+</head>
+<body>
+    <div class="app-container" id="app">
+        <div class="app-header">
+            <div class="app-title">
+                <span style="width:32px;height:32px;background:#f5c518;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;">📺</span>
+                <span>Board Display</span>
+            </div>
+            <div class="app-actions">
+                {% if bar_id %}
+                <select class="bar-select" onchange="switchBar(this.value)">
+                    {% for bar in bars %}
+                    <option value="{{ bar.id }}" {% if bar.id == bar_id %}selected{% endif %}>{{ bar.name }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+                <div class="status-dot"></div>
+                <span class="status-text">Auto-refresh: {{ ((settings.display_refresh_ms or 2000) / 1000)|round(1) }}s</span>
+                <a href="/master" class="app-btn">← Dashboard</a>
+                {% if bar_id %}
+                <a href="/display?bar_id={{ bar_id }}" target="_blank" class="app-btn">Open Full Screen ↗</a>
+                <button class="app-btn" onclick="toggleQR()">📷 QR</button>
+                {% endif %}
+                <button class="app-btn primary" onclick="goFullscreen()">⛶ Fullscreen</button>
+            </div>
+        </div>
+        <div class="app-content">
+            {% if bar_id %}
+            <iframe src="/display?bar_id={{ bar_id }}" id="board-frame"></iframe>
+            {% else %}
+            <div class="bar-selector">
+                <h2>🎱 Select a Bar</h2>
+                <div class="bar-list">
+                    {% for bar in bars %}
+                    <a href="/app/board/{{ bar.id }}">{{ bar.name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        function goFullscreen() {
+            const app = document.getElementById('app');
+            const iframe = document.getElementById('board-frame');
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+                app.classList.remove('fullscreen');
+            } else {
+                app.requestFullscreen();
+                app.classList.add('fullscreen');
+            }
+        }
+        
+        function toggleQR() {
+            const iframe = document.getElementById('board-frame');
+            if (iframe.src.includes('/q/')) {
+                iframe.src = '/display?bar_id={{ bar_id }}';
+            } else {
+                iframe.src = '/q/{{ bar_id }}';
+            }
+        }
+        
+        function switchBar(barId) {
+            window.location.href = '/app/board/' + barId;
+        }
+        
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                document.getElementById('app').classList.remove('fullscreen');
+            }
+        });
+    </script>
+</body>
+</html>

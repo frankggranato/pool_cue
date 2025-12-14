@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <title>Report Player - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555;
+            --accent: #f5c518; --danger: #ef4444; --border: rgba(255,255,255,0.08);
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding: 20px; padding-bottom: 100px; }
+        .dev-link { position: fixed; top: 8px; right: 8px; padding: 6px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-muted); font-size: 0.65rem; text-decoration: none; z-index: 1000; }
+        
+        .back { color: var(--text-secondary); text-decoration: none; display: inline-block; margin-bottom: 20px; }
+        .header { margin-bottom: 24px; }
+        .header h1 { font-size: 1.25rem; color: var(--danger); font-weight: 700; }
+        .header p { color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px; }
+        
+        .warning-box { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; padding: 16px; margin-bottom: 24px; }
+        .warning-box h3 { color: var(--danger); font-size: 0.85rem; margin-bottom: 6px; }
+        .warning-box p { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 10px; }
+        .reason-options { display: flex; flex-direction: column; gap: 8px; }
+        .reason-option { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; }
+        .reason-option:hover { background: var(--bg-tertiary); }
+        .reason-option input[type="radio"] { width: 18px; height: 18px; accent-color: var(--accent); }
+        .reason-option .text { flex: 1; }
+        .reason-option .title { font-weight: 500; font-size: 0.9rem; }
+        .reason-option .desc { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+        
+        textarea { width: 100%; padding: 14px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; min-height: 100px; resize: vertical; }
+        textarea:focus { outline: none; border-color: var(--accent); }
+        
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-secondary { background: var(--bg-secondary); color: var(--text-primary); margin-top: 10px; border: 1px solid var(--border); }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-primary); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 6px 0 22px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 14px; color: var(--text-muted); text-decoration: none; font-size: 0.6rem; }
+        .nav-item .icon { font-size: 1.25rem; }
+        .nav-item.active { color: var(--text-primary); }
+    </style>
+</head>
+<body>
+    <a href="/master" class="dev-link">← Dashboard</a>
+    <a href="/player/home" class="back">← Back</a>
+    
+    <div class="header">
+        <h1>🚨 Report Player</h1>
+        <p>Help keep the community fair for everyone</p>
+    </div>
+    
+    <div class="warning-box">
+        <h3>⚠️ Please Read</h3>
+        <p>False reports may result in action against your account. Only report genuine issues.</p>
+    </div>
+    
+    <form action="/player/report/{{ player_id }}" method="POST">
+        <div class="form-group">
+            <label>What's the issue?</label>
+            <div class="reason-options">
+                <label class="reason-option">
+                    <input type="radio" name="reason" value="unsportsmanlike" required>
+                    <div class="text"><div class="title">Unsportsmanlike Conduct</div><div class="desc">Cheating, stalling, or disruptive behavior</div></div>
+                </label>
+                <label class="reason-option">
+                    <input type="radio" name="reason" value="harassment">
+                    <div class="text"><div class="title">Harassment or Bullying</div><div class="desc">Verbal abuse, threats, or intimidation</div></div>
+                </label>
+                <label class="reason-option">
+                    <input type="radio" name="reason" value="cheating">
+                    <div class="text"><div class="title">Cheating or Rule Violations</div><div class="desc">Intentional fouls, illegal shots, or manipulation</div></div>
+                </label>
+                <label class="reason-option">
+                    <input type="radio" name="reason" value="no_show">
+                    <div class="text"><div class="title">No-Show / Queue Abuse</div><div class="desc">Not showing up when called or abusing the queue</div></div>
+                </label>
+                <label class="reason-option">
+                    <input type="radio" name="reason" value="rating_manipulation">
+                    <div class="text"><div class="title">Rating Manipulation</div><div class="desc">Intentionally losing or colluding to boost ratings</div></div>
+                </label>
+                <label class="reason-option">
+                    <input type="radio" name="reason" value="inappropriate_behavior">
+                    <div class="text"><div class="title">Inappropriate Behavior</div><div class="desc">Offensive language, gestures, or conduct</div></div>
+                </label>
+                <label class="reason-option">
+                    <input type="radio" name="reason" value="fake_account">
+                    <div class="text"><div class="title">Fake/Smurf Account</div><div class="desc">Using alternate account to game rankings</div></div>
+                </label>
+                <label class="reason-option">
+                    <input type="radio" name="reason" value="intoxication">
+                    <div class="text"><div class="title">Excessive Intoxication</div><div class="desc">Too impaired to play safely or fairly</div></div>
+                </label>
+                <label class="reason-option">
+                    <input type="radio" name="reason" value="other">
+                    <div class="text"><div class="title">Other</div><div class="desc">Something else not listed above</div></div>
+                </label>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>Additional details (optional)</label>
+            <textarea name="details" placeholder="Describe what happened..."></textarea>
+        </div>
+        
+        <button type="submit" class="btn btn-danger">Submit Report</button>
+        <a href="/player/home" class="btn btn-secondary" style="display:block; text-align:center; text-decoration:none;">Cancel</a>
+    </form>
+    
+        <nav class="bottom-nav">
+        <a href="{% if demo_mode %}/player/demo/home{% else %}/player/home{% endif %}" class="nav-item active"><div class="icon">🎱</div><div>Home</div></a>
+        <a href="{% if demo_mode %}/player/demo/friends{% else %}/player/friends{% endif %}" class="nav-item"><div class="icon">👥</div><div>Friends</div></a>
+        <a href="{% if demo_mode %}/player/demo/challenges{% else %}/player/challenges{% endif %}" class="nav-item"><div class="icon">⚔️</div><div>Challenges</div></a>
+        <a href="{% if demo_mode %}/player/demo/leaderboards{% else %}/player/leaderboard{% endif %}" class="nav-item"><div class="icon">🏆</div><div>Rankings</div></a>
+        <a href="{% if demo_mode %}/player/demo/profile{% else %}/player/profile{% endif %}" class="nav-item"><div class="icon">👤</div><div>Profile</div></a>
+    </nav>
+</body>
+</html>

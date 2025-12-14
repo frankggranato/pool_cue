@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#111111">
+    <title>Edit Profile - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222; --border: rgba(255,255,255,0.1);
+            --text-primary: #f2f2f2; --text-secondary: #888888; --text-muted: #555555; --accent: #f5c518; --success: #22c55e;
+            --error: #ef4444; --purple: #a78bfa;
+        }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding-bottom: 40px; }
+        
+        .header { 
+            padding: 16px 20px; 
+            border-bottom: 1px solid var(--border); 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            background: var(--bg-primary);
+            z-index: 100;
+        }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .back-btn { 
+            width: 36px; height: 36px; 
+            background: var(--bg-secondary); border: 1px solid var(--border); 
+            border-radius: 8px; color: var(--text-primary); font-size: 1.2rem; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; 
+            text-decoration: none; 
+        }
+        .header h1 { font-size: 1.1rem; font-weight: 600; }
+</style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <a href="/player/profile" class="back-btn">←</a>
+            <h1>Edit Profile</h1>
+        </div>
+    </div>
+    
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div style="padding:12px 20px;">
+        {% for category, message in messages %}
+        <div style="padding:12px 16px;border-radius:8px;margin-bottom:8px;font-size:0.9rem;
+            {% if category == 'error' %}background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#ef4444;
+            {% else %}background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:#22c55e;{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <form action="/player/profile/edit" method="POST" style="padding:20px;display:flex;flex-direction:column;gap:20px;">
+        
+        <!-- Basic Info Section -->
+        <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02);">
+                <div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;">Basic Info</div>
+            </div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:14px;">
+                
+                <!-- Display Name -->
+                <div>
+                    <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:6px;">Display Name</label>
+                    <input type="text" name="display_name" 
+                           value="{{ player_data.display_name or player_data.nickname or '' }}"
+                           placeholder="How you want to be shown (optional)"
+                           style="width:100%;padding:12px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.95rem;">
+                    <div style="font-size:0.7rem;color:var(--text-secondary);margin-top:4px;">Leave blank to use your nickname: {{ player_data.nickname }}</div>
+                </div>
+                
+                <!-- Email -->
+                <div>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--text-secondary);margin-bottom:6px;">
+                        Email
+                        {% if player_data.email %}
+                            {% if player_data.email_verified %}
+                            <span style="background:rgba(34,197,94,0.15);color:#22c55e;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:500;">✓ Verified</span>
+                            {% else %}
+                            <a href="{{ url_for('auth.verify_start', channel='email') }}" style="background:rgba(249,115,22,0.15);color:#f97316;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:500;text-decoration:none;">⚠️ Unverified - Click to verify</a>
+                            {% endif %}
+                        {% endif %}
+                    </label>
+                    <input type="email" name="email" 
+                           value="{{ player_data.email or '' }}"
+                           placeholder="your@email.com"
+                           style="width:100%;padding:12px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.95rem;">
+                    {% if player_data.email and not player_data.email_verified %}
+                    <div style="font-size:0.7rem;color:#f97316;margin-top:4px;">⚠️ Changing email will require re-verification</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Phone -->
+                <div>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--text-secondary);margin-bottom:6px;">
+                        Phone Number
+                        {% if player_data.phone_number %}
+                            {% if player_data.phone_verified %}
+                            <span style="background:rgba(34,197,94,0.15);color:#22c55e;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:500;">✓ Verified</span>
+                            {% else %}
+                            <a href="{{ url_for('auth.verify_start', channel='phone') }}" style="background:rgba(249,115,22,0.15);color:#f97316;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:500;text-decoration:none;">⚠️ Unverified - Click to verify</a>
+                            {% endif %}
+                        {% endif %}
+                    </label>
+                    <input type="tel" name="phone_number" 
+                           value="{{ player_data.phone_number or '' }}"
+                           placeholder="(555) 123-4567"
+                           style="width:100%;padding:12px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.95rem;">
+                    {% if player_data.phone_number and not player_data.phone_verified %}
+                    <div style="font-size:0.7rem;color:#f97316;margin-top:4px;">⚠️ Changing phone will require re-verification</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Birthday Section -->
+        <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02);">
+                <div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;">🎂 Birthday</div>
+            </div>
+            <div style="padding:16px;">
+                {% if player_data.birthday_change_blocked %}
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                    <div style="flex:1;padding:12px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.95rem;display:flex;align-items:center;gap:8px;">
+                        <span>📅</span>
+                        <span>{{ player_data.birthday }}</span>
+                    </div>
+                    <div style="padding:10px 14px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;color:var(--text-secondary);font-size:0.8rem;">
+                        🔒 Locked
+                    </div>
+                </div>
+                <div style="padding:12px;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.15);border-radius:8px;">
+                    <div style="font-size:0.8rem;color:#f97316;display:flex;align-items:flex-start;gap:8px;">
+                        <span>⏳</span>
+                        <span>Birthday can only be changed once every 6 months.<br><strong>Next change allowed:</strong> {{ player_data.birthday_next_change_allowed }}</span>
+                    </div>
+                </div>
+                <input type="hidden" name="birthday" value="{{ player_data.birthday }}">
+                {% else %}
+                <div>
+                    <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:6px;">Your Birthday</label>
+                    <input type="date" name="birthday" 
+                           value="{{ player_data.birthday or '' }}"
+                           max="{{ today }}"
+                           style="width:100%;padding:12px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.95rem;">
+                    <div style="font-size:0.7rem;color:var(--text-secondary);margin-top:4px;">
+                        {% if player_data.birthday %}
+                        ℹ️ Birthday can only be changed once every 6 months
+                        {% else %}
+                        🎁 Set your birthday to receive 100 bonus tokens each year!
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Pool Preferences Section -->
+        <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02);">
+                <div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;">🎱 Pool Preferences</div>
+            </div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:14px;">
+                
+                <!-- Home Bar -->
+                <div>
+                    <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:6px;">Home Bar</label>
+                    <select name="home_bar_id" style="width:100%;padding:12px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.95rem;">
+                        <option value="">No home bar selected</option>
+                        {% for bar in bars %}
+                        <option value="{{ bar.id }}" {% if player_data.home_bar_id == bar.id %}selected{% endif %}>{{ bar.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div style="font-size:0.7rem;color:var(--text-secondary);margin-top:4px;">Your favorite spot to play</div>
+                </div>
+                
+                <!-- Play Frequency -->
+                <div>
+                    <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:6px;">How often do you play pool?</label>
+                    <select name="play_frequency" style="width:100%;padding:12px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.95rem;">
+                        <option value="">Not specified</option>
+                        <option value="rarely" {% if player_data.play_frequency == 'rarely' %}selected{% endif %}>Rarely (once a month or less)</option>
+                        <option value="weekly" {% if player_data.play_frequency == 'weekly' %}selected{% endif %}>Weekly (about once a week)</option>
+                        <option value="multiple_weekly" {% if player_data.play_frequency == 'multiple_weekly' %}selected{% endif %}>Multiple times a week</option>
+                        <option value="daily" {% if player_data.play_frequency == 'daily' %}selected{% endif %}>Daily or almost daily</option>
+                    </select>
+                </div>
+                
+                <!-- Skill Level -->
+                <div>
+                    <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:6px;">Skill Level</label>
+                    <select name="skill_level" style="width:100%;padding:12px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.95rem;">
+                        <option value="">Not specified</option>
+                        <option value="beginner" {% if player_data.skill_self_rating == 'beginner' %}selected{% endif %}>🌱 Beginner - Just learning</option>
+                        <option value="intermediate" {% if player_data.skill_self_rating == 'intermediate' %}selected{% endif %}>📊 Intermediate - Know the basics</option>
+                        <option value="advanced" {% if player_data.skill_self_rating == 'advanced' %}selected{% endif %}>🎯 Advanced - Competitive player</option>
+                        <option value="expert" {% if player_data.skill_self_rating == 'expert' %}selected{% endif %}>🏆 Expert - Tournament level</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Communication Preferences -->
+        <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02);">
+                <div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;">📬 Communication</div>
+            </div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:14px;">
+                
+                <!-- Preferred Contact Method -->
+                <div>
+                    <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:6px;">Preferred Contact Method</label>
+                    <select name="preferred_contact_method" style="width:100%;padding:12px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.95rem;">
+                        <option value="email" {% if player_data.preferred_contact_method == 'email' %}selected{% endif %}>📧 Email</option>
+                        <option value="sms" {% if player_data.preferred_contact_method == 'sms' %}selected{% endif %}>📱 SMS / Text</option>
+                        <option value="both" {% if player_data.preferred_contact_method == 'both' %}selected{% endif %}>📧📱 Both Email & SMS</option>
+                        <option value="none" {% if player_data.preferred_contact_method == 'none' %}selected{% endif %}>🔕 No marketing communications</option>
+                    </select>
+                </div>
+                
+                <!-- Marketing Opt-in -->
+                <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;">
+                    <input type="checkbox" name="marketing_opt_in" id="marketing_opt_in" 
+                           {% if player_data.marketing_opt_in %}checked{% endif %}
+                           style="width:20px;height:20px;margin-top:2px;accent-color:var(--success);">
+                    <label for="marketing_opt_in" style="flex:1;cursor:pointer;">
+                        <div style="font-size:0.9rem;font-weight:500;margin-bottom:4px;">Send me offers and updates</div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);">Get notified about pool nights, special promotions, and tournaments near you</div>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Save Button -->
+        <button type="submit" style="width:100%;padding:16px;background:var(--accent);color:#111;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit;">
+            Save Changes
+        </button>
+        
+        <a href="/player/profile" style="display:block;text-align:center;padding:14px;color:var(--text-secondary);text-decoration:none;font-size:0.9rem;">Cancel</a>
+    </form>
+</body>
+</html>

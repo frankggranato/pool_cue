@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Report Player - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #222222;
+            --text-primary: #f2f2f2;
+            --text-secondary: #888888;
+            --text-muted: #555555;
+            --accent: #f5c518;
+            --success: #22c55e;
+            --warning: #f97316;
+            --danger: #ef4444;
+            --border: rgba(255,255,255,0.08);
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+            padding: 0;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg-primary);
+            z-index: 100;
+        }
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .logo-mark {
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        .back-btn {
+            padding: 10px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-decoration: none;
+        }
+        
+        .container { max-width: 500px; margin: 0 auto; padding: 20px; }
+        
+        .report-header {
+            text-align: center;
+            padding: 20px 0 30px;
+        }
+        .report-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+        .report-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .report-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .player-name {
+            color: var(--danger);
+            font-weight: 600;
+        }
+        
+        .reason-grid {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+        .reason-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+            text-align: left;
+        }
+        .reason-btn:hover {
+            border-color: var(--text-muted);
+        }
+        .reason-btn.selected {
+            border-color: var(--danger);
+            background: rgba(239,68,68,0.1);
+        }
+        .reason-icon {
+            font-size: 1.3rem;
+            width: 32px;
+            text-align: center;
+        }
+        
+        .details-section {
+            margin-bottom: 24px;
+        }
+        .details-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .details-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: vertical;
+        }
+        .details-textarea:focus {
+            outline: none;
+            border-color: var(--text-muted);
+        }
+        .details-textarea::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: var(--danger);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: opacity 0.15s;
+        }
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .submit-btn:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+        
+        .cancel-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            margin-top: 12px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            cursor: pointer;
+            font-family: inherit;
+            text-align: center;
+            text-decoration: none;
+        }
+        
+        .privacy-note {
+            margin-top: 20px;
+            padding: 14px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            z-index: 9999;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .toast.success { background: rgba(34,197,94,0.95); color: white; }
+        .toast.error { background: rgba(239,68,68,0.95); color: white; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <div class="logo-mark">🎱</div>
+            <span>Pool Cue</span>
+        </div>
+        <a href="/player/home" class="back-btn">← Back</a>
+    </div>
+    
+    <div class="container">
+        <div class="report-header">
+            <div class="report-icon">🚩</div>
+            <div class="report-title">Report Player</div>
+            <div class="report-subtitle">
+                Reporting <span class="player-name">{{ player.nickname }}</span>
+            </div>
+        </div>
+        
+        <div class="reason-grid">
+            <button type="button" class="reason-btn" data-reason="unsportsmanlike" onclick="selectReason(this)">
+                <span class="reason-icon">😤</span>
+                <span>Unsportsmanlike Conduct</span>
+            </button>
+            <button type="button" class="reason-btn" data-reason="harassment" onclick="selectReason(this)">
+                <span class="reason-icon">🚫</span>
+                <span>Harassment or Bullying</span>
+            </button>
+            <button type="button" class="reason-btn" data-reason="cheating" onclick="selectReason(this)">
+                <span class="reason-icon">🎯</span>
+                <span>Cheating or Rule Violations</span>
+            </button>
+            <button type="button" class="reason-btn" data-reason="no_show" onclick="selectReason(this)">
+                <span class="reason-icon">👻</span>
+                <span>No-Show / Queue Abuse</span>
+            </button>
+            <button type="button" class="reason-btn" data-reason="inappropriate_behavior" onclick="selectReason(this)">
+                <span class="reason-icon">⚠️</span>
+                <span>Inappropriate Behavior</span>
+            </button>
+            <button type="button" class="reason-btn" data-reason="other" onclick="selectReason(this)">
+                <span class="reason-icon">📝</span>
+                <span>Other</span>
+            </button>
+        </div>
+        
+        <div class="details-section">
+            <div class="details-label">Additional Details (Optional)</div>
+            <textarea id="details" class="details-textarea" placeholder="Describe what happened..."></textarea>
+        </div>
+        
+        <button id="submitBtn" class="submit-btn" onclick="submitReport()" disabled>
+            Submit Report
+        </button>
+        
+        <a href="/player/home" class="cancel-btn">Cancel</a>
+        
+        <div class="privacy-note">
+            🔒 Reports are reviewed by our team. Your identity will be kept confidential.
+        </div>
+    </div>
+    
+    <script>
+        let selectedReason = null;
+        const playerId = {{ player.id }};
+        
+        function selectReason(btn) {
+            document.querySelectorAll('.reason-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedReason = btn.dataset.reason;
+            document.getElementById('submitBtn').disabled = false;
+        }
+        
+        async function submitReport() {
+            if (!selectedReason) return;
+            
+            const details = document.getElementById('details').value.trim();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+            
+            try {
+                const res = await fetch('/api/report-player', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        player_id: playerId,
+                        reason: selectedReason,
+                        details: details
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    showToast('✅ Report submitted. Thank you!', 'success');
+                    setTimeout(() => window.location.href = '/player/home', 1500);
+                } else {
+                    showToast(data.error || 'Failed to submit', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Submit Report';
+                }
+            } catch (e) {
+                showToast('Connection error', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Submit Report';
+            }
+        }
+        
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>

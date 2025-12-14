@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Invites - Pool Cue</title>
+    <link rel="stylesheet" href="/static/css/master-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.05);--t1:#e4e4e7;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--orange:#f97316;--cyan:#06b6d4;--purple:#a855f7}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:11px}
+        .p{padding:16px 20px}
+        
+        /* Breadcrumbs */
+        .breadcrumbs{font-size:0.65rem;color:var(--t3);margin-bottom:12px}
+        .breadcrumbs a{color:var(--t2);text-decoration:none}
+        .breadcrumbs a:hover{color:var(--gold)}
+        
+        /* Header */
+        .hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px}
+        .hdr h1{font-size:1rem;font-weight:600;display:flex;align-items:center;gap:8px}
+        .hdr-sub{font-size:0.7rem;color:var(--t3);font-weight:400}
+        .hdr-r{display:flex;gap:8px;align-items:center}
+        .status-badge{padding:4px 10px;border-radius:4px;font-size:0.6rem;font-weight:600}
+        .status-badge.enabled{background:rgba(34,197,94,0.15);color:var(--green)}
+        .status-badge.disabled{background:rgba(239,68,68,0.15);color:var(--red)}
+        
+        /* Cards */
+        .c{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+        .c-h{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+        .c-t{font-size:0.7rem;font-weight:600}
+        .c-b{padding:14px}
+        
+        /* KPI Grid */
+        .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));gap:10px;margin-bottom:16px}
+        .kpi{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:14px;text-align:center}
+        .kpi-v{font-size:1.4rem;font-weight:600;color:var(--gold)}
+        .kpi-l{font-size:0.55rem;color:var(--t3);text-transform:uppercase;margin-top:4px;letter-spacing:0.5px}
+        .kpi-sub{font-size:0.6rem;color:var(--t2);margin-top:2px}
+        .kpi.pending .kpi-v{color:var(--orange)}
+        .kpi.sent .kpi-v{color:var(--blue)}
+        .kpi.opened .kpi-v{color:var(--cyan)}
+        .kpi.completed .kpi-v{color:var(--green)}
+        .kpi.rejected .kpi-v{color:var(--red)}
+        .kpi.rate .kpi-v{color:var(--purple)}
+        </style>
+</head>
+<body>
+    {% include 'master/_nav.html' %}
+    <div class="p">
+        <!-- Breadcrumbs -->
+        <div class="breadcrumbs">
+            <a href="/master/">Dashboard</a> → <a href="/master/analytics">Analytics</a> → Auto Invites
+        </div>
+        
+        <!-- Header -->
+        <div class="hdr">
+            <div>
+                <h1>📲 Auto Invites <span class="hdr-sub">Smart Guest Conversion</span></h1>
+            </div>
+            <div class="hdr-r">
+                <span class="status-badge {% if analytics.global_enabled %}enabled{% else %}disabled{% endif %}">
+                    {{ 'Enabled' if analytics.global_enabled else 'Disabled' }}
+                </span>
+            </div>
+        </div>
+        
+        <!-- Settings Card (Inline) -->
+        <div class="c" style="margin-bottom:16px;border-color:rgba(234,179,8,0.2)">
+            <div class="c-h" style="background:rgba(234,179,8,0.05)">
+                <span class="c-t" style="color:var(--gold)">⚙️ Auto-Invite Settings</span>
+            </div>
+            <div class="c-b">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+                        <div>
+                            <div style="font-size:0.75rem;font-weight:500;margin-bottom:2px">Enable Auto-Invites Globally</div>
+                            <div style="font-size:0.6rem;color:var(--t3)">Flag frequent guests for SMS invites</div>
+                        </div>
+                        <form action="/master/settings/auto_invites" method="POST" style="margin:0">
+                            <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer">
+                                <input type="checkbox" {% if analytics.global_enabled %}checked{% endif %} onchange="this.form.submit()" style="opacity:0;width:0;height:0;position:absolute">
+                                <span style="position:absolute;inset:0;background:{% if analytics.global_enabled %}var(--green){% else %}#52525b{% endif %};border-radius:12px;transition:0.2s"></span>
+                                <span style="position:absolute;height:18px;width:18px;left:{% if analytics.global_enabled %}23px{% else %}3px{% endif %};bottom:3px;background:#fff;border-radius:50%;transition:0.2s"></span>
+                            </label>
+                        </form>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+                        <div>
+                            <div style="font-size:0.75rem;font-weight:500;margin-bottom:2px">Threshold (Days)</div>
+                            <div style="font-size:0.6rem;color:var(--t3)">Days a guest must play before invite</div>
+                        </div>
+                        <form action="/master/settings/auto_invite_threshold" method="POST" style="margin:0;display:flex;gap:6px">
+                            <input type="number" name="threshold" value="{{ analytics.threshold or 3 }}" min="1" max="30" style="width:50px;padding:5px 8px;background:var(--card);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.75rem;text-align:center">
+                            <button type="submit" style="padding:4px 8px;font-size:0.6rem;background:var(--gold);color:#000;border:none;border-radius:4px;cursor:pointer">Save</button>
+                        </form>
+                    </div>
+                </div>
+                <div style="margin-top:12px;padding:10px;background:rgba(255,255,255,0.02);border-radius:4px">
+                    <div style="font-size:0.6rem;color:var(--t3)">
+                        <strong style="color:var(--gold)">How it works:</strong> Guests without accounts who play on {{ analytics.threshold or 3 }}+ different days are flagged for invite. SMS sending via Twilio coming soon.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Insight Box -->
+        {% if analytics.top_bar %}
+        <div class="c" style="margin-bottom:16px;border-color:rgba(168,85,247,0.3)">
+            <div class="c-b" style="display:flex;align-items:center;gap:12px;background:rgba(168,85,247,0.05)">
+                <span style="font-size:1.5rem">💡</span>
+                <div>
+                    <div style="font-size:0.75rem;font-weight:600;color:var(--purple)">Top Insight</div>
+                    <div style="font-size:0.7rem;color:var(--t2)">
+                        <strong>{{ analytics.top_bar.bar_name }}</strong> is your best converting bar with 
+                        <strong style="color:var(--green)">{{ analytics.top_bar.conversion_rate }}%</strong> signup rate 
+                        ({{ analytics.top_bar.completed }} signups from {{ analytics.top_bar.sent }} sent).
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- KPI Row 1: Volume -->
+        <div class="kpi-grid">
+            <div class="kpi">
+                <div class="kpi-v">{{ analytics.threshold }}</div>
+                <div class="kpi-l">Threshold Days</div>
+                <div class="kpi-sub">Triggers invite</div>
+            </div>
+            <div class="kpi pending">
+                <div class="kpi-v">{{ analytics.eligible_not_invited or 0 }}</div>
+                <div class="kpi-l">Ready to Invite</div>
+                <div class="kpi-sub">Hit threshold</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-v">{{ analytics.total_created }}</div>
+                <div class="kpi-l">Total Created</div>
+                <div class="kpi-sub">All time</div>
+            </div>
+            <div class="kpi sent">
+                <div class="kpi-v">{{ analytics.total_sent }}</div>
+                <div class="kpi-l">Sent</div>
+                <div class="kpi-sub">SMS delivered</div>
+            </div>
+        </div>
+        
+        <!-- KPI Row 2: Funnel -->
+        <div class="kpi-grid">
+            <div class="kpi opened">
+                <div class="kpi-v">{{ analytics.total_opened }}</div>
+                <div class="kpi-l">Opened</div>
+                <div class="kpi-sub">Clicked link</div>
+            </div>
+            <div class="kpi completed">
+                <div class="kpi-v">{{ analytics.total_completed }}</div>
+                <div class="kpi-l">Signups</div>
+                <div class="kpi-sub">Completed</div>
+            </div>
+            <div class="kpi rate">
+                <div class="kpi-v">{{ analytics.open_rate }}%</div>
+                <div class="kpi-l">Open Rate</div>
+                <div class="kpi-sub">Opens / Sent</div>
+            </div>
+            <div class="kpi rate">
+                <div class="kpi-v">{{ analytics.conversion_rate }}%</div>
+                <div class="kpi-l">Conversion</div>
+                <div class="kpi-sub">Signups / Sent</div>
+            </div>
+        </div>
+
+        <!-- Two Column Layout -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+            
+            <!-- Funnel Visualization -->
+            <div class="c">
+                <div class="c-h"><span class="c-t">📊 Conversion Funnel</span></div>
+                <div class="c-b">
+                    {% set sent = analytics.total_sent or 1 %}
+                    {% set opened_pct = (analytics.total_opened * 100 // sent) if sent > 0 else 0 %}
+                    {% set conv_pct = (analytics.total_completed * 100 // sent) if sent > 0 else 0 %}
+                    
+                    <div style="margin-bottom:12px">
+                        <div style="display:flex;justify-content:space-between;font-size:0.65rem;margin-bottom:4px">
+                            <span>📨 Sent</span><span style="color:var(--blue)">{{ analytics.total_sent }}</span>
+                        </div>
+                        <div style="height:8px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden">
+                            <div style="width:100%;height:100%;background:var(--blue)"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom:12px">
+                        <div style="display:flex;justify-content:space-between;font-size:0.65rem;margin-bottom:4px">
+                            <span>👀 Opened</span><span style="color:var(--cyan)">{{ analytics.total_opened }} ({{ analytics.open_rate }}%)</span>
+                        </div>
+                        <div style="height:8px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden">
+                            <div style="width:{{ opened_pct }}%;height:100%;background:var(--cyan)"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div style="display:flex;justify-content:space-between;font-size:0.65rem;margin-bottom:4px">
+                            <span>✅ Signed Up</span><span style="color:var(--green)">{{ analytics.total_completed }} ({{ analytics.conversion_rate }}%)</span>
+                        </div>
+                        <div style="height:8px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden">
+                            <div style="width:{{ conv_pct }}%;height:100%;background:var(--green)"></div>
+                        </div>
+                    </div>
+                    
+                    {% if analytics.rejected > 0 %}
+                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+                        <div style="display:flex;justify-content:space-between;font-size:0.65rem">
+                            <span>❌ Rejected</span><span style="color:var(--red)">{{ analytics.rejected }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Bar Coverage -->
+            <div class="c">
+                <div class="c-h"><span class="c-t">🏪 Bar Coverage</span></div>
+                <div class="c-b">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                        <span style="font-size:0.7rem;color:var(--t2)">Bars with Auto-Invites Enabled</span>
+                        <span style="font-size:1rem;font-weight:600;color:var(--gold)">{{ analytics.bars_enabled_count }} / {{ analytics.total_bars }}</span>
+                    </div>
+                    <div style="height:8px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden;margin-bottom:16px">
+                        {% set bar_pct = (analytics.bars_enabled_count * 100 // analytics.total_bars) if analytics.total_bars > 0 else 0 %}
+                        <div style="width:{{ bar_pct }}%;height:100%;background:var(--gold)"></div>
+                    </div>
+                    
+                    <div style="font-size:0.65rem;color:var(--t3);margin-bottom:8px">Status Breakdown</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                        <div style="padding:10px;background:rgba(34,197,94,0.1);border-radius:4px;text-align:center">
+                            <div style="font-size:1rem;font-weight:600;color:var(--green)">{{ analytics.bars_enabled_count }}</div>
+                            <div style="font-size:0.55rem;color:var(--t3)">ENABLED</div>
+                        </div>
+                        <div style="padding:10px;background:rgba(239,68,68,0.1);border-radius:4px;text-align:center">
+                            <div style="font-size:1rem;font-weight:600;color:var(--red)">{{ analytics.total_bars - analytics.bars_enabled_count }}</div>
+                            <div style="font-size:0.55rem;color:var(--t3)">DISABLED</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Per-Bar Performance Table -->
+        <div class="c" style="margin-bottom:16px">
+            <div class="c-h">
+                <span class="c-t">🏆 Per-Bar Performance</span>
+                <span style="font-size:0.6rem;color:var(--t3)">Sorted by signups</span>
+            </div>
+            {% if analytics.by_bar and analytics.by_bar|length > 0 %}
+            <table style="width:100%;border-collapse:collapse;font-size:0.7rem">
+                <thead>
+                    <tr style="background:rgba(0,0,0,0.2)">
+                        <th style="text-align:left;padding:10px 12px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Bar</th>
+                        <th style="text-align:center;padding:10px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Created</th>
+                        <th style="text-align:center;padding:10px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Sent</th>
+                        <th style="text-align:center;padding:10px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Opened</th>
+                        <th style="text-align:center;padding:10px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Signups</th>
+                        <th style="text-align:center;padding:10px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Open %</th>
+                        <th style="text-align:center;padding:10px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Conv %</th>
+                        <th style="text-align:center;padding:10px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bar in analytics.by_bar %}
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.02)">
+                        <td style="padding:10px 12px">
+                            <a href="/master/bar/{{ bar.bar_id }}" style="color:var(--gold);text-decoration:none">{{ bar.bar_name or 'Unknown' }}</a>
+                        </td>
+                        <td style="text-align:center;padding:10px 8px">{{ bar.total_invites }}</td>
+                        <td style="text-align:center;padding:10px 8px;color:var(--blue)">{{ bar.sent }}</td>
+                        <td style="text-align:center;padding:10px 8px;color:var(--cyan)">{{ bar.opened }}</td>
+                        <td style="text-align:center;padding:10px 8px;color:var(--green);font-weight:600">{{ bar.completed }}</td>
+                        <td style="text-align:center;padding:10px 8px">{{ bar.open_rate }}%</td>
+                        <td style="text-align:center;padding:10px 8px">
+                            <span style="color:{% if bar.conversion_rate >= 20 %}var(--green){% elif bar.conversion_rate >= 10 %}var(--gold){% else %}var(--t2){% endif %}">
+                                {{ bar.conversion_rate }}%
+                            </span>
+                        </td>
+                        <td style="text-align:center;padding:10px 8px">
+                            {% if bar.auto_invites_enabled %}
+                            <span style="padding:2px 6px;background:rgba(34,197,94,0.15);color:var(--green);border-radius:3px;font-size:0.5rem;font-weight:600">ON</span>
+                            {% else %}
+                            <span style="padding:2px 6px;background:rgba(239,68,68,0.15);color:var(--red);border-radius:3px;font-size:0.5rem;font-weight:600">OFF</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="c-b" style="text-align:center;padding:40px;color:var(--t3)">
+                <div style="font-size:2rem;margin-bottom:8px">📊</div>
+                <div style="font-size:0.75rem">No bar data yet</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Recent Invites -->
+        <div class="c">
+            <div class="c-h">
+                <span class="c-t">📋 Recent Auto-Invites</span>
+                <a href="/master/invites" style="font-size:0.65rem;color:var(--gold);text-decoration:none">View All →</a>
+            </div>
+            {% if analytics.recent_invites and analytics.recent_invites|length > 0 %}
+            <table style="width:100%;border-collapse:collapse;font-size:0.7rem">
+                <thead>
+                    <tr style="background:rgba(0,0,0,0.2)">
+                        <th style="text-align:left;padding:10px 12px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Phone</th>
+                        <th style="text-align:left;padding:10px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Bar</th>
+                        <th style="text-align:center;padding:10px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Queue Count</th>
+                        <th style="text-align:center;padding:10px 8px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Status</th>
+                        <th style="text-align:right;padding:10px 12px;color:var(--t3);font-weight:500;font-size:0.55rem;text-transform:uppercase">Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inv in analytics.recent_invites %}
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.02)">
+                        <td style="padding:10px 12px;font-family:monospace">****{{ inv.phone_number[-4:] if inv.phone_number else '----' }}</td>
+                        <td style="padding:10px 8px">
+                            {% if inv.bar_id %}
+                            <a href="/master/bar/{{ inv.bar_id }}" style="color:var(--gold);text-decoration:none">{{ inv.bar_name or 'Unknown' }}</a>
+                            {% else %}
+                            <span style="color:var(--t3)">-</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align:center;padding:10px 8px">{{ inv.queue_count or 0 }}</td>
+                        <td style="text-align:center;padding:10px 8px">
+                            {% if inv.status == 'completed' %}
+                            <span style="padding:2px 8px;background:rgba(34,197,94,0.15);color:var(--green);border-radius:3px;font-size:0.55rem;font-weight:600">COMPLETED</span>
+                            {% elif inv.status == 'pending' %}
+                            <span style="padding:2px 8px;background:rgba(249,115,22,0.15);color:var(--orange);border-radius:3px;font-size:0.55rem;font-weight:600">PENDING</span>
+                            {% elif inv.status == 'rejected' %}
+                            <span style="padding:2px 8px;background:rgba(239,68,68,0.15);color:var(--red);border-radius:3px;font-size:0.55rem;font-weight:600">REJECTED</span>
+                            {% elif inv.opened_at %}
+                            <span style="padding:2px 8px;background:rgba(6,182,212,0.15);color:var(--cyan);border-radius:3px;font-size:0.55rem;font-weight:600">OPENED</span>
+                            {% elif inv.invited_at %}
+                            <span style="padding:2px 8px;background:rgba(59,130,246,0.15);color:var(--blue);border-radius:3px;font-size:0.55rem;font-weight:600">SENT</span>
+                            {% else %}
+                            <span style="padding:2px 8px;background:rgba(82,82,91,0.3);color:var(--t3);border-radius:3px;font-size:0.55rem;font-weight:600">NEW</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align:right;padding:10px 12px;color:var(--t3)">{{ inv.created_at[:16] if inv.created_at else '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="c-b" style="text-align:center;padding:40px;color:var(--t3)">
+                <div style="font-size:2rem;margin-bottom:8px">📲</div>
+                <div style="font-size:0.75rem;margin-bottom:4px">No auto-invites yet</div>
+                <div style="font-size:0.65rem">Enable auto-invites using the toggle above to start converting guests</div>
+            </div>
+            {% endif %}
+        </div>
+        
+    </div>
+    
+    <style>
+        /* Button styles */
+        .btn{padding:6px 12px;border-radius:4px;font-size:0.65rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:0;color:var(--t2);text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+        .btn:hover{border-color:var(--gold);color:var(--gold)}
+        
+        /* Responsive */
+        @media(max-width:768px){
+            .kpi-grid{grid-template-columns:repeat(2,1fr)}
+            div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#111111">
+    <title>Quick Survey - Pool Cue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #111111; --bg-secondary: #1a1a1a; --bg-tertiary: #222222;
+            --text-primary: #f2f2f2; --text-secondary: #888888;
+            --accent: #f5c518; --success: #22c55e;
+            --border: rgba(255,255,255,0.08);
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding: 20px; }
+        
+        .survey-container { max-width: 400px; margin: 0 auto; }
+        .survey-header { text-align: center; margin-bottom: 30px; }
+        .survey-header h1 { font-size: 1.5rem; margin-bottom: 8px; }
+        .survey-header p { color: var(--text-secondary); font-size: 0.9rem; }
+        .token-reward { display: inline-flex; align-items: center; gap: 6px; background: rgba(245,197,24,0.15); color: var(--accent); padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-top: 12px; }
+        
+        .question { background: var(--bg-secondary); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+        .question-label { font-size: 0.9rem; font-weight: 600; margin-bottom: 14px; display: block; }
+        
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--bg-tertiary); border: 2px solid transparent; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
+        .option:hover { border-color: var(--border); }
+        .option.selected { border-color: var(--accent); background: rgba(245,197,24,0.1); }
+        .option input { display: none; }
+        .option-circle { width: 20px; height: 20px; border: 2px solid var(--text-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .option.selected .option-circle { border-color: var(--accent); background: var(--accent); }
+        .option.selected .option-circle::after { content: '✓'; color: #111; font-size: 12px; font-weight: bold; }
+        .option-text { font-size: 0.9rem; }
+        
+        .brands-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .brand-btn { padding: 14px; background: var(--bg-tertiary); border: 2px solid transparent; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; }
+        .brand-btn:hover { border-color: var(--border); }
+        .brand-btn.selected { border-color: var(--accent); background: rgba(245,197,24,0.1); }
+        .brand-btn .emoji { font-size: 1.5rem; display: block; margin-bottom: 6px; }
+        
+        .submit-btn { width: 100%; padding: 16px; background: var(--accent); border: none; border-radius: 12px; color: #111; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 20px; font-family: inherit; }
+        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .submit-btn:hover:not(:disabled) { transform: scale(1.02); }
+        
+        .skip-btn { display: block; text-align: center; color: var(--text-secondary); font-size: 0.85rem; margin-top: 16px; text-decoration: none; }
+        
+        /* Success state */
+        .success-state { display: none; text-align: center; padding: 40px 20px; }
+        .success-state.show { display: block; }
+        .success-state .icon { font-size: 4rem; margin-bottom: 20px; }
+        .success-state h2 { margin-bottom: 10px; }
+        .success-state .tokens { font-size: 2rem; color: var(--accent); font-weight: 800; margin: 20px 0; }
+        
+        .survey-form.hide { display: none; }
+        
+        /* Result badge shows game outcome */
+        .result-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 0.8rem; margin-bottom: 16px; }
+        .result-badge.win { background: rgba(34,197,94,0.15); color: var(--success); }
+        .result-badge.loss { background: rgba(239,68,68,0.15); color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="survey-container">
+        <div class="survey-header">
+            <h1>🍺 Quick Survey</h1>
+            <p>Help us improve your experience</p>
+            <div class="token-reward">🪙 Earn 25 tokens</div>
+        </div>
+        
+        <form class="survey-form" id="surveyForm">
+            <!-- Question 1: Did you order a drink? -->
+            <div class="question">
+                <label class="question-label">Did you order a drink during your session?</label>
+                <div class="options">
+                    <label class="option" onclick="selectOption(this, 'ordered_drink', 'yes')">
+                        <input type="radio" name="ordered_drink" value="yes">
+                        <span class="option-circle"></span>
+                        <span class="option-text">Yes, I ordered something</span>
+                    </label>
+                    <label class="option" onclick="selectOption(this, 'ordered_drink', 'no')">
+                        <input type="radio" name="ordered_drink" value="no">
+                        <span class="option-circle"></span>
+                        <span class="option-text">No, not this time</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Question 2: What type? (shown if yes) -->
+            <div class="question" id="drinkTypeQ" style="display:none;">
+                <label class="question-label">What type of drink?</label>
+                <div class="options">
+                    <label class="option" onclick="selectOption(this, 'drink_type', 'beer')">
+                        <input type="radio" name="drink_type" value="beer">
+                        <span class="option-circle"></span>
+                        <span class="option-text">🍺 Beer</span>
+                    </label>
+                    <label class="option" onclick="selectOption(this, 'drink_type', 'liquor')">
+                        <input type="radio" name="drink_type" value="liquor">
+                        <span class="option-circle"></span>
+                        <span class="option-text">🥃 Whiskey/Liquor</span>
+                    </label>
+                    <label class="option" onclick="selectOption(this, 'drink_type', 'cocktail')">
+                        <input type="radio" name="drink_type" value="cocktail">
+                        <span class="option-circle"></span>
+                        <span class="option-text">🍹 Cocktail</span>
+                    </label>
+                    <label class="option" onclick="selectOption(this, 'drink_type', 'other')">
+                        <input type="radio" name="drink_type" value="other">
+                        <span class="option-circle"></span>
+                        <span class="option-text">🥤 Non-alcoholic / Other</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Question 3: Brand (shown if beer or liquor) -->
+            <div class="question" id="brandQ" style="display:none;">
+                <label class="question-label">Which brand?</label>
+                <div class="brands-grid" id="brandOptions">
+                    <!-- Populated by JS based on drink type -->
+                </div>
+            </div>
+            
+            <!-- Question 4: Ad influence -->
+            <div class="question" id="adInfluenceQ" style="display:none;">
+                <label class="question-label">Did you see an ad for this brand tonight?</label>
+                <div class="options">
+                    <label class="option" onclick="selectOption(this, 'saw_ad', 'yes')">
+                        <input type="radio" name="saw_ad" value="yes">
+                        <span class="option-circle"></span>
+                        <span class="option-text">Yes, I saw an ad</span>
+                    </label>
+                    <label class="option" onclick="selectOption(this, 'saw_ad', 'no')">
+                        <input type="radio" name="saw_ad" value="no">
+                        <span class="option-circle"></span>
+                        <span class="option-text">No / Not sure</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Question 5: Did ad influence? -->
+            <div class="question" id="influenceQ" style="display:none;">
+                <label class="question-label">Did the ad influence your choice?</label>
+                <div class="options">
+                    <label class="option" onclick="selectOption(this, 'ad_influenced', 'yes')">
+                        <input type="radio" name="ad_influenced" value="yes">
+                        <span class="option-circle"></span>
+                        <span class="option-text">Yes, it reminded me</span>
+                    </label>
+                    <label class="option" onclick="selectOption(this, 'ad_influenced', 'no')">
+                        <input type="radio" name="ad_influenced" value="no">
+                        <span class="option-circle"></span>
+                        <span class="option-text">No, I was getting it anyway</span>
+                    </label>
+                </div>
+            </div>
+            
+            <button type="submit" class="submit-btn" id="submitBtn" disabled>Submit & Earn 25 🪙</button>
+        </form>
+        
+        <a href="/player/home" class="skip-btn">Skip for now</a>

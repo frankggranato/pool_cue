@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Pool Cue</title>
+    <link rel="stylesheet" href="/static/css/master-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.05);--t1:#e4e4e7;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);font-size:11px}
+        .p{padding:12px 16px;max-width:1000px;margin:0 auto}
+        .hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+        .hdr h1{font-size:0.85rem;font-weight:600}
+        .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .c{background:var(--card);border:1px solid var(--border);border-radius:6px;margin-bottom:12px}
+        .c-h{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+        .c-t{font-size:0.75rem;font-weight:600}
+        .c-b{padding:16px}
+        .setting-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+        .setting-row:last-child{border:0}
+        .setting-info{flex:1}
+        .setting-name{font-size:0.75rem;font-weight:500;margin-bottom:2px}
+        .setting-desc{font-size:0.65rem;color:var(--t3)}
+        .toggle{position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;flex-shrink:0}
+        .toggle input{opacity:0;width:0;height:0;position:absolute}
+        .toggle-slider{position:absolute;inset:0;background:#52525b;border-radius:12px;transition:0.2s}
+        .toggle-slider:before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.2s}
+        .toggle input:checked + .toggle-slider{background:var(--green)}
+        .toggle input:checked + .toggle-slider:before{transform:translateX(20px)}
+        .btn{padding:6px 14px;border-radius:4px;font-size:0.65rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:0;color:var(--t2);text-decoration:none}
+        .btn:hover{border-color:var(--gold);color:var(--gold)}
+        .btn-p{background:var(--gold);border-color:var(--gold);color:#000}
+        .btn-red{border-color:var(--red);color:var(--red)}
+        .btn-red:hover{background:rgba(239,68,68,0.1)}
+        .input{padding:6px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;color:var(--t1);font-size:0.75rem;width:80px;text-align:center}
+        .input:focus{outline:none;border-color:var(--gold)}
+        .stat-value{font-size:0.85rem;font-weight:600;color:var(--gold)}
+        .stat-enabled{color:var(--green)}
+        .stat-disabled{color:var(--red)}
+        .section-label{font-size:0.55rem;color:var(--t3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+    </style>
+</head>
+<body>
+    {% include 'master/_nav.html' %}
+    <div class="p">
+        <div class="hdr">
+            <h1>⚙️ App Settings</h1>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div style="margin-bottom:12px;">
+            {% for category, message in messages %}
+            <div style="padding:8px 12px;border-radius:4px;font-size:0.7rem;
+                {% if category == 'error' %}background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:var(--red);
+                {% else %}background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:var(--green);{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="g2">
+            <!-- Board Display Settings -->
+            <div class="c">
+                <div class="c-h"><span class="c-t">📺 Board Display</span></div>
+                <div class="c-b">
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">Display Refresh Rate</div>
+                            <div class="setting-desc">How often board displays poll for updates</div>
+                        </div>
+                        <form action="/master/settings/update" method="POST" style="display:flex;gap:6px;align-items:center">
+                            <input type="hidden" name="key" value="display_refresh_ms">
+                            <input type="number" name="value" class="input" value="{{ settings.display_refresh_ms or 2000 }}" min="500" max="10000" step="500">
+                            <span style="font-size:0.65rem;color:var(--t3)">ms</span>
+                            <button type="submit" class="btn" style="padding:4px 8px">Save</button>
+                        </form>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">Base Match Duration</div>
+                            <div class="setting-desc">Expected game length for wait time estimates</div>
+                        </div>
+                        <form action="/master/settings/update" method="POST" style="display:flex;gap:6px;align-items:center">
+                            <input type="hidden" name="key" value="base_match_minutes">
+                            <input type="number" name="value" class="input" value="{{ settings.base_match_minutes or 8 }}" min="3" max="30">
+                            <span style="font-size:0.65rem;color:var(--t3)">min</span>
+                            <button type="submit" class="btn" style="padding:4px 8px">Save</button>
+                        </form>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">Confirmation Timeout</div>
+                            <div class="setting-desc">Time before unconfirmed players are removed</div>
+                        </div>
+                        <form action="/master/settings/update" method="POST" style="display:flex;gap:6px;align-items:center">
+                            <input type="hidden" name="key" value="confirmation_timeout_sec">
+                            <input type="number" name="value" class="input" value="{{ settings.confirmation_timeout_sec or 60 }}" min="30" max="300" step="15">
+                            <span style="font-size:0.65rem;color:var(--t3)">sec</span>
+                            <button type="submit" class="btn" style="padding:4px 8px">Save</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Queue Behavior -->
+            <div class="c">
+                <div class="c-h"><span class="c-t">🎱 Queue Behavior</span></div>
+                <div class="c-b">
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">Duplicate Prevention</div>
+                            <div class="setting-desc">Prevent same player joining queue twice at same bar</div>
+                        </div>
+                        <span class="stat-value stat-enabled">✓ Always On</span>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">Auto-Join on QR Scan</div>
+                            <div class="setting-desc">Logged-in users auto-join when scanning QR code</div>
+                        </div>
+                        <form action="/master/settings/toggle" method="POST">
+                            <input type="hidden" name="key" value="auto_join_on_qr">
+                            <label class="toggle">
+                                <input type="checkbox" {% if settings.auto_join_on_qr != '0' %}checked{% endif %} onchange="this.form.submit()">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </form>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">Guest Phone Collection</div>
+                            <div class="setting-desc">Show phone number field for guest players</div>
+                        </div>
+                        <form action="/master/settings/toggle" method="POST">
+                            <input type="hidden" name="key" value="collect_guest_phone">
+                            <label class="toggle">
+                                <input type="checkbox" {% if settings.collect_guest_phone != '0' %}checked{% endif %} onchange="this.form.submit()">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Player & Rewards -->
+        <div class="c">
+            <div class="c-h"><span class="c-t">👤 Player Rewards & Stats</span></div>
+            <div class="c-b">
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+                    <div>
+                        <div class="section-label">Token Rewards</div>
+                        <div class="setting-row" style="padding-top:0">
+                            <div class="setting-info">
+                                <div class="setting-name">Winner Tokens</div>
+                                <div class="setting-desc">Tokens awarded per win</div>
+                            </div>
+                            <form action="/master/settings/update" method="POST" style="display:flex;gap:6px;align-items:center">
+                                <input type="hidden" name="key" value="winner_tokens">
+                                <input type="number" name="value" class="input" value="{{ settings.winner_tokens or 50 }}" min="0" max="500" step="10">
+                                <button type="submit" class="btn" style="padding:4px 8px">Save</button>
+                            </form>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-name">Loser Tokens</div>
+                                <div class="setting-desc">Consolation tokens per game</div>
+                            </div>
+                            <form action="/master/settings/update" method="POST" style="display:flex;gap:6px;align-items:center">
+                                <input type="hidden" name="key" value="loser_tokens">
+                                <input type="number" name="value" class="input" value="{{ settings.loser_tokens or 10 }}" min="0" max="100" step="5">
+                                <button type="submit" class="btn" style="padding:4px 8px">Save</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="section-label">Skill Tiers</div>
+                        <div style="font-size:0.7rem;color:var(--t2);line-height:1.8">
+                            🥉 Bronze: &lt;45% win rate<br>
+                            🥈 Silver: 45-54%<br>
+                            🥇 Gold: 55-64%<br>
+                            🏆 Platinum: 65-74%<br>
+                            💎 Diamond: 75%+
+                        </div>
+                    </div>
+                    <div>
+                        <div class="section-label">Tracking</div>
+                        <div class="setting-row" style="padding-top:0;border:0">
+                            <div class="setting-info">
+                                <div class="setting-name">Win Streaks</div>
+                                <div class="setting-desc">Track current and best streaks</div>
+                            </div>
+                            <span class="stat-value stat-enabled">✓ On</span>
+                        </div>
+                        <div class="setting-row" style="border:0">
+                            <div class="setting-info">
+                                <div class="setting-name">Game History</div>
+                                <div class="setting-desc">Record all match results</div>
+                            </div>
+                            <span class="stat-value stat-enabled">✓ On</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="c">
+            <div class="c-h"><span class="c-t">🔧 System Status</span></div>
+            <div class="c-b">
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+                    <div style="text-align:center;padding:12px;background:rgba(0,0,0,0.2);border-radius:6px">
+                        <div style="font-size:1.5rem;font-weight:600;color:var(--gold)">{{ bar_count or 0 }}</div>
+                        <div style="font-size:0.6rem;color:var(--t3);text-transform:uppercase;margin-top:4px">Total Bars</div>
+                    </div>
+                    <div style="text-align:center;padding:12px;background:rgba(0,0,0,0.2);border-radius:6px">
+                        <div style="font-size:1.5rem;font-weight:600;color:var(--gold)">{{ player_count or 0 }}</div>
+                        <div style="font-size:0.6rem;color:var(--t3);text-transform:uppercase;margin-top:4px">Players</div>
+                    </div>
+                    <div style="text-align:center;padding:12px;background:rgba(0,0,0,0.2);border-radius:6px">
+                        <div style="font-size:1.5rem;font-weight:600;color:var(--green)">5002</div>
+                        <div style="font-size:0.6rem;color:var(--t3);text-transform:uppercase;margin-top:4px">Server Port</div>
+                    </div>
+                    <div style="text-align:center;padding:12px;background:rgba(0,0,0,0.2);border-radius:6px">
+                        <div style="font-size:1.5rem;font-weight:600;color:var(--blue)">SQLite</div>
+                        <div style="font-size:0.6rem;color:var(--t3);text-transform:uppercase;margin-top:4px">Database</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="c" style="border-color:rgba(239,68,68,0.2)">
+            <div class="c-h" style="background:rgba(239,68,68,0.05)"><span class="c-t" style="color:var(--red)">⚠️ Danger Zone</span></div>
+            <div class="c-b">
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-name">Clear All Queue Data</div>
+                        <div class="setting-desc">Remove all current queue entries across all bars</div>
+                    </div>
+                    <form action="/master/settings/clear-queues" method="POST" onsubmit="return confirm('Clear ALL queue entries? This cannot be undone.')">
+                        <button type="submit" class="btn btn-red">Clear Queues</button>
+                    </form>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-name">Reset Demo Data</div>
+                        <div class="setting-desc">Clear queues, ad events, cancelled campaigns, inactive advertisers</div>
+                    </div>
+                    <form action="/master/settings/reset-demo" method="POST" onsubmit="return confirm('Reset all demo data? This clears queues, ad events, cancelled campaigns, and inactive advertisers.')">
+                        <button type="submit" class="btn btn-red">Reset Demo</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
