@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Your Portal - Pool Cue</title>
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#09090b;color:#e4e4e7;min-height:100vh;padding:20px}
+        .container{max-width:600px;margin:0 auto}
+        .header{text-align:center;margin-bottom:30px;padding-top:20px}
+        .header h1{font-size:24px;margin-bottom:8px}
+        .header p{color:#71717a;font-size:14px}
+        .section{margin-bottom:24px}
+        .section-title{font-size:13px;color:#71717a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;padding-left:4px}
+        .card{background:#18181b;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px;margin-bottom:12px;display:flex;align-items:center;gap:16px;text-decoration:none;color:inherit;transition:all 0.2s}
+        .card:hover{border-color:#22c55e;transform:translateY(-2px)}
+        .card-icon{font-size:32px;width:50px;text-align:center}
+        .card-content{flex:1}
+        .card-title{font-size:16px;font-weight:600;margin-bottom:4px}
+        .card-sub{font-size:13px;color:#71717a}
+        .card-arrow{color:#52525b;font-size:20px}
+        .badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;margin-left:8px}
+        .badge-owner{background:rgba(234,179,8,0.15);color:#eab308}
+        .badge-manager{background:rgba(59,130,246,0.15);color:#3b82f6}
+        .badge-staff{background:rgba(34,197,94,0.15);color:#22c55e}
+        .badge-analyst{background:rgba(168,85,247,0.15);color:#a855f7}
+        .logout{display:block;text-align:center;color:#ef4444;text-decoration:none;margin-top:30px;font-size:14px}
+        .logout:hover{text-decoration:underline}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👋 Welcome back, {{ session.user_name or session.user_email }}</h1>
+            <p>Choose where you want to go</p>
+        </div>
+        
+        {% if is_superadmin %}
+        <div class="section">
+            <div class="section-title">🔐 Admin</div>
+            <a href="/master/" class="card">
+                <div class="card-icon">⚡</div>
+                <div class="card-content">
+                    <div class="card-title">Master Dashboard</div>
+                    <div class="card-sub">Full system access - all venues, players, analytics</div>
+                </div>
+                <div class="card-arrow">→</div>
+            </a>
+        </div>
+        {% endif %}
+        
+        {% if venues and venues|length > 0 %}
+        <div class="section">
+            <div class="section-title">🏢 Your Venues</div>
+            {% for venue in venues %}
+            <a href="/auth/select-venue/{{ venue.id }}" class="card">
+                <div class="card-icon">🍺</div>
+                <div class="card-content">
+                    <div class="card-title">
+                        {{ venue.name }}
+                        <span class="badge badge-{{ venue.role_name }}">{{ venue.role_name|title }}</span>
+                    </div>
+                    <div class="card-sub">Manage queue, view analytics, run events</div>
+                </div>
+                <div class="card-arrow">→</div>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% if is_player %}
+        <div class="section">
+            <div class="section-title">🎱 Player</div>
+            <a href="/player/home" class="card">
+                <div class="card-icon">👤</div>
+                <div class="card-content">
+                    <div class="card-title">Player App</div>
+                    <div class="card-sub">View your stats, join queues, find games</div>
+                </div>
+                <div class="card-arrow">→</div>
+            </a>
+        </div>
+        {% endif %}
+        
+        {% if not venues and not is_player and not is_superadmin %}
+        <div class="section">
+            <div style="text-align:center;padding:40px;color:#71717a;">
+                <p>You don't have any assigned roles yet.</p>
+                <p style="margin-top:8px;">Contact an administrator to get access.</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <a href="/auth/logout" class="logout">Sign out</a>
+    </div>
+</body>
+</html>

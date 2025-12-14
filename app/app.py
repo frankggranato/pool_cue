@@ -146,6 +146,8 @@ def create_app():
     from .routes_market import market_bp
     from .routes_twilio import twilio_bp
     from .routes_bar_manager import bar_manager_bp
+    from .routes_unified_auth import unified_auth_bp
+    from .rbac import inject_rbac_context
     
     app.register_blueprint(public_bp)
     app.register_blueprint(display_bp)
@@ -163,6 +165,10 @@ def create_app():
     app.register_blueprint(market_bp)
     app.register_blueprint(twilio_bp)
     app.register_blueprint(bar_manager_bp)
+    app.register_blueprint(unified_auth_bp)
+    
+    # Add RBAC context to all templates
+    app.context_processor(inject_rbac_context)
     
     # Background tasks disabled for now - enable when Twilio is configured
     # from .background_tasks import start_background_tasks
