@@ -30,7 +30,7 @@ def create_app():
     app.config.update(
         SESSION_COOKIE_HTTPONLY=True,    # Prevent JavaScript access to session cookie
         SESSION_COOKIE_SAMESITE='Lax',   # CSRF protection
-        PERMANENT_SESSION_LIFETIME=86400  # 24 hour sessions
+        PERMANENT_SESSION_LIFETIME=2592000  # 30 day sessions (was 24 hours)
     )
     # Note: SESSION_COOKIE_SECURE=True should be enabled in production with HTTPS
     

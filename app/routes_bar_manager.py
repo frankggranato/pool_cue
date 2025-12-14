@@ -80,6 +80,7 @@ def login():
             session['bar_manager_name'] = manager['name'] or email
             session['bar_manager_bar_id'] = manager['bar_id']
             session['bar_manager_bar_name'] = manager['bar_name']
+            session.permanent = True  # Session lasts 30 days
             
             return redirect(url_for('bar_manager.dashboard'))
         

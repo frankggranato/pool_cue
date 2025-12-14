@@ -209,6 +209,7 @@ def signup():
     session['player_id'] = player_id
     session['player_nickname'] = nickname
     session['session_token'] = session_token
+    session.permanent = True  # Session lasts 30 days
     session.pop('is_guest', None)
     
     # REDIRECT TO PHONE VERIFICATION instead of logging in fully
@@ -305,6 +306,7 @@ def login():
     session['player_id'] = player['id']
     session['player_nickname'] = player['nickname']
     session['session_token'] = session_token
+    session.permanent = True  # Session lasts 30 days
     
     # CHECK IF PHONE IS VERIFIED - if not, redirect to verification
     if player['phone_number'] and not player['phone_verified']:
