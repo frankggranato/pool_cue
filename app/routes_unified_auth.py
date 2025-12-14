@@ -307,6 +307,10 @@ def portal():
     
     conn.close()
     
+    # Superadmins go straight to master dashboard
+    if is_superadmin:
+        return redirect('/master/')
+    
     # Smart routing for simple cases
     if not venues and is_player and not is_superadmin:
         # Player only - go straight to player app

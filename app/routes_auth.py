@@ -204,7 +204,7 @@ def signup():
     
     conn.close()
     
-    # Store player in session for verification flow
+    # Store player in session - fully logged in (no phone verification required)
     session['pending_verify_player_id'] = player_id
     session['player_id'] = player_id
     session['player_nickname'] = nickname
@@ -212,17 +212,18 @@ def signup():
     session.permanent = True  # Session lasts 30 days
     session.pop('is_guest', None)
     
-    # REDIRECT TO PHONE VERIFICATION instead of logging in fully
-    return redirect(url_for('auth.verify_start', channel='phone'))
+    # Go straight to player home - phone verification is NOT required
+    # Check if user came from QR scan - auto-join queue if so
+    from .routes_public import auto_join_pending_player
+    queue_id, _, bar_id = auto_join_pending_player(player_id)
+    if queue_id:
+        return redirect(url_for('public.my_status'))
+    
+    return redirect(url_for('player.home'))
 
 
-@auth_bp.route('/portal')
-def portal_select():
-    """
-    Unified login portal - routes users to the right login page.
-    Entry point for all user types.
-    """
-    return render_template('auth/portal_select.html')
+# Old portal route removed - use unified_auth.portal instead
+# The unified_auth blueprint handles all portal routing now
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -308,11 +309,7 @@ def login():
     session['session_token'] = session_token
     session.permanent = True  # Session lasts 30 days
     
-    # CHECK IF PHONE IS VERIFIED - if not, redirect to verification
-    if player['phone_number'] and not player['phone_verified']:
-        session['pending_verify_player_id'] = player['id']
-        return redirect(url_for('auth.verify_start', channel='phone'))
-    
+    # Phone verification is NOT required - go straight to app
     # Check if user came from QR scan - auto-join queue if so
     from .routes_public import auto_join_pending_player
     queue_id, _, bar_id = auto_join_pending_player(player['id'])
@@ -781,28 +778,31 @@ def mask_destination(channel, destination):
 
 def send_verification_code(channel, destination, code):
     """
-    Send verification code via SMS or email.
-    Uses the SMS service for phone, email service for email.
+    Send verification code via email only.
+    Phone/SMS verification has been removed.
     """
     import logging
     logger = logging.getLogger(__name__)
     
     if channel == 'phone':
-        # Use SMS service
-        from .services.sms_service import send_verification_sms
-        result = send_verification_sms(destination, code)
-        if result.get('success'):
-            if result.get('dev_mode'):
-                logger.info(f'[DEV] SMS code {code} for {destination}')
-            else:
-                logger.info(f'SMS verification sent to {destination[-4:]}')
-        else:
-            logger.error(f'SMS send failed: {result.get("error")}')
-        return result.get('success', False)
+        # Phone verification disabled - log and return
+        logger.info(f'[DISABLED] Phone verification not supported - use email instead')
+        print(f'⚠️ Phone verification disabled. Code would be: {code}')
+        return False
     else:
-        # TODO: Integrate with SendGrid, Mailgun, or similar email provider
-        logger.info(f'[STUB] Sending email to {destination}: Your Pool Cue verification code is {code}')
-        print(f'📧 [DEV] Email to {destination}: Code is {code}')
+        # Use email service
+        from .email_service import send_email
+        result = send_email(
+            to=destination,
+            subject='Pool Cue Verification Code',
+            html=f'<p>Your verification code is: <strong>{code}</strong></p><p>This code expires in 15 minutes.</p>',
+            text=f'Your Pool Cue verification code is: {code}\n\nThis code expires in 15 minutes.'
+        )
+        if result:
+            logger.info(f'Email verification sent to {destination}')
+        else:
+            logger.error(f'Email send failed to {destination}')
+        return result
     
     return True
 
@@ -852,10 +852,14 @@ def forgot_password_post():
     conn.commit()
     conn.close()
     
-    # Send code via SMS if phone exists
-    if phone:
-        from .services.sms_service import send_sms
-        send_sms(phone, f'Your Pool Cue password reset code is: {code}')
+    # Send code via EMAIL (not SMS)
+    from .email_service import send_email
+    send_email(
+        to=email,
+        subject='Pool Cue Password Reset Code',
+        html=f'<p>Your password reset code is: <strong>{code}</strong></p><p>This code expires in 15 minutes.</p>',
+        text=f'Your Pool Cue password reset code is: {code}\n\nThis code expires in 15 minutes.'
+    )
     
     # Store player_id in session for reset step
     session['reset_player_id'] = player_id

@@ -30,12 +30,26 @@ ADS_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'ads')
 
 
 def admin_required(f):
-    """Decorator to require admin login for master routes."""
+    """Decorator to require admin login for master routes.
+    Supports both old admin_logged_in session AND new unified auth with is_superadmin."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not session.get('admin_logged_in'):
-            return redirect(url_for('setup.admin_login'))
-        return f(*args, **kwargs)
+        # Old auth: admin_logged_in from /admin/login
+        if session.get('admin_logged_in'):
+            return f(*args, **kwargs)
+        
+        # New auth: user_id with is_superadmin from /auth/login
+        user_id = session.get('user_id')
+        if user_id:
+            conn = get_db()
+            cursor = conn.cursor()
+            cursor.execute('SELECT is_superadmin FROM users WHERE id = ?', (user_id,))
+            user = cursor.fetchone()
+            conn.close()
+            if user and user['is_superadmin']:
+                return f(*args, **kwargs)
+        
+        return redirect(url_for('setup.admin_login'))
     return decorated_function
 
 
