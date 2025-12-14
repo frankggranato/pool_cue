@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users - Pool Cue Admin</title>
+    <link rel="stylesheet" href="/static/css/master-nav.css">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#18181b;--border:rgba(255,255,255,0.1);--t1:#e4e4e7;--t2:#a1a1aa;--t3:#71717a;--green:#22c55e;--red:#ef4444;--blue:#3b82f6;--gold:#eab308;--purple:#a855f7}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--t1);font-size:14px}
+        .container{max-width:1200px;margin:0 auto;padding:20px}
+        .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+        .page-header h1{font-size:24px}
+        .filters{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+        .filter-select{padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--t1);font-size:13px}
+        .btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;text-decoration:none}
+        .btn-primary{background:var(--green);color:#000}
+        .btn-sm{padding:6px 12px;font-size:12px}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+        table{width:100%;border-collapse:collapse}
+        th{text-align:left;padding:12px 16px;color:var(--t3);font-size:11px;text-transform:uppercase;font-weight:500;border-bottom:1px solid var(--border)}
+        td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.03)}
+        tr:hover{background:rgba(255,255,255,0.02)}
+        .badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600}
+        .badge-active{background:rgba(34,197,94,0.15);color:var(--green)}
+        .badge-suspended{background:rgba(239,68,68,0.15);color:var(--red)}
+        .badge-pending{background:rgba(234,179,8,0.15);color:var(--gold)}
+        .badge-superadmin{background:rgba(168,85,247,0.15);color:var(--purple)}
+        .badge-owner{background:rgba(234,179,8,0.15);color:var(--gold)}
+        .badge-manager{background:rgba(59,130,246,0.15);color:var(--blue)}
+        .badge-staff{background:rgba(34,197,94,0.15);color:var(--green)}
+        .badge-analyst{background:rgba(168,85,247,0.15);color:var(--purple)}
+        .user-name{font-weight:500}
+        .user-email{color:var(--t2);font-size:12px}
+        .roles-list{display:flex;gap:4px;flex-wrap:wrap}
+        .venue-count{color:var(--t3)}
+        .empty{text-align:center;padding:40px;color:var(--t3)}
+        a{color:var(--green);text-decoration:none}
+        .flash{padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:14px}
+        .flash-success{background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:var(--green)}
+        .flash-error{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:var(--red)}
+    </style>
+</head>
+<body>
+    {% include 'master/_nav.html' %}
+    
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}{% endif %}{% endwith %}
+        
+        <div class="page-header">
+            <h1>👤 Users</h1>
+            <span style="color:var(--t3)">{{ users|length }} total</span>
+        </div>
+
+        <!-- Filters -->
+        <form class="filters" method="GET">
+            <select name="venue" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Venues</option>
+                {% for bar in bars %}
+                <option value="{{ bar.id }}" {% if venue_filter == bar.id %}selected{% endif %}>{{ bar.name }}</option>
+                {% endfor %}
+            </select>
+            <select name="role" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Roles</option>
+                <option value="owner" {% if role_filter == 'owner' %}selected{% endif %}>Owner</option>
+                <option value="manager" {% if role_filter == 'manager' %}selected{% endif %}>Manager</option>
+                <option value="staff" {% if role_filter == 'staff' %}selected{% endif %}>Staff</option>
+                <option value="analyst" {% if role_filter == 'analyst' %}selected{% endif %}>Analyst</option>
+            </select>
+            <select name="status" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Status</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>Suspended</option>
+                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+            </select>
+            {% if venue_filter or role_filter or status_filter %}
+            <a href="/master/users" class="btn btn-sm" style="background:var(--card);color:var(--t2);border:1px solid var(--border)">Clear</a>
+            {% endif %}
+        </form>
+        
+        <!-- Users Table -->
+        <div class="card">
+            {% if users %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Status</th>
+                        <th>Venues</th>
+                        <th>Roles</th>
+                        <th>Last Login</th>
+                        <th>Joined</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>
+                        <div class="user-name">
+                            <a href="/master/users/{{ user.id }}">{{ user.name or 'No name' }}</a>
+                            {% if user.is_superadmin %}<span class="badge badge-superadmin" style="margin-left:6px">Super</span>{% endif %}
+                        </div>
+                        <div class="user-email">{{ user.email }}</div>
+                    </td>
+                    <td>
+                        {% if user.status == 'active' %}
+                        <span class="badge badge-active">Active</span>
+                        {% elif user.status == 'suspended' %}
+                        <span class="badge badge-suspended">Suspended</span>
+                        {% else %}
+                        <span class="badge badge-pending">{{ user.status|title }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="venue-count">{{ user.venue_count or 0 }}</td>
+                    <td>
+                        <div class="roles-list">
+                        {% if user.roles %}
+                            {% for role in user.roles.split(',') %}
+                            <span class="badge badge-{{ role }}">{{ role|title }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span style="color:var(--t3)">—</span>
+                        {% endif %}
+                        </div>
+                    </td>
+                    <td style="color:var(--t3);font-size:12px">{{ user.last_login[:16] if user.last_login else 'Never' }}</td>
+                    <td style="color:var(--t3);font-size:12px">{{ user.created_at[:10] if user.created_at else '—' }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty">No users found</div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

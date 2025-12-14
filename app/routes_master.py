@@ -1374,6 +1374,285 @@ def delete_manager(manager_id):
     return redirect(url_for('master.all_managers'))
 
 
+# ============================================================================
+# USERS (Unified Auth - Cross-Venue Admin)
+# ============================================================================
+
+@master_bp.route('/users')
+@admin_required
+def all_users():
+    """View all users across all venues (unified auth system)."""
+    from .email_service import get_audit_log
+    
+    # Get filter params
+    venue_filter = request.args.get('venue', '')
+    role_filter = request.args.get('role', '')
+    status_filter = request.args.get('status', '')
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Get all users with their venue roles
+    cursor.execute('''
+        SELECT 
+            u.id, u.email, u.name, u.status, u.is_superadmin, 
+            u.email_verified, u.last_login, u.created_at,
+            COUNT(DISTINCT uvr.venue_id) as venue_count,
+            GROUP_CONCAT(DISTINCT uvr.role) as roles,
+            GROUP_CONCAT(DISTINCT b.name) as venue_names
+        FROM users u
+        LEFT JOIN user_venue_roles_v2 uvr ON u.id = uvr.user_id
+        LEFT JOIN bars b ON uvr.venue_id = b.id
+        GROUP BY u.id
+        ORDER BY u.created_at DESC
+    ''')
+    users = [dict(row) for row in cursor.fetchall()]
+    
+    # Apply filters
+    if venue_filter:
+        venue_filter = int(venue_filter)
+        cursor.execute('SELECT user_id FROM user_venue_roles_v2 WHERE venue_id = ?', (venue_filter,))
+        venue_user_ids = {row['user_id'] for row in cursor.fetchall()}
+        users = [u for u in users if u['id'] in venue_user_ids]
+    
+    if role_filter:
+        cursor.execute('SELECT user_id FROM user_venue_roles_v2 WHERE role = ?', (role_filter,))
+        role_user_ids = {row['user_id'] for row in cursor.fetchall()}
+        users = [u for u in users if u['id'] in role_user_ids]
+    
+    if status_filter:
+        users = [u for u in users if u['status'] == status_filter]
+    
+    # Get all bars for filter dropdown
+    cursor.execute('SELECT id, name FROM bars ORDER BY name')
+    bars = [dict(row) for row in cursor.fetchall()]
+    
+    conn.close()
+    
+    return render_template('master/users.html', 
+                          users=users, 
+                          bars=bars,
+                          venue_filter=venue_filter,
+                          role_filter=role_filter,
+                          status_filter=status_filter,
+                          active_page='users')
+
+
+@master_bp.route('/users/<int:user_id>')
+@admin_required
+def user_detail(user_id):
+    """View detailed user info including venue roles and audit log."""
+    from .email_service import get_audit_log
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Get user
+    cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))
+    user = cursor.fetchone()
+    if not user:
+        flash('User not found', 'error')
+        return redirect(url_for('master.all_users'))
+    user = dict(user)
+    
+    # Get venue roles
+    cursor.execute('''
+        SELECT uvr.*, b.name as venue_name
+        FROM user_venue_roles_v2 uvr
+        JOIN bars b ON uvr.venue_id = b.id
+        WHERE uvr.user_id = ?
+        ORDER BY b.name
+    ''', (user_id,))
+    venue_roles = [dict(row) for row in cursor.fetchall()]
+    
+    # Get linked player profile if exists
+    cursor.execute('SELECT * FROM players WHERE user_id = ?', (user_id,))
+    player = cursor.fetchone()
+    player = dict(player) if player else None
+    
+    # Get all bars for adding roles
+    cursor.execute('SELECT id, name FROM bars ORDER BY name')
+    all_bars = [dict(row) for row in cursor.fetchall()]
+    
+    conn.close()
+    
+    # Get audit log for this user
+    audit_log = get_audit_log(user_id=user_id, limit=50)
+    
+    return render_template('master/user_detail.html',
+                          user=user,
+                          venue_roles=venue_roles,
+                          player=player,
+                          all_bars=all_bars,
+                          audit_log=audit_log,
+                          active_page='users')
+
+
+@master_bp.route('/users/<int:user_id>/deactivate', methods=['POST'])
+@admin_required
+def deactivate_user(user_id):
+    """Deactivate a user globally (suspends all access)."""
+    from .email_service import log_audit
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Can't deactivate superadmins (except self)
+    cursor.execute('SELECT is_superadmin, email FROM users WHERE id = ?', (user_id,))
+    user = cursor.fetchone()
+    if not user:
+        flash('User not found', 'error')
+        return redirect(url_for('master.all_users'))
+    
+    # Deactivate
+    cursor.execute("UPDATE users SET status = 'suspended' WHERE id = ?", (user_id,))
+    
+    # Invalidate all sessions
+    cursor.execute('UPDATE user_sessions SET is_valid = 0 WHERE user_id = ?', (user_id,))
+    
+    conn.commit()
+    conn.close()
+    
+    log_audit(session.get('user_id'), 'user_deactivated', user_id, None, {'email': user['email']})
+    
+    flash(f'User {user["email"]} deactivated', 'success')
+    return redirect(url_for('master.user_detail', user_id=user_id))
+
+
+@master_bp.route('/users/<int:user_id>/reactivate', methods=['POST'])
+@admin_required
+def reactivate_user(user_id):
+    """Reactivate a suspended user."""
+    from .email_service import log_audit
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT email FROM users WHERE id = ?', (user_id,))
+    user = cursor.fetchone()
+    
+    cursor.execute("UPDATE users SET status = 'active' WHERE id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+    
+    log_audit(session.get('user_id'), 'user_reactivated', user_id, None, {'email': user['email'] if user else 'unknown'})
+    
+    flash('User reactivated', 'success')
+    return redirect(url_for('master.user_detail', user_id=user_id))
+
+
+@master_bp.route('/users/<int:user_id>/add-role', methods=['POST'])
+@admin_required
+def add_user_role(user_id):
+    """Add a venue role to a user."""
+    from .email_service import log_audit
+    
+    venue_id = request.form.get('venue_id', type=int)
+    role = request.form.get('role')
+    
+    if not venue_id or role not in ['owner', 'manager', 'staff', 'analyst']:
+        flash('Invalid venue or role', 'error')
+        return redirect(url_for('master.user_detail', user_id=user_id))
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Check if already has role at this venue
+    cursor.execute('SELECT id FROM user_venue_roles_v2 WHERE user_id = ? AND venue_id = ?', (user_id, venue_id))
+    if cursor.fetchone():
+        flash('User already has a role at this venue', 'error')
+        conn.close()
+        return redirect(url_for('master.user_detail', user_id=user_id))
+    
+    cursor.execute('''
+        INSERT INTO user_venue_roles_v2 (user_id, venue_id, role, assigned_by)
+        VALUES (?, ?, ?, ?)
+    ''', (user_id, venue_id, role, session.get('user_id')))
+    conn.commit()
+    conn.close()
+    
+    log_audit(session.get('user_id'), 'role_assigned', user_id, venue_id, {'role': role})
+    
+    flash(f'Added {role} role', 'success')
+    return redirect(url_for('master.user_detail', user_id=user_id))
+
+
+@master_bp.route('/users/<int:user_id>/change-role/<int:venue_id>', methods=['POST'])
+@admin_required
+def change_user_role(user_id, venue_id):
+    """Change a user's role at a specific venue."""
+    from .email_service import log_audit
+    
+    new_role = request.form.get('role')
+    if new_role not in ['owner', 'manager', 'staff', 'analyst']:
+        flash('Invalid role', 'error')
+        return redirect(url_for('master.user_detail', user_id=user_id))
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Get old role for audit
+    cursor.execute('SELECT role FROM user_venue_roles_v2 WHERE user_id = ? AND venue_id = ?', (user_id, venue_id))
+    old = cursor.fetchone()
+    old_role = old['role'] if old else None
+    
+    cursor.execute('UPDATE user_venue_roles_v2 SET role = ? WHERE user_id = ? AND venue_id = ?', 
+                   (new_role, user_id, venue_id))
+    conn.commit()
+    conn.close()
+    
+    log_audit(session.get('user_id'), 'role_changed', user_id, venue_id, {'old_role': old_role, 'new_role': new_role})
+    
+    flash(f'Role changed to {new_role}', 'success')
+    return redirect(url_for('master.user_detail', user_id=user_id))
+
+
+@master_bp.route('/users/<int:user_id>/remove-role/<int:venue_id>', methods=['POST'])
+@admin_required
+def remove_user_role(user_id, venue_id):
+    """Remove a user's role at a specific venue."""
+    from .email_service import log_audit
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Get role for audit
+    cursor.execute('SELECT role FROM user_venue_roles_v2 WHERE user_id = ? AND venue_id = ?', (user_id, venue_id))
+    old = cursor.fetchone()
+    
+    cursor.execute('DELETE FROM user_venue_roles_v2 WHERE user_id = ? AND venue_id = ?', (user_id, venue_id))
+    conn.commit()
+    conn.close()
+    
+    log_audit(session.get('user_id'), 'role_removed', user_id, venue_id, {'role': old['role'] if old else None})
+    
+    flash('Role removed', 'success')
+    return redirect(url_for('master.user_detail', user_id=user_id))
+
+
+@master_bp.route('/users/<int:user_id>/send-reset', methods=['POST'])
+@admin_required
+def send_user_reset(user_id):
+    """Send password reset email to a user."""
+    from .email_service import send_password_reset_email, log_audit
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT email FROM users WHERE id = ?', (user_id,))
+    user = cursor.fetchone()
+    conn.close()
+    
+    if not user:
+        flash('User not found', 'error')
+        return redirect(url_for('master.all_users'))
+    
+    send_password_reset_email(user['email'])
+    log_audit(session.get('user_id'), 'password_reset_sent', user_id, None, {'email': user['email']})
+    
+    flash(f'Password reset sent to {user["email"]}', 'success')
+    return redirect(url_for('master.user_detail', user_id=user_id))
+
+
 @master_bp.route('/bar/<int:bar_id>/delete-permanent', methods=['POST'])
 @admin_required
 def delete_bar_permanent(bar_id):
