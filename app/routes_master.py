@@ -510,6 +510,50 @@ def player_delete_permanent(player_id):
     flash(f'Permanently deleted account: {nickname}', 'success')
     return redirect(url_for('master.players'))
 
+
+@master_bp.route('/player/<int:player_id>/reset-password', methods=['POST'])
+@admin_required
+def player_reset_password(player_id):
+    """Reset a player's password from the admin panel."""
+    from .database import get_db
+    from werkzeug.security import generate_password_hash
+    
+    new_password = request.form.get('new_password', '').strip()
+    
+    if len(new_password) < 6:
+        flash('Password must be at least 6 characters', 'error')
+        return redirect(url_for('master.player_detail', player_id=player_id))
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Get player's account_id
+    cursor.execute('SELECT account_id, nickname FROM players WHERE id = ?', (player_id,))
+    player = cursor.fetchone()
+    
+    if not player:
+        conn.close()
+        flash('Player not found', 'error')
+        return redirect(url_for('master.players'))
+    
+    player = dict(player)
+    account_id = player.get('account_id')
+    
+    if not account_id:
+        conn.close()
+        flash('Player does not have an account (guest player)', 'error')
+        return redirect(url_for('master.player_detail', player_id=player_id))
+    
+    # Update password in accounts table
+    password_hash = generate_password_hash(new_password, method='scrypt')
+    cursor.execute('UPDATE accounts SET password_hash = ? WHERE id = ?', (password_hash, account_id))
+    conn.commit()
+    conn.close()
+    
+    flash(f'Password reset for {player["nickname"]}', 'success')
+    return redirect(url_for('master.player_detail', player_id=player_id))
+
+
 @master_bp.route('/leaderboard')
 @admin_required
 def leaderboard():
@@ -1184,6 +1228,150 @@ def edit_bar(bar_id):
     
     flash(f'Updated bar: {name}', 'success')
     return redirect(url_for('master.bar_detail', bar_id=bar_id))
+
+
+@master_bp.route('/managers')
+@admin_required
+def all_managers():
+    """View all bar managers across all bars."""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT bm.*, b.name as bar_name 
+        FROM bar_managers bm
+        LEFT JOIN bars b ON bm.bar_id = b.id
+        ORDER BY b.name, bm.name
+    ''')
+    managers = [dict(row) for row in cursor.fetchall()]
+    
+    cursor.execute('SELECT id, name FROM bars ORDER BY name')
+    bars = [dict(row) for row in cursor.fetchall()]
+    
+    conn.close()
+    
+    return render_template('master/managers.html', managers=managers, bars=bars)
+
+
+@master_bp.route('/managers/add', methods=['POST'])
+@admin_required
+def add_manager():
+    """Add a new bar manager."""
+    from werkzeug.security import generate_password_hash
+    
+    bar_id = request.form.get('bar_id')
+    name = request.form.get('name', '').strip()
+    email = request.form.get('email', '').strip().lower()
+    password = request.form.get('password', '').strip()
+    
+    if not all([bar_id, name, email, password]):
+        flash('All fields are required', 'error')
+        return redirect(url_for('master.all_managers'))
+    
+    if len(password) < 6:
+        flash('Password must be at least 6 characters', 'error')
+        return redirect(url_for('master.all_managers'))
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Check if email already exists
+    cursor.execute('SELECT id FROM bar_managers WHERE email = ?', (email,))
+    if cursor.fetchone():
+        conn.close()
+        flash('Email already registered as a manager', 'error')
+        return redirect(url_for('master.all_managers'))
+    
+    password_hash = generate_password_hash(password, method='scrypt')
+    cursor.execute('''
+        INSERT INTO bar_managers (bar_id, email, password_hash, name, role, is_active)
+        VALUES (?, ?, ?, ?, 'manager', 1)
+    ''', (bar_id, email, password_hash, name))
+    conn.commit()
+    conn.close()
+    
+    flash(f'Manager {name} added successfully', 'success')
+    return redirect(url_for('master.all_managers'))
+
+
+@master_bp.route('/managers/<int:manager_id>/reset-password', methods=['POST'])
+@admin_required
+def manager_reset_password(manager_id):
+    """Reset a manager's password."""
+    from werkzeug.security import generate_password_hash
+    
+    new_password = request.form.get('new_password', '').strip()
+    
+    if len(new_password) < 6:
+        flash('Password must be at least 6 characters', 'error')
+        return redirect(url_for('master.all_managers'))
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT name FROM bar_managers WHERE id = ?', (manager_id,))
+    manager = cursor.fetchone()
+    
+    if not manager:
+        conn.close()
+        flash('Manager not found', 'error')
+        return redirect(url_for('master.all_managers'))
+    
+    password_hash = generate_password_hash(new_password, method='scrypt')
+    cursor.execute('UPDATE bar_managers SET password_hash = ? WHERE id = ?', (password_hash, manager_id))
+    conn.commit()
+    conn.close()
+    
+    flash(f'Password reset for {manager["name"]}', 'success')
+    return redirect(url_for('master.all_managers'))
+
+
+@master_bp.route('/managers/<int:manager_id>/toggle', methods=['POST'])
+@admin_required
+def toggle_manager(manager_id):
+    """Toggle manager active status."""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT is_active, name FROM bar_managers WHERE id = ?', (manager_id,))
+    manager = cursor.fetchone()
+    
+    if not manager:
+        conn.close()
+        flash('Manager not found', 'error')
+        return redirect(url_for('master.all_managers'))
+    
+    new_status = 0 if manager['is_active'] else 1
+    cursor.execute('UPDATE bar_managers SET is_active = ? WHERE id = ?', (new_status, manager_id))
+    conn.commit()
+    conn.close()
+    
+    status_text = 'activated' if new_status else 'deactivated'
+    flash(f'{manager["name"]} {status_text}', 'success')
+    return redirect(url_for('master.all_managers'))
+
+
+@master_bp.route('/managers/<int:manager_id>/delete', methods=['POST'])
+@admin_required
+def delete_manager(manager_id):
+    """Delete a bar manager."""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT name FROM bar_managers WHERE id = ?', (manager_id,))
+    manager = cursor.fetchone()
+    
+    if not manager:
+        conn.close()
+        flash('Manager not found', 'error')
+        return redirect(url_for('master.all_managers'))
+    
+    cursor.execute('DELETE FROM bar_managers WHERE id = ?', (manager_id,))
+    conn.commit()
+    conn.close()
+    
+    flash(f'Manager {manager["name"]} deleted', 'success')
+    return redirect(url_for('master.all_managers'))
 
 
 @master_bp.route('/bar/<int:bar_id>/delete-permanent', methods=['POST'])
