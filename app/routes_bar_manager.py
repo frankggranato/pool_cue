@@ -17,17 +17,33 @@ bar_manager_bp = Blueprint('bar_manager', __name__, url_prefix='/bar-manager')
 
 
 def bar_manager_required(f):
-    """Decorator to require bar manager login."""
+    """Decorator to require bar manager login (supports old and new auth)."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not session.get('bar_manager_id'):
-            return redirect(url_for('bar_manager.login'))
-        return f(*args, **kwargs)
+        # New unified auth - check user_id + venue role
+        if session.get('user_id') and session.get('current_venue_id'):
+            return f(*args, **kwargs)
+        # Old auth - check bar_manager_id
+        if session.get('bar_manager_id'):
+            return f(*args, **kwargs)
+        # Redirect to unified login
+        return redirect(url_for('unified_auth.unified_login'))
     return decorated_function
 
 
 def get_manager_bar():
-    """Get the bar associated with the logged-in manager."""
+    """Get the bar associated with the logged-in manager (supports old and new auth)."""
+    # Try new auth first
+    venue_id = session.get('current_venue_id')
+    if venue_id:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('SELECT id as bar_id, name as bar_name FROM bars WHERE id = ?', (venue_id,))
+        result = cursor.fetchone()
+        conn.close()
+        return dict(result) if result else None
+    
+    # Fall back to old auth
     manager_id = session.get('bar_manager_id')
     if not manager_id:
         return None
