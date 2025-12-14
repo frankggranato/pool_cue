@@ -3,54 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - Pool Cue</title>
+    <title>Accept Invite - Pool Cue</title>
     <style>
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#09090b;color:#e4e4e7;min-height:100vh;display:flex;align-items:center;justify-content:center}
         .container{width:100%;max-width:400px;padding:20px}
-        .logo{text-align:center;margin-bottom:30px}
+        .logo{text-align:center;margin-bottom:20px}
         .logo-icon{font-size:60px}
-        .logo-text{font-size:28px;font-weight:700;margin-top:10px}
+        .invite-info{background:#18181b;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px;margin-bottom:20px;text-align:center}
+        .venue-name{font-size:24px;font-weight:700;color:#22c55e;margin-bottom:8px}
+        .role-badge{display:inline-block;padding:6px 12px;background:rgba(59,130,246,0.15);color:#3b82f6;border-radius:6px;font-size:14px;font-weight:600}
         .card{background:#18181b;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:30px}
-        .card h2{font-size:20px;margin-bottom:20px;text-align:center}
+        .card h2{font-size:18px;margin-bottom:20px}
         .form-group{margin-bottom:16px}
         .form-group label{display:block;color:#a1a1aa;font-size:13px;margin-bottom:6px}
         .form-group input{width:100%;padding:12px 14px;background:#09090b;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#e4e4e7;font-size:15px}
-        .form-group input:focus{outline:none;border-color:#22c55e}
-        .btn{width:100%;padding:14px;background:#22c55e;color:#000;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;margin-top:10px}
-        .btn:hover{background:#16a34a}
+        .form-group input:disabled{opacity:0.6}
+        .btn{width:100%;padding:14px;background:#22c55e;color:#000;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer}
         .error{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:12px;border-radius:8px;margin-bottom:16px;font-size:14px}
-        .links{text-align:center;margin-top:20px;font-size:14px}
-        .links a{color:#22c55e;text-decoration:none}
-        .hint{font-size:12px;color:#71717a;margin-top:4px}
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">
-            <div class="logo-icon">🎱</div>
-            <div class="logo-text">Pool Cue</div>
+        <div class="logo"><div class="logo-icon">🎱</div></div>
+        <div class="invite-info">
+            <p style="color:#a1a1aa;margin-bottom:8px;">You've been invited to join</p>
+            <div class="venue-name">{{ invite.venue_name }}</div>
+            <span class="role-badge">{{ invite.role|title }}</span>
         </div>
         <div class="card">
-            <h2>Create Account</h2>
+            <h2>Complete Your Account</h2>
             {% if error %}<div class="error">{{ error }}</div>{% endif %}
             <form method="POST">
-                <div class="form-group">
-                    <label>Name</label>
-                    <input type="text" name="name" placeholder="Your name" required>
-                </div>
+                <input type="hidden" name="token" value="{{ token }}">
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="email" name="email" placeholder="you@example.com" required>
+                    <input type="email" value="{{ invite.email }}" disabled>
+                </div>
+                <div class="form-group">
+                    <label>Your Name</label>
+                    <input type="text" name="name" placeholder="Your name" required>
                 </div>
                 <div class="form-group">
                     <label>Password</label>
                     <input type="password" name="password" placeholder="Min 6 characters" required minlength="6">
-                    <div class="hint">At least 6 characters</div>
                 </div>
-                <button type="submit" class="btn">Create Account</button>
+                <button type="submit" class="btn">Join {{ invite.venue_name }}</button>
             </form>
-            <div class="links">Already have an account? <a href="/auth/login">Sign in</a></div>
         </div>
     </div>
 </body>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Your Email - Pool Cue</title>
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#09090b;color:#e4e4e7;min-height:100vh;display:flex;align-items:center;justify-content:center}
+        .container{width:100%;max-width:400px;padding:20px;text-align:center}
+        .icon{font-size:80px;margin-bottom:20px}
+        h1{font-size:24px;margin-bottom:10px}
+        p{color:#a1a1aa;margin-bottom:20px}
+        .email{color:#22c55e;font-weight:600}
+        .card{background:#18181b;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:30px;margin-top:20px}
+        .btn{display:inline-block;padding:12px 24px;background:#22c55e;color:#000;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
+        .resend{margin-top:20px;font-size:14px;color:#71717a}
+        .resend a{color:#22c55e;text-decoration:none}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📧</div>
+        <h1>Check Your Email</h1>
+        <p>We sent a verification link to<br><span class="email">{{ email }}</span></p>
+        <p>Click the link in the email to verify your account.</p>
+        <div class="card">
+            <p style="font-size:14px;margin-bottom:15px;">Didn't get the email?</p>
+            <form action="/auth/resend-verification" method="POST" style="display:inline">
+                <input type="hidden" name="email" value="{{ email }}">
+                <button type="submit" class="btn">Resend Email</button>
+            </form>
+        </div>
+        <div class="resend">
+            <a href="/auth/login">← Back to login</a>
+        </div>
+    </div>
+</body>
+</html>
