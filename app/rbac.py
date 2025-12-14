@@ -1,6 +1,12 @@
 """
-RBAC - Role-Based Access Control Helpers
-Unified permission checking for Pool Cue
+RBAC - Role-Based Access Control Helpers (v2)
+Simplified permission checking for Pool Cue
+
+Roles: owner, manager, staff, analyst
+- owner: Full venue access, can manage staff, view financials
+- manager: Can manage staff, queue, view analytics
+- staff: Can operate board/queue only
+- analyst: Read-only analytics access
 """
 
 from functools import wraps
@@ -9,297 +15,320 @@ from .database import get_db
 
 
 # ============================================
+# ROLE PERMISSIONS MAPPING
+# ============================================
+
+ROLE_PERMISSIONS = {
+    'owner': [
+        'manage_staff', 'view_staff', 'view_analytics', 'export_data',
+        'manage_queue', 'operate_board', 'edit_settings', 'view_financials',
+        'manage_events', 'manage_tournaments'
+    ],
+    'manager': [
+        'manage_staff', 'view_staff', 'view_analytics', 'export_data',
+        'manage_queue', 'operate_board', 'manage_events', 'manage_tournaments'
+    ],
+    'staff': [
+        'view_staff', 'manage_queue', 'operate_board'
+    ],
+    'analyst': [
+        'view_staff', 'view_analytics', 'export_data'
+    ],
+}
+
+ROLE_HIERARCHY = {
+    'owner': 100,
+    'manager': 70,
+    'staff': 50,
+    'analyst': 30,
+}
+
+
+# ============================================
 # PERMISSION CHECKING
 # ============================================
 
 def get_user_permissions(user_id, venue_id=None):
     """
-    Get all permissions for a user at a specific venue (or globally).
+    Get all permissions for a user at a specific venue.
     Returns a set of permission names.
     """
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    # Get permissions from roles assigned to this user for this venue OR globally
-    cursor.execute('''
-        SELECT DISTINCT p.name
-        FROM user_venue_roles uvr
-        JOIN role_permissions rp ON uvr.role_id = rp.role_id
-        JOIN permissions p ON rp.permission_id = p.id
-        WHERE uvr.user_id = ?
-        AND (uvr.venue_id = ? OR uvr.venue_id IS NULL)
-    ''', (user_id, venue_id))
-    
-    permissions = {row['name'] for row in cursor.fetchall()}
-    conn.close()
-    return permissions
-
-
-def user_has_permission(user_id, permission, venue_id=None):
-    """Check if a user has a specific permission."""
     # Superadmins have all permissions
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('SELECT is_superadmin FROM users WHERE id = ?', (user_id,))
     user = cursor.fetchone()
-    conn.close()
     
     if user and user['is_superadmin']:
-        return True
+        conn.close()
+        # Return all possible permissions
+        all_perms = set()
+        for perms in ROLE_PERMISSIONS.values():
+            all_perms.update(perms)
+        all_perms.add('access_master')  # Superadmin-only
+        all_perms.add('manage_venues')
+        all_perms.add('manage_all_users')
+        return all_perms
     
+    if not venue_id:
+        conn.close()
+        return set()
+    
+    # Get role for this venue
+    cursor.execute('''
+        SELECT role FROM user_venue_roles_v2
+        WHERE user_id = ? AND venue_id = ?
+    ''', (user_id, venue_id))
+    row = cursor.fetchone()
+    conn.close()
+    
+    if not row:
+        return set()
+    
+    return set(ROLE_PERMISSIONS.get(row['role'], []))
+
+
+def user_has_permission(user_id, permission, venue_id=None):
+    """Check if a user has a specific permission."""
     permissions = get_user_permissions(user_id, venue_id)
     return permission in permissions
 
 
-def get_user_roles(user_id, venue_id=None):
-    """Get all roles for a user at a specific venue."""
+def get_user_role(user_id, venue_id):
+    """Get user's role at a specific venue."""
     conn = get_db()
     cursor = conn.cursor()
-    
-    if venue_id:
-        cursor.execute('''
-            SELECT r.name, r.level
-            FROM user_venue_roles uvr
-            JOIN roles r ON uvr.role_id = r.id
-            WHERE uvr.user_id = ?
-            AND (uvr.venue_id = ? OR uvr.venue_id IS NULL)
-            ORDER BY r.level DESC
-        ''', (user_id, venue_id))
-    else:
-        cursor.execute('''
-            SELECT r.name, r.level, uvr.venue_id
-            FROM user_venue_roles uvr
-            JOIN roles r ON uvr.role_id = r.id
-            WHERE uvr.user_id = ?
-            ORDER BY r.level DESC
-        ''', (user_id,))
-    
-    roles = [dict(row) for row in cursor.fetchall()]
+    cursor.execute('''
+        SELECT role FROM user_venue_roles_v2
+        WHERE user_id = ? AND venue_id = ?
+    ''', (user_id, venue_id))
+    row = cursor.fetchone()
     conn.close()
-    return roles
+    return row['role'] if row else None
 
 
 def get_user_venues(user_id):
     """Get all venues a user has access to."""
     conn = get_db()
     cursor = conn.cursor()
-    
     cursor.execute('''
-        SELECT DISTINCT b.id, b.name, r.name as role_name, r.level
-        FROM user_venue_roles uvr
+        SELECT b.id, b.name, uvr.role
+        FROM user_venue_roles_v2 uvr
         JOIN bars b ON uvr.venue_id = b.id
-        JOIN roles r ON uvr.role_id = r.id
         WHERE uvr.user_id = ?
         ORDER BY b.name
     ''', (user_id,))
-    
     venues = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return venues
 
 
-def get_highest_role(user_id, venue_id=None):
-    """Get the highest-level role a user has at a venue."""
-    roles = get_user_roles(user_id, venue_id)
-    if roles:
-        return roles[0]  # Already sorted by level DESC
-    return None
+def is_superadmin(user_id):
+    """Check if user is a superadmin."""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT is_superadmin FROM users WHERE id = ?', (user_id,))
+    user = cursor.fetchone()
+    conn.close()
+    return user and user['is_superadmin']
 
 
 # ============================================
-# DECORATORS FOR ROUTE PROTECTION
+# DECORATORS
 # ============================================
 
 def login_required(f):
     """Require any authenticated user."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            flash('Please log in to continue', 'error')
-            return redirect(url_for('auth.unified_login', next=request.url))
+        if not session.get('user_id'):
+            flash('Please log in', 'error')
+            return redirect(url_for('unified_auth.unified_login'))
         return f(*args, **kwargs)
     return decorated_function
-
-
-def permission_required(permission, venue_id_param='venue_id'):
-    """
-    Require a specific permission. 
-    venue_id can come from URL param, session, or be None for global perms.
-    """
-    def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            if 'user_id' not in session:
-                flash('Please log in to continue', 'error')
-                return redirect(url_for('auth.unified_login', next=request.url))
-            
-            user_id = session['user_id']
-            
-            # Try to get venue_id from kwargs, request args, or session
-            venue_id = kwargs.get(venue_id_param) or \
-                       request.args.get(venue_id_param) or \
-                       session.get('current_venue_id')
-            
-            if not user_has_permission(user_id, permission, venue_id):
-                flash('You do not have permission to access this page', 'error')
-                return redirect(url_for('auth.portal'))
-            
-            return f(*args, **kwargs)
-        return decorated_function
-    return decorator
-
-
-def role_required(*role_names, venue_id_param='venue_id'):
-    """Require one of the specified roles."""
-    def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            if 'user_id' not in session:
-                flash('Please log in to continue', 'error')
-                return redirect(url_for('auth.unified_login', next=request.url))
-            
-            user_id = session['user_id']
-            venue_id = kwargs.get(venue_id_param) or \
-                       request.args.get(venue_id_param) or \
-                       session.get('current_venue_id')
-            
-            roles = get_user_roles(user_id, venue_id)
-            user_role_names = {r['name'] for r in roles}
-            
-            # Check superadmin
-            conn = get_db()
-            cursor = conn.cursor()
-            cursor.execute('SELECT is_superadmin FROM users WHERE id = ?', (user_id,))
-            user = cursor.fetchone()
-            conn.close()
-            
-            if user and user['is_superadmin']:
-                return f(*args, **kwargs)
-            
-            if not user_role_names.intersection(set(role_names)):
-                flash('You do not have the required role to access this page', 'error')
-                return redirect(url_for('auth.portal'))
-            
-            return f(*args, **kwargs)
-        return decorated_function
-    return decorator
 
 
 def superadmin_required(f):
     """Require superadmin access."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            flash('Please log in to continue', 'error')
-            return redirect(url_for('auth.unified_login', next=request.url))
+        user_id = session.get('user_id')
+        if not user_id:
+            flash('Please log in', 'error')
+            return redirect(url_for('unified_auth.unified_login'))
         
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('SELECT is_superadmin FROM users WHERE id = ?', (session['user_id'],))
-        user = cursor.fetchone()
-        conn.close()
-        
-        if not user or not user['is_superadmin']:
+        if not is_superadmin(user_id):
             flash('Superadmin access required', 'error')
-            return redirect(url_for('auth.portal'))
+            return redirect(url_for('unified_auth.portal'))
         
         return f(*args, **kwargs)
     return decorated_function
 
 
+def permission_required(permission, venue_id_param='venue_id'):
+    """
+    Decorator to check for a specific permission.
+    Uses venue_id from session or URL param.
+    """
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            user_id = session.get('user_id')
+            if not user_id:
+                flash('Please log in', 'error')
+                return redirect(url_for('unified_auth.unified_login'))
+            
+            # Get venue_id from kwargs, session, or request
+            venue_id = kwargs.get(venue_id_param) or \
+                       session.get('current_venue_id') or \
+                       request.args.get('venue_id')
+            
+            if not user_has_permission(user_id, permission, venue_id):
+                flash('Permission denied', 'error')
+                return redirect(url_for('unified_auth.portal'))
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
+def role_required(*role_names):
+    """
+    Decorator to require one of the specified roles.
+    Checks current venue from session.
+    """
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            user_id = session.get('user_id')
+            if not user_id:
+                flash('Please log in', 'error')
+                return redirect(url_for('unified_auth.unified_login'))
+            
+            # Superadmins pass all role checks
+            if is_superadmin(user_id):
+                return f(*args, **kwargs)
+            
+            venue_id = session.get('current_venue_id')
+            if not venue_id:
+                flash('No venue selected', 'error')
+                return redirect(url_for('unified_auth.portal'))
+            
+            role = get_user_role(user_id, venue_id)
+            if role not in role_names:
+                flash('Access denied for your role', 'error')
+                return redirect(url_for('bar_manager.dashboard'))
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
 # ============================================
-# ROLE MANAGEMENT FUNCTIONS
+# ROLE MANAGEMENT
 # ============================================
 
-def assign_role(user_id, role_name, venue_id=None, assigned_by=None):
-    """Assign a role to a user for a venue."""
+def assign_role(user_id, role, venue_id, assigned_by):
+    """Assign a role to a user at a venue."""
+    if role not in ROLE_PERMISSIONS:
+        raise ValueError(f"Invalid role: {role}")
+    
     conn = get_db()
     cursor = conn.cursor()
-    
-    cursor.execute('SELECT id FROM roles WHERE name = ?', (role_name,))
-    role = cursor.fetchone()
-    if not role:
-        conn.close()
-        return False, f"Role '{role_name}' not found"
-    
-    try:
-        cursor.execute('''
-            INSERT INTO user_venue_roles (user_id, venue_id, role_id, assigned_by)
-            VALUES (?, ?, ?, ?)
-        ''', (user_id, venue_id, role['id'], assigned_by))
-        conn.commit()
-        conn.close()
-        return True, "Role assigned"
-    except Exception as e:
-        conn.close()
-        return False, str(e)
-
-
-def remove_role(user_id, role_name, venue_id=None):
-    """Remove a role from a user."""
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    cursor.execute('SELECT id FROM roles WHERE name = ?', (role_name,))
-    role = cursor.fetchone()
-    if not role:
-        conn.close()
-        return False, f"Role '{role_name}' not found"
-    
     cursor.execute('''
-        DELETE FROM user_venue_roles 
-        WHERE user_id = ? AND role_id = ? AND (venue_id = ? OR (venue_id IS NULL AND ? IS NULL))
-    ''', (user_id, role['id'], venue_id, venue_id))
+        INSERT OR REPLACE INTO user_venue_roles_v2 (user_id, venue_id, role, assigned_by)
+        VALUES (?, ?, ?, ?)
+    ''', (user_id, venue_id, role, assigned_by))
     conn.commit()
     conn.close()
-    return True, "Role removed"
+    
+    # Log to audit
+    from .email_service import log_audit
+    log_audit(assigned_by, 'role_assigned', user_id, venue_id, {'role': role})
 
 
-def get_all_roles():
-    """Get all available roles."""
+def remove_role(user_id, venue_id, removed_by):
+    """Remove a user's role at a venue."""
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM roles ORDER BY level DESC')
-    roles = [dict(row) for row in cursor.fetchall()]
+    
+    # Get current role for audit
+    cursor.execute('SELECT role FROM user_venue_roles_v2 WHERE user_id = ? AND venue_id = ?', 
+                   (user_id, venue_id))
+    current = cursor.fetchone()
+    old_role = current['role'] if current else None
+    
+    cursor.execute('DELETE FROM user_venue_roles_v2 WHERE user_id = ? AND venue_id = ?', 
+                   (user_id, venue_id))
+    conn.commit()
     conn.close()
-    return roles
+    
+    # Log to audit
+    from .email_service import log_audit
+    log_audit(removed_by, 'role_removed', user_id, venue_id, {'old_role': old_role})
 
 
-def get_all_permissions():
-    """Get all available permissions."""
+def change_role(user_id, new_role, venue_id, changed_by):
+    """Change a user's role at a venue."""
+    if new_role not in ROLE_PERMISSIONS:
+        raise ValueError(f"Invalid role: {new_role}")
+    
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM permissions ORDER BY category, name')
-    permissions = [dict(row) for row in cursor.fetchall()]
+    
+    # Get current role for audit
+    cursor.execute('SELECT role FROM user_venue_roles_v2 WHERE user_id = ? AND venue_id = ?', 
+                   (user_id, venue_id))
+    current = cursor.fetchone()
+    old_role = current['role'] if current else None
+    
+    cursor.execute('UPDATE user_venue_roles_v2 SET role = ? WHERE user_id = ? AND venue_id = ?', 
+                   (new_role, user_id, venue_id))
+    conn.commit()
     conn.close()
-    return permissions
+    
+    # Log to audit
+    from .email_service import log_audit
+    log_audit(changed_by, 'role_changed', user_id, venue_id, {
+        'old_role': old_role,
+        'new_role': new_role
+    })
 
 
 # ============================================
-# CONTEXT PROCESSOR FOR TEMPLATES
+# TEMPLATE CONTEXT
 # ============================================
 
 def inject_rbac_context():
-    """Add RBAC info to template context."""
+    """
+    Context processor to inject RBAC info into templates.
+    Call this in app.py context_processor.
+    """
+    user_id = session.get('user_id')
+    venue_id = session.get('current_venue_id')
+    
     context = {
-        'current_user': None,
+        'current_user_id': user_id,
+        'current_venue_id': venue_id,
+        'is_superadmin': False,
+        'user_role': None,
         'user_permissions': set(),
-        'user_roles': [],
-        'user_venues': [],
     }
     
-    if 'user_id' in session:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],))
-        user = cursor.fetchone()
-        conn.close()
-        
-        if user:
-            context['current_user'] = dict(user)
-            venue_id = session.get('current_venue_id')
-            context['user_permissions'] = get_user_permissions(session['user_id'], venue_id)
-            context['user_roles'] = get_user_roles(session['user_id'], venue_id)
-            context['user_venues'] = get_user_venues(session['user_id'])
+    if user_id:
+        context['is_superadmin'] = is_superadmin(user_id)
+        if venue_id:
+            context['user_role'] = get_user_role(user_id, venue_id)
+            context['user_permissions'] = get_user_permissions(user_id, venue_id)
     
     return context
+
+
+def get_all_roles():
+    """Get list of all available roles."""
+    return list(ROLE_PERMISSIONS.keys())
+
+
+def get_role_permissions(role):
+    """Get permissions for a specific role."""
+    return ROLE_PERMISSIONS.get(role, [])
