@@ -1072,7 +1072,7 @@ def earn():
         LEFT JOIN advertisers a ON c.advertiser_id = a.id
         WHERE sq.is_active = 1
         AND sq.id NOT IN (
-            SELECT question_id FROM survey_responses WHERE player_id = ?
+            SELECT question_id FROM survey_responses WHERE user_id = ?
         )
         ORDER BY sq.token_reward DESC
         LIMIT 5
@@ -1482,7 +1482,7 @@ def bar_detail(bar_id):
     
     # Get bar rating stats
     cursor.execute('''
-        SELECT AVG(rating) as avg_rating, COUNT(*) as total_ratings
+        SELECT AVG(overall_rating) as avg_rating, COUNT(*) as total_ratings
         FROM bar_ratings WHERE bar_id = ?
     ''', (bar_id,))
     rating_row = cursor.fetchone()
