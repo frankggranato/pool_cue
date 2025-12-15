@@ -648,9 +648,10 @@ def save_profile():
                 except ValueError:
                     flash('Invalid birthday format', 'error')
     
-    # Build update query
+    # Build update query - update BOTH nickname and display_name so board shows new name
     base_sql = '''
         UPDATE players SET 
+            nickname = COALESCE(?, nickname),
             display_name = ?,
             email = ?,
             phone_number = ?,
@@ -661,7 +662,7 @@ def save_profile():
             marketing_opt_in = ?
     '''
     
-    params = [display_name, email, phone_number, home_bar_id, play_frequency, 
+    params = [display_name, display_name, email, phone_number, home_bar_id, play_frequency, 
               skill_level, preferred_contact, marketing_opt_in]
     
     # Reset verification if email/phone changed
@@ -680,6 +681,10 @@ def save_profile():
     cursor.execute(base_sql, params)
     conn.commit()
     conn.close()
+    
+    # Update session nickname if display_name was changed
+    if display_name:
+        session['player_nickname'] = display_name
     
     # If phone or email changed, prompt for reverification
     if email_changed or phone_changed:

@@ -78,7 +78,7 @@
                 </div>
                 <div class="c-actions">
                     <a href="/master/bars/{{ bar.id }}" class="btn">View</a>
-                    <button class="btn" onclick="openEditModal({{ bar.id }}, '{{ bar.name }}', '{{ bar.phone or '' }}', '{{ bar.address or '' }}', '{{ bar.borough or '' }}')">✏️ Edit</button>
+                    <button class="btn edit-btn" data-id="{{ bar.id }}" data-name="{{ bar.name }}" data-phone="{{ bar.phone or '' }}" data-address="{{ bar.address or '' }}" data-borough="{{ bar.borough or '' }}">✏️ Edit</button>
                     <a href="/app/board/{{ bar.id }}" class="btn" target="_blank">Board ↗</a>
                 </div>
             </div>
@@ -184,16 +184,25 @@
         function closeModal(){document.getElementById('modal').classList.remove('show')}
         document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
         
-        // Quick edit modal
-        function openEditModal(barId, name, phone, address, borough) {
-            document.getElementById('editBarId').value = barId;
-            document.getElementById('editName').value = name;
-            document.getElementById('editPhone').value = phone;
-            document.getElementById('editAddress').value = address;
-            document.getElementById('editBorough').value = borough;
-            document.getElementById('editForm').action = '/master/bars/' + barId + '/edit';
-            document.getElementById('editModal').classList.add('show');
-        }
+        // Quick edit modal - use data attributes for safe escaping
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const barId = this.dataset.id;
+                const name = this.dataset.name;
+                const phone = this.dataset.phone;
+                const address = this.dataset.address;
+                const borough = this.dataset.borough;
+                
+                document.getElementById('editBarId').value = barId;
+                document.getElementById('editName').value = name;
+                document.getElementById('editPhone').value = phone;
+                document.getElementById('editAddress').value = address;
+                document.getElementById('editBorough').value = borough;
+                document.getElementById('editForm').action = '/master/bars/' + barId + '/edit';
+                document.getElementById('editModal').classList.add('show');
+            });
+        });
+        
         function closeEditModal(){document.getElementById('editModal').classList.remove('show')}
         document.getElementById('editModal').addEventListener('click',e=>{if(e.target.id==='editModal')closeEditModal()});
     </script>

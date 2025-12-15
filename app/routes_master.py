@@ -3,7 +3,8 @@ Master Dashboard routes - Owner control panel for all bars, players, ads
 """
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
 from functools import wraps
-from datetime import datetime
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from werkzeug.security import generate_password_hash
 from .database import get_db
 from .database_league import (get_master_stats, get_all_players_ranked, get_pending_reports,
@@ -19,6 +20,24 @@ import glob
 master_bp = Blueprint('master', __name__, url_prefix='/master')
 
 ADS_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'ads')
+
+# NYC timezone for time display
+NYC_TZ = ZoneInfo('America/New_York')
+
+def format_time_nyc(timestamp_str):
+    """Convert UTC timestamp string to NYC local time display."""
+    if not timestamp_str:
+        return 'Recently'
+    try:
+        # Parse the timestamp (assuming UTC from SQLite)
+        dt = datetime.fromisoformat(timestamp_str.replace(' ', 'T'))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        # Convert to NYC time
+        nyc_time = dt.astimezone(NYC_TZ)
+        return nyc_time.strftime('%b %d, %I:%M %p')
+    except:
+        return timestamp_str[:16] if timestamp_str else 'Recently'
 
 # NOTE: NYC_BOROUGHS and BOROUGH_NORMALIZE are now imported from location_service
 # This ensures a single source of truth for location data
@@ -75,13 +94,13 @@ def dashboard():
     cursor.execute('SELECT COUNT(*) FROM game_history')
     stats['total_games'] = cursor.fetchone()[0] or 0
     
-    # Games today
-    cursor.execute("SELECT COUNT(*) FROM game_history WHERE date(played_at) = date('now')")
+    # Games today (use localtime for correct date)
+    cursor.execute("SELECT COUNT(*) FROM game_history WHERE date(played_at, 'localtime') = date('now', 'localtime')")
     stats['games_today'] = cursor.fetchone()[0] or 0
     
     # Active campaigns
     try:
-        cursor.execute("SELECT COUNT(*) FROM campaigns WHERE status = 'active' AND (end_date IS NULL OR end_date >= date('now'))")
+        cursor.execute("SELECT COUNT(*) FROM campaigns WHERE status = 'active' AND (end_date IS NULL OR end_date >= date('now', 'localtime'))")
         stats['active_campaigns'] = cursor.fetchone()[0] or 0
     except:
         stats['active_campaigns'] = 0
@@ -204,7 +223,7 @@ def dashboard():
             activity.append({
                 'icon': '🎱',
                 'text': f'<b>{r[1]}</b> won a game',
-                'time': r[2][:16] if r[2] else 'Recently'
+                'time': format_time_nyc(r[2])
             })
     except:
         pass
@@ -1134,7 +1153,7 @@ def bars():
     cursor.execute('''
         SELECT b.*,
                (SELECT COUNT(*) FROM queue q WHERE q.bar_id = b.id) as queue_count,
-               (SELECT COUNT(*) FROM game_history gh WHERE gh.bar_id = b.id AND date(gh.played_at) = date('now')) as games_today,
+               (SELECT COUNT(*) FROM game_history gh WHERE gh.bar_id = b.id AND date(gh.played_at, 'localtime') = date('now', 'localtime')) as games_today,
                (SELECT COUNT(*) FROM players p WHERE p.home_bar_id = b.id) as player_count
         FROM bars b
         ORDER BY b.name
