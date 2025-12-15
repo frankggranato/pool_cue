@@ -926,9 +926,12 @@ def update_settings(**kwargs):
     conn.close()
 
 def start_game_timer():
+    from datetime import timezone
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('UPDATE settings SET current_game_start = ? WHERE id = 1', (datetime.now(),))
+    # Use UTC to match SQLite datetime('now') and end_game_timer
+    now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
+    cursor.execute('UPDATE settings SET current_game_start = ? WHERE id = 1', (now_utc,))
     conn.commit()
     conn.close()
 
@@ -941,7 +944,13 @@ def end_game_timer():
     duration = 0
     if row and row['current_game_start']:
         start = datetime.fromisoformat(row['current_game_start'])
-        duration = int((datetime.now() - start).total_seconds())
+        # Use UTC for comparison since SQLite datetime('now') is UTC
+        from datetime import timezone
+        now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
+        duration = int((now_utc - start).total_seconds())
+        # Ensure non-negative
+        if duration < 0:
+            duration = 0
     cursor.execute('UPDATE settings SET current_game_start = NULL WHERE id = 1')
     conn.commit()
     conn.close()
