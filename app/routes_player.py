@@ -126,8 +126,9 @@ def home():
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT b.id, b.name, b.address, b.is_active,
-               (SELECT COUNT(*) FROM queue q WHERE q.bar_id = b.id) as queue_count
+        SELECT b.id, b.name, b.address, b.is_active, b.table_count as tables,
+               (SELECT COUNT(*) FROM queue q WHERE q.bar_id = b.id) as queue_count,
+               (SELECT COUNT(*) FROM game_history gh WHERE gh.bar_id = b.id AND date(gh.played_at) = date('now')) as games_today
         FROM bars b
         WHERE b.is_active = 1
         ORDER BY b.name
@@ -1475,6 +1476,19 @@ def bar_detail(bar_id):
     if active_match and player_id:
         in_active_match = player_id in [active_match['player1_id'], active_match['player2_id']]
     
+    # Get home players count (players who call this bar their home)
+    cursor.execute('SELECT COUNT(*) FROM players WHERE home_bar_id = ?', (bar_id,))
+    home_players_count = cursor.fetchone()[0] or 0
+    
+    # Get bar rating stats
+    cursor.execute('''
+        SELECT AVG(rating) as avg_rating, COUNT(*) as total_ratings
+        FROM bar_ratings WHERE bar_id = ?
+    ''', (bar_id,))
+    rating_row = cursor.fetchone()
+    bar_rating = round(rating_row['avg_rating'], 1) if rating_row and rating_row['avg_rating'] else 0
+    total_ratings = rating_row['total_ratings'] if rating_row else 0
+    
     conn.close()
     
     return render_template('player/bar_detail.html', 
@@ -1483,7 +1497,10 @@ def bar_detail(bar_id):
                            is_shot_caller=is_shot_caller,
                            is_challenger=is_challenger,
                            active_match=active_match,
-                           in_active_match=in_active_match)
+                           in_active_match=in_active_match,
+                           home_players_count=home_players_count,
+                           bar_rating=bar_rating,
+                           total_ratings=total_ratings)
 
 @player_bp.route('/queue/<int:bar_id>')
 def queue_status(bar_id):

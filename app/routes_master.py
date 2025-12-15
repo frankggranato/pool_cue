@@ -1129,7 +1129,16 @@ def bars():
     print("[MASTER] Bars page loaded")
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM bars ORDER BY name')
+    
+    # Get bars with computed stats
+    cursor.execute('''
+        SELECT b.*,
+               (SELECT COUNT(*) FROM queue q WHERE q.bar_id = b.id) as queue_count,
+               (SELECT COUNT(*) FROM game_history gh WHERE gh.bar_id = b.id AND date(gh.played_at) = date('now')) as games_today,
+               (SELECT COUNT(*) FROM players p WHERE p.home_bar_id = b.id) as player_count
+        FROM bars b
+        ORDER BY b.name
+    ''')
     all_bars = [dict(row) for row in cursor.fetchall()]
     conn.close()
     embed = request.args.get('embed', '0') == '1'
@@ -1224,6 +1233,7 @@ def edit_bar(bar_id):
     contact_email = request.form.get('contact_email', '')
     website = request.form.get('website', '')
     instagram = request.form.get('instagram', '')
+    google_review_url = request.form.get('google_review_url', '')
     notes = request.form.get('notes', '')
     is_active = 1 if request.form.get('is_active') else 0
     
@@ -1232,15 +1242,15 @@ def edit_bar(bar_id):
     cursor.execute('''
         UPDATE bars SET 
             name = ?, phone = ?, email = ?, address = ?, borough = ?,
-            neighborhood = ?, zip = ?, table_count = ?, table_type = ?,
+            neighborhood = ?, zip_code = ?, table_count = ?, table_type = ?,
             venue_type = ?, open_time = ?, close_time = ?, 
             contact_name = ?, contact_phone = ?, contact_email = ?,
-            website = ?, instagram = ?, notes = ?, is_active = ?
+            website = ?, instagram = ?, google_review_url = ?, notes = ?, is_active = ?
         WHERE id = ?
     ''', (name, phone, email, address, borough, neighborhood, zip_code, 
           table_count, table_type, venue_type, open_time, close_time,
-          contact_name, contact_phone, contact_email, website, instagram, 
-          notes, is_active, bar_id))
+          contact_name, contact_phone, contact_email, website, instagram,
+          google_review_url, notes, is_active, bar_id))
     conn.commit()
     conn.close()
     
@@ -2547,19 +2557,8 @@ def bar_reports():
 @master_bp.route('/bar-reports/<int:bar_id>')
 @admin_required
 def bar_report_detail(bar_id):
-    """Detailed report for a specific bar."""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM bars WHERE id = ?', (bar_id,))
-    bar = cursor.fetchone()
-    conn.close()
-    
-    if not bar:
-        bar = {'id': bar_id, 'name': f'Bar {bar_id}', 'address': 'Address TBD'}
-    else:
-        bar = dict(bar)
-    
-    return render_template('master/bar_report_detail.html', bar=bar)
+    """Detailed report for a specific bar - redirect to main bar report."""
+    return redirect(url_for('master.bar_report', bar_id=bar_id))
 
 
 @master_bp.route('/brand-report')
