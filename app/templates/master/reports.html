@@ -258,8 +258,15 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ player_id: playerId })
                 });
+                const data = await res.json();
                 if (res.ok) {
-                    showToast('Removed from queue', 'success');
+                    if (data.removed) {
+                        showToast('✅ Player removed from queue', 'success');
+                    } else {
+                        showToast('ℹ️ Player was not in any queue', 'success');
+                    }
+                } else {
+                    showToast('Failed to remove: ' + (data.error || 'Unknown error'), 'error');
                 }
             } catch (e) {
                 showToast('Failed to remove', 'error');

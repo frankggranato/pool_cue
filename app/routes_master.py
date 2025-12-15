@@ -5596,8 +5596,18 @@ def api_remove_from_queue():
     
     conn = get_db()
     cursor = conn.cursor()
+    
+    # Check if player is in queue first
+    cursor.execute('SELECT id, bar_id FROM queue WHERE player_id = ?', (player_id,))
+    queue_entry = cursor.fetchone()
+    
+    if not queue_entry:
+        conn.close()
+        return jsonify({'success': True, 'removed': False, 'message': 'Player was not in any queue'})
+    
+    # Remove from queue
     cursor.execute('DELETE FROM queue WHERE player_id = ?', (player_id,))
     conn.commit()
     conn.close()
     
-    return jsonify({'success': True})
+    return jsonify({'success': True, 'removed': True, 'message': 'Player removed from queue'})
