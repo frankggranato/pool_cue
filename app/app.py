@@ -54,6 +54,16 @@ def create_app():
     if CSRF_AVAILABLE:
         csrf = CSRFProtect(app)
         app.csrf = csrf
+        # Exempt API endpoints from CSRF (they use session/token auth)
+        csrf.exempt('public.api_queue')
+        csrf.exempt('public.api_queue_join')
+        csrf.exempt('public.api_king_wins')
+        csrf.exempt('public.api_challenger_wins')
+        csrf.exempt('display.board_data')
+        csrf.exempt('api.api_queue_status')
+        csrf.exempt('social.api_token_balance')
+        csrf.exempt('ad_tracking.track_impression')
+        csrf.exempt('ad_tracking.track_click')
     else:
         app.csrf = None
     

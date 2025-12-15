@@ -1,4 +1,6 @@
 """
+from .logging_config import get_logger
+logger = get_logger(__name__)
 Player App routes - Mobile web + PWA for players
 """
 from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, flash
@@ -58,7 +60,7 @@ def get_active_ad(placement='player'):
                 pass
             return selected_ad
     except Exception as e:
-        print(f"[PLAYER ADS] Error getting campaign ads: {e}")
+        logger.debug(f"[PLAYER ADS] Error getting campaign ads: {e}")
     
     # Fall back to folder-based ads
     folder = os.path.join(ADS_BASE, placement)
@@ -1412,7 +1414,7 @@ def submit_report(player_id):
         from .database_league import report_player as db_report
         db_report(player_id, reporter_id, reason, details)
     except Exception as e:
-        print(f"Report error: {e}")
+        logger.error(f"Report error: {e}")
     
     return redirect(url_for('player.home'))
 
@@ -2314,7 +2316,7 @@ def submit_drink_survey():
             conn.commit()
             conn.close()
         except Exception as db_err:
-            print(f"DB Error: {db_err}")
+            logger.error(f"DB Error: {db_err}")
         
         return jsonify({
             'success': True,
@@ -2383,7 +2385,7 @@ def api_post_session_survey():
             conn.commit()
             conn.close()
         except Exception as db_err:
-            print(f"Survey DB Error: {db_err}")
+            logger.error(f"Survey DB Error: {db_err}")
         
         return jsonify({
             'success': True,

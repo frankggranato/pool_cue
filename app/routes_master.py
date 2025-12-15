@@ -15,6 +15,8 @@ from .services.location_service import (
     get_location_analytics, auto_populate_borough, is_nyc_location
 )
 import os
+from .logging_config import get_logger
+logger = get_logger(__name__)
 import glob
 
 master_bp = Blueprint('master', __name__, url_prefix='/master')
@@ -76,7 +78,7 @@ def admin_required(f):
 @admin_required
 def dashboard():
     """Main master dashboard - command center."""
-    print("[MASTER] Dashboard loaded")
+    logger.info("Dashboard loaded")
     conn = get_db()
     cursor = conn.cursor()
     
@@ -186,7 +188,7 @@ def dashboard():
                 'ctr': ctr
             })
     except Exception as e:
-        print(f"[DASHBOARD] Campaign query error: {e}")
+        logger.debug(f"[DASHBOARD] Campaign query error: {e}")
     
     # Leaderboard - top players by wins with win rate
     cursor.execute('''
@@ -324,7 +326,7 @@ def data_intelligence():
 @admin_required
 def players():
     """All players management."""
-    print("[MASTER] Players page loaded")
+    logger.info("Players page loaded")
     include_inactive = request.args.get('include_inactive', '0') == '1'
     players = get_all_players_ranked(include_inactive=include_inactive)
     embed = request.args.get('embed', '0') == '1'
@@ -607,7 +609,7 @@ def leaderboard():
 @admin_required
 def reports():
     """Player reports management."""
-    print("[MASTER] Reports page loaded")
+    logger.info("Reports page loaded")
     pending = get_pending_reports()
     embed = request.args.get('embed', '0') == '1'
     return render_template('master/reports.html', reports=pending, active_page='reports', embed=embed)
@@ -621,7 +623,7 @@ def reports():
 @admin_required
 def pool_nights():
     """Pool nights management - view, approve, reject submissions."""
-    print("[MASTER] Pool nights page loaded")
+    logger.info("Pool nights page loaded")
     
     # Get filter params - default to 'upcoming' if not specified
     status_filter = request.args.get('status', 'upcoming')
@@ -850,7 +852,7 @@ def pool_night_detail(night_id):
             games_stats['games_count'] = row['games_count'] or 0
             games_stats['unique_players'] = row['player_appearances'] or 0
     except Exception as e:
-        print(f"[POOL_NIGHT_DETAIL] Error getting games stats: {e}")
+        logger.debug(f"[POOL_NIGHT_DETAIL] Error getting games stats: {e}")
     
     # Get POS stats for that night at that bar
     pos_stats = {'checks_count': 0, 'total_revenue': 0, 'avg_check_amount': 0}
@@ -872,7 +874,7 @@ def pool_night_detail(night_id):
                 pos_stats['total_revenue'] = round(row['total_revenue'] or 0, 2)
                 pos_stats['avg_check_amount'] = round(row['avg_check_amount'] or 0, 2)
     except Exception as e:
-        print(f"[POOL_NIGHT_DETAIL] Error getting POS stats: {e}")
+        logger.debug(f"[POOL_NIGHT_DETAIL] Error getting POS stats: {e}")
     
     conn.close()
     
@@ -1145,7 +1147,7 @@ def record_pool_night_payout(night_id):
 @admin_required
 def bars():
     """All bars management."""
-    print("[MASTER] Bars page loaded")
+    logger.info("Bars page loaded")
     conn = get_db()
     cursor = conn.cursor()
     
@@ -1752,7 +1754,7 @@ def api_stats():
 @admin_required
 def analytics():
     """Analytics - Platform metrics and insights."""
-    print("[MASTER] Analytics loaded")
+    logger.info("Analytics loaded")
     
     from datetime import date, timedelta, datetime as dt
     from .services.pos_analytics import (
@@ -1932,7 +1934,7 @@ def analytics():
                     'avg_per_day': avg_per_day
                 })
     except Exception as e:
-        print(f"[ANALYTICS] Ad metrics query error: {e}")
+        logger.debug(f"[ANALYTICS] Ad metrics query error: {e}")
     
     # Player stats
     cursor.execute('SELECT COUNT(*) FROM players')
@@ -2055,7 +2057,7 @@ def analytics():
             for k in buckets:
                 a['age_distribution'][k] = round(buckets[k] / total * 100) if total > 0 else 0
     except Exception as e:
-        print(f"[ANALYTICS] Age calculation error: {e}")
+        logger.debug(f"[ANALYTICS] Age calculation error: {e}")
         pass
     
     # Borough distribution - uses normalize_borough for consistent naming
@@ -2101,7 +2103,7 @@ def analytics():
             if boro and boro in a['bars_by_borough']:
                 a['bars_by_borough'][boro] += r[1]
     except Exception as e:
-        print(f"[ANALYTICS] Borough distribution error: {e}")
+        logger.debug(f"[ANALYTICS] Borough distribution error: {e}")
     
     # Borough growth (month-over-month player increase) - uses normalize_borough
     a['borough_growth'] = {boro: {'current': 0, 'previous': 0, 'growth': 0} for boro in NYC_BOROUGHS}
@@ -2146,7 +2148,7 @@ def analytics():
             elif current > 0:
                 a['borough_growth'][boro]['growth'] = 100  # New growth from 0
     except Exception as e:
-        print(f"[ANALYTICS] Borough growth error: {e}")
+        logger.debug(f"[ANALYTICS] Borough growth error: {e}")
         pass
     
     # Neighborhood breakdown - top neighborhoods from bar locations
@@ -2234,7 +2236,7 @@ def analytics():
         a['geo']['zip_codes'] = [{'zip': r[0], 'neighborhood': r[1] or '', 'bar_count': r[2], 'player_count': r[3] or 0} for r in cursor.fetchall()]
         
     except Exception as e:
-        print(f"[ANALYTICS] Geo stats error: {e}")
+        logger.debug(f"[ANALYTICS] Geo stats error: {e}")
     
     # Skill distribution by rating tiers - only active players
     a['skill_distribution'] = {'diamond': 0, 'platinum': 0, 'gold': 0, 'silver': 0, 'bronze': 0}
@@ -2326,7 +2328,7 @@ def analytics():
             if r[0] in a['frequency_distribution']:
                 a['frequency_distribution'][r[0]] += r[1]
     except Exception as e:
-        print(f"[ANALYTICS] Frequency distribution error: {e}")
+        logger.debug(f"[ANALYTICS] Frequency distribution error: {e}")
         pass
     
     # Games per week for chart (last 12 weeks)
@@ -2407,7 +2409,7 @@ def analytics():
                 round((row[4] or 0) / cohort * 100)
             ]
     except Exception as e:
-        print(f"[ANALYTICS] Retention calculation error: {e}")
+        logger.debug(f"[ANALYTICS] Retention calculation error: {e}")
         # Leave as zeros if calculation fails
     
     # Bar performance stats
@@ -2552,7 +2554,7 @@ def analytics():
         a['cohorts']['at_risk'] = cursor.fetchone()[0] or 0
         
     except Exception as e:
-        print(f"[ANALYTICS] Cohort calculation error: {e}")
+        logger.debug(f"[ANALYTICS] Cohort calculation error: {e}")
     
     # Get bars for filter dropdown
     cursor.execute('SELECT id, name FROM bars WHERE is_active = 1 ORDER BY name')
@@ -2615,7 +2617,7 @@ def brand_report_detail(brand_name):
 @admin_required
 def bar_detail(bar_id):
     """Bar detail page with real stats from database."""
-    print(f"[MASTER] Bar detail page loaded for bar {bar_id}")
+    logger.info(f"[MASTER] Bar detail page loaded for bar {bar_id}")
     
     conn = get_db()
     cursor = conn.cursor()
@@ -3018,7 +3020,7 @@ def bar_detail(bar_id):
         
         conn2.close()
     except Exception as e:
-        print(f"[MASTER] Error loading tastemakers: {e}")
+        logger.info(f"[MASTER] Error loading tastemakers: {e}")
     
     return render_template('master/bar_detail.html', bar=bar, summary=summary, ranked_windows=ranked_windows, 
                            tastemakers=tastemakers, home_bar_players=home_bar_players, active_page='bars')
@@ -3950,7 +3952,7 @@ def api_brand_compare():
 @admin_required
 def advertisers():
     """Advertiser management page with campaign metrics."""
-    print("[MASTER] Advertisers page loaded")
+    logger.info("Advertisers page loaded")
     from .advertiser_system import get_all_advertisers, AD_CATEGORIES, PLACEMENT_TYPES, init_advertiser_tables
     from datetime import date, timedelta, datetime as dt
     
@@ -4100,7 +4102,7 @@ def advertisers():
             totals['ctr'] = round((totals['clicks'] / totals['impressions'] * 100), 1) if totals['impressions'] > 0 else 0
     
     except Exception as e:
-        print(f"[ADVERTISERS] Error fetching campaign metrics: {e}")
+        logger.debug(f"[ADVERTISERS] Error fetching campaign metrics: {e}")
         advertiser_totals = {}
     
     conn.close()
@@ -4247,7 +4249,7 @@ def export_campaigns_csv():
             })
     
     except Exception as e:
-        print(f"[CSV EXPORT] Error: {e}")
+        logger.error(f"[CSV EXPORT] Error: {e}")
     
     conn.close()
     
@@ -4601,7 +4603,6 @@ def api_schedule_ad():
     """Schedule an ad to a placement."""
     from .ad_placement import schedule_ad
     from .advertiser_system import add_creative, create_campaign
-    import os
     
     slot_id = request.form.get('slot_id', type=int)
     advertiser_id = request.form.get('advertiser_id', type=int)
@@ -5004,7 +5005,7 @@ def edit_campaign(campaign_id):
 @admin_required
 def bar_integrations(bar_id):
     """View and manage POS integrations for a bar."""
-    print(f"[MASTER] Bar {bar_id} integrations page loaded")
+    logger.info(f"[MASTER] Bar {bar_id} integrations page loaded")
     
     conn = get_db()
     cursor = conn.cursor()
@@ -5042,7 +5043,7 @@ def bar_integrations(bar_id):
 @admin_required
 def save_bar_integrations(bar_id):
     """Save POS integration settings for a bar."""
-    print(f"[MASTER] Saving bar {bar_id} integrations")
+    logger.info(f"[MASTER] Saving bar {bar_id} integrations")
     
     provider = request.form.get('pos_provider', '').strip() or None
     location_id = request.form.get('pos_location_id', '').strip() or None
@@ -5093,7 +5094,7 @@ def save_bar_integrations(bar_id):
 @admin_required
 def sync_pos_test(bar_id):
     """Test POS sync for a bar (last 7 days)."""
-    print(f"[MASTER] Testing POS sync for bar {bar_id}")
+    logger.info(f"[MASTER] Testing POS sync for bar {bar_id}")
     
     from .services.pos_sync import sync_bar_pos
     

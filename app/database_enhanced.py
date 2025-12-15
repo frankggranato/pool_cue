@@ -1,4 +1,5 @@
 """
+import sqlite3
 Database extensions for enhanced data collection and features
 - Bar addresses and Google review links
 - Category-based bar ratings
@@ -36,7 +37,7 @@ def init_enhanced_db():
     for sql in bar_migrations:
         try:
             cursor.execute(sql)
-        except: pass
+        except sqlite3.OperationalError: pass  # Column/table already exists
     
     # ============================================
     # BAR RATINGS (Category-based)
@@ -156,7 +157,7 @@ def init_enhanced_db():
     for sql in player_migrations:
         try:
             cursor.execute(sql)
-        except: pass
+        except sqlite3.OperationalError: pass  # Column/table already exists
     
     # ============================================
     # ACTIVITY/EVENTS TABLE (Analytics)

@@ -1,4 +1,6 @@
 """
+from .logging_config import get_logger
+logger = get_logger(__name__)
 Authentication routes - Account creation and login
 """
 from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, flash, current_app
@@ -756,7 +758,7 @@ def send_verification_code(channel, destination, code):
     if channel == 'phone':
         # Phone verification disabled - log and return
         logger.info(f'[DISABLED] Phone verification not supported - use email instead')
-        print(f'⚠️ Phone verification disabled. Code would be: {code}')
+        logger.warning(f'Phone verification disabled. Code would be: {code}')
         return False
     else:
         # Use email service

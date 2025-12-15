@@ -1,4 +1,5 @@
 """
+import sqlite3
 Database extensions for League System - Phase 1
 Ranked/Casual, ELO, Divisions, Seasons, Reports
 """
@@ -13,30 +14,30 @@ def init_league_db():
     # Extend players table with rating fields
     try:
         cursor.execute('ALTER TABLE players ADD COLUMN rating INTEGER DEFAULT 1000')
-    except: pass
+    except sqlite3.OperationalError: pass  # Column already exists
     try:
         cursor.execute('ALTER TABLE players ADD COLUMN division TEXT DEFAULT "Bronze"')
-    except: pass
+    except sqlite3.OperationalError: pass  # Column already exists
     try:
         cursor.execute('ALTER TABLE players ADD COLUMN ranked_wins INTEGER DEFAULT 0')
-    except: pass
+    except sqlite3.OperationalError: pass  # Column already exists
     try:
         cursor.execute('ALTER TABLE players ADD COLUMN ranked_losses INTEGER DEFAULT 0')
-    except: pass
+    except sqlite3.OperationalError: pass  # Column already exists
     try:
         cursor.execute('ALTER TABLE players ADD COLUMN is_ranked_player INTEGER DEFAULT 0')
-    except: pass
+    except sqlite3.OperationalError: pass  # Column already exists
     
     # Extend game_history with mode
     try:
         cursor.execute('ALTER TABLE game_history ADD COLUMN mode TEXT DEFAULT "casual"')
-    except: pass
+    except sqlite3.OperationalError: pass  # Column already exists
     try:
         cursor.execute('ALTER TABLE game_history ADD COLUMN season_id INTEGER')
-    except: pass
+    except sqlite3.OperationalError: pass  # Column already exists
     try:
         cursor.execute('ALTER TABLE game_history ADD COLUMN rating_change INTEGER DEFAULT 0')
-    except: pass
+    except sqlite3.OperationalError: pass  # Column already exists
     
     # Seasons table
     cursor.execute('''

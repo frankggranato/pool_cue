@@ -1,4 +1,6 @@
 """
+from .logging_config import get_logger
+logger = get_logger(__name__)
 Public routes - Join queue and player actions
 """
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
@@ -70,7 +72,7 @@ def auto_join_pending_player(player_id):
                 has_account=player.get('account_id') is not None
             )
     except Exception as e:
-        print(f"[AUTO-JOIN] Analytics log failed: {e}")
+        logger.debug(f"[AUTO-JOIN] Analytics log failed: {e}")
     
     return queue_id, session_token, bar_id
 

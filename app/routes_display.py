@@ -1,4 +1,6 @@
 """
+from .logging_config import get_logger
+logger = get_logger(__name__)
 Display routes - TV screen view
 DO NOT CHANGE BOARD STYLING
 """
@@ -174,7 +176,7 @@ def get_ads_for_board(bar_id=None):
                     if os.path.exists(file_path):
                         campaign_ads.append(file_name)
     except Exception as e:
-        print(f"[AD SERVING] Error getting campaign ads: {e}")
+        logger.error(f"[AD SERVING] Error getting campaign ads: {e}")
     
     # If we found campaign ads, use those; otherwise fall back to folder
     if campaign_ads:
