@@ -941,16 +941,25 @@ def end_game_timer():
     cursor = conn.cursor()
     cursor.execute('SELECT current_game_start FROM settings WHERE id = 1')
     row = cursor.fetchone()
-    duration = 0
+    duration = None  # None means timer wasn't running, will skip anti-spam check
     if row and row['current_game_start']:
-        start = datetime.fromisoformat(row['current_game_start'])
-        # Use UTC for comparison since SQLite datetime('now') is UTC
-        from datetime import timezone
-        now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
-        duration = int((now_utc - start).total_seconds())
-        # Ensure non-negative
-        if duration < 0:
-            duration = 0
+        try:
+            start_str = row['current_game_start']
+            # Handle both ISO format and SQLite datetime format
+            if 'T' in start_str:
+                start = datetime.fromisoformat(start_str.replace('Z', '+00:00').split('+')[0])
+            else:
+                start = datetime.fromisoformat(start_str)
+            # Use UTC for comparison since SQLite datetime('now') is UTC
+            from datetime import timezone
+            now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
+            duration = int((now_utc - start).total_seconds())
+            # Ensure non-negative - if negative, timer was corrupted
+            if duration < 0:
+                duration = None  # Skip anti-spam check
+        except Exception as e:
+            print(f"Error parsing game timer: {e}")
+            duration = None
     cursor.execute('UPDATE settings SET current_game_start = NULL WHERE id = 1')
     conn.commit()
     conn.close()

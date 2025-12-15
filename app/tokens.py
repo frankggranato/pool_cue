@@ -228,8 +228,9 @@ def award_game_result(player_id, won, streak=0, game_duration_seconds=None, bar_
         reason = 'game_loss'
         details = 'Thanks for playing'
     
-    # Anti-spam check (only if duration provided)
-    if game_duration_seconds is not None:
+    # Anti-spam check (only if valid duration provided)
+    # Treat negative or None durations as valid (timer not working, give benefit of doubt)
+    if game_duration_seconds is not None and game_duration_seconds >= 0:
         eligible, block_reason = check_game_eligible_for_tokens(
             player_id, game_duration_seconds, bar_id
         )
@@ -243,6 +244,8 @@ def award_game_result(player_id, won, streak=0, game_duration_seconds=None, bar_
                 'block_reason': block_reason,
                 'new_balance': get_balance(player_id)
             }
+    
+    return award_tokens(player_id, base, reason, details)
     
     return award_tokens(player_id, base, reason, details)
 
