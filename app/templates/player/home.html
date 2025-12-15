@@ -339,11 +339,16 @@
         }
         
         function openQRScanner() {
-            // Check for native camera support
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                window.location.href = '/player/scan';
+            // Check if we're in the native iOS app
+            if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.poolCueApp) {
+                // Use native QR scanner
+                window.webkit.messageHandlers.poolCueApp.postMessage({action: 'scanQR'});
+            } else if (window.PoolCueApp && window.PoolCueApp.scanQR) {
+                // Alternative native bridge
+                window.PoolCueApp.scanQR();
             } else {
-                alert('Camera not supported on this device');
+                // Web fallback - go to web-based scanner
+                window.location.href = '/scan';
             }
         }
         

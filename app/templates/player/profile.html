@@ -277,11 +277,11 @@
         
         async function loadProfile() {
             try {
-                const res = await fetch('/auth/me');
+                const res = await fetch('/player-auth/me');
                 const data = await res.json();
                 
                 if (!data.logged_in) {
-                    window.location.href = '/auth/login';
+                    window.location.href = '/player-auth/login';
                     return;
                 }
                 
