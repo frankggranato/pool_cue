@@ -1066,10 +1066,9 @@ def earn():
     # Get active survey questions that player hasn't answered
     cursor.execute('''
         SELECT sq.id, sq.text, sq.response_type, sq.options_json, sq.token_reward,
-               a.name as sponsor
+               b.name as sponsor
         FROM survey_questions sq
-        LEFT JOIN campaigns c ON sq.campaign_id = c.id
-        LEFT JOIN advertisers a ON c.advertiser_id = a.id
+        LEFT JOIN brands b ON sq.brand_id = b.id
         WHERE sq.is_active = 1
         AND sq.id NOT IN (
             SELECT question_id FROM survey_responses WHERE user_id = ?
