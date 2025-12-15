@@ -1,5 +1,42 @@
 # Pool Cue - Release Checklist
 
+## Pre-Production Security Checklist
+
+### Critical - Must Do Before Launch
+- [x] Remove beta/beta backdoors (DONE - commit 30ed6aa)
+- [x] Use scrypt for password hashing (DONE)
+- [x] Set DEBUG=False default (DONE)
+- [x] Install flask-limiter for rate limiting (DONE)
+- [x] Install flask-wtf for CSRF protection (DONE)
+- [x] Generate secure SECRET_KEY (DONE)
+- [x] Fix bare except: blocks (DONE)
+- [x] Add centralized logging (DONE)
+
+### Production Environment Settings (.env)
+```bash
+FLASK_ENV=production
+FLASK_DEBUG=false
+SECRET_KEY=<generate-new-64-char-hex-key>
+BETA_SHOW_CODE=false
+LOG_LEVEL=WARNING
+```
+
+### External Service Integration (TODO)
+- [ ] **Twilio SMS** - For verification codes (currently shows codes in response)
+  - File: `app/database.py:2182`
+  - Set: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER
+- [ ] **Stripe Payments** - For advertiser billing
+  - Files: `app/marketer_system.py:171,616`, `app/routes_market.py:457`
+  - Set: STRIPE_PUBLIC_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+- [ ] **Sentry** - For error tracking (optional but recommended)
+
+### iOS App Store Preparation
+- [ ] Update Info.plist NSAppTransportSecurity for production (see comments in file)
+- [ ] Change Config.swift environment to .production
+- [ ] Update production server URL in Config.swift
+
+---
+
 ## Before Every Release
 
 ### 1. Version Bump

@@ -41,8 +41,9 @@ BETA_AUTO_VERIFY = False  # SECURITY: Real verification required
 
 # BETA TESTING: When True, shows verification code in the UI (users still must enter it manually)
 # This is safer than BETA_AUTO_VERIFY because it still validates the code entry flow
-# Set to False in production!
-BETA_SHOW_CODE = True  # TODO: Set False before production launch
+# Show verification codes in responses (for development/testing only)
+# Set BETA_SHOW_CODE=false in .env for production
+BETA_SHOW_CODE = os.environ.get('BETA_SHOW_CODE', 'false').lower() == 'true'
 
 
 def hash_password(password):
