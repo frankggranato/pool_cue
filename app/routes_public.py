@@ -466,7 +466,12 @@ def my_status():
 @public_bp.route('/api/king-wins', methods=['POST'])
 def api_king_wins():
     """King wins - swipe challenger off."""
-    if Queue.king_wins():
+    data = request.json or {}
+    bar_id = data.get('bar_id') or request.args.get('bar_id')
+    if bar_id:
+        bar_id = int(bar_id)
+    
+    if Queue.king_wins(bar_id=bar_id):
         on_game_end()  # Request confirmation from new challenger
         return jsonify({'success': True})
     return jsonify({'error': 'Need king and challenger'}), 400
@@ -474,7 +479,12 @@ def api_king_wins():
 @public_bp.route('/api/challenger-wins', methods=['POST'])
 def api_challenger_wins():
     """Challenger wins - swipe king off."""
-    if Queue.challenger_wins():
+    data = request.json or {}
+    bar_id = data.get('bar_id') or request.args.get('bar_id')
+    if bar_id:
+        bar_id = int(bar_id)
+    
+    if Queue.challenger_wins(bar_id=bar_id):
         on_game_end()  # Request confirmation from new position 1 and 2
         return jsonify({'success': True})
     return jsonify({'error': 'Need king and challenger'}), 400

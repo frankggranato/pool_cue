@@ -185,15 +185,18 @@ class Queue:
         return dict(entry) if entry else None
 
     @staticmethod
-    def king_wins():
+    def king_wins(bar_id=None):
         """King wins - add 1 to king's wins, remove challenger."""
-        queue = Queue.get_all()
+        if bar_id:
+            queue = Queue.get_all_for_bar(bar_id)
+        else:
+            queue = Queue.get_all()
         if len(queue) < 2:
             return False
         
         king = queue[0]
         challenger = queue[1]
-        bar_id = king.get('bar_id', 1)
+        bar_id = bar_id or king.get('bar_id', 1)
         
         # Determine if this is a ranked match
         is_ranked, ranked_source = determine_match_ranked_status(bar_id, king['id'])
@@ -264,9 +267,12 @@ class Queue:
 
 
     @staticmethod
-    def remove_king():
+    def remove_king(bar_id=None):
         """Remove king when no challenger (reset board)."""
-        queue = Queue.get_all()
+        if bar_id:
+            queue = Queue.get_all_for_bar(bar_id)
+        else:
+            queue = Queue.get_all()
         if not queue:
             return False
         king = queue[0]
@@ -274,16 +280,19 @@ class Queue:
         return True
 
     @staticmethod
-    def challenger_wins():
+    def challenger_wins(bar_id=None):
         """Challenger wins - remove king, challenger becomes new king with 1 win."""
-        queue = Queue.get_all()
+        if bar_id:
+            queue = Queue.get_all_for_bar(bar_id)
+        else:
+            queue = Queue.get_all()
         if len(queue) < 2:
             # No challenger - just remove king (reset board)
-            return Queue.remove_king()
+            return Queue.remove_king(bar_id)
         
         king = queue[0]
         challenger = queue[1]
-        bar_id = king.get('bar_id', 1)
+        bar_id = bar_id or king.get('bar_id', 1)
         
         # Determine if this is a ranked match
         is_ranked, ranked_source = determine_match_ranked_status(bar_id, king['id'])

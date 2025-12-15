@@ -487,12 +487,16 @@
                 const role = currentEl.dataset.role; 
                 const endpoint = role === 'challenger' ? '/api/king-wins' : '/api/challenger-wins'; 
                 
-                console.log('Swipe detected:', role, 'calling', endpoint);
+                console.log('Swipe detected:', role, 'calling', endpoint, 'for bar_id:', BAR_ID);
                 
                 currentEl.style.transform = `translateX(${diffX < 0 ? '-100vw' : '100vw'})`; 
                 currentEl.style.opacity = '0'; 
                 
-                fetch(endpoint, { method: 'POST' })
+                fetch(endpoint, { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bar_id: BAR_ID })
+                })
                     .then(r => r.json())
                     .then(data => {
                         console.log('API response:', data);
