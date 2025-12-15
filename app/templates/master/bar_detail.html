@@ -137,11 +137,11 @@
                 <div class="hdr-sub">{{ bar.address or 'No address set' }} · Code: <span style="color:var(--gold)">{{ bar.code or 'N/A' }}</span></div>
             </div>
             <div class="hdr-r">
-                <a href="/app/board/{{ bar.id }}" class="btn" target="_blank">📺 Board</a>
-                <a href="/q/{{ bar.id }}" class="btn" target="_blank">📱 Join</a>
-                <a href="/master/bar/{{ bar.id }}/report" class="btn">📊 Report</a>
+                <a href="/app/board/{{ bar.id }}" class="btn" target="_blank">📺 Board ↗</a>
+                <a href="/q/{{ bar.id }}" class="btn" target="_blank">📱 Join ↗</a>
+                <a href="/master/bars/{{ bar.id }}/report" class="btn">📊 Report</a>
                 <a href="/master/bars/{{ bar.id }}/integrations" class="btn">🔗 Integrations</a>
-                <a href="/master/bar/{{ bar.id }}/managers" class="btn">👤 Managers</a>
+                <a href="/master/users?venue={{ bar.id }}" class="btn">👤 Staff</a>
                 <form action="/master/bars/{{ bar.id }}/auto_invites" method="POST" style="display:inline">
                     <button type="submit" class="btn{% if bar.auto_invites_enabled %} btn-active{% endif %}" title="{% if bar.auto_invites_enabled %}Auto-invites enabled{% else %}Auto-invites disabled{% endif %}">
                         📱 Auto-Invite {% if bar.auto_invites_enabled %}✓{% endif %}
@@ -221,7 +221,7 @@
                 
                 <!-- Ad Performance -->
                 <div class="c">
-                    <div class="c-h"><span class="c-t">📢 Ad Performance</span><a href="/master/bar/{{ bar.id }}/report" class="btn" style="padding:3px 8px;font-size:0.55rem">Full Report</a></div>
+                    <div class="c-h"><span class="c-t">📢 Ad Performance</span><a href="/master/bars/{{ bar.id }}/report" class="btn" style="padding:3px 8px;font-size:0.55rem">Full Report</a></div>
                     {% if summary.campaigns and summary.campaigns|length > 0 %}
                     <table class="tbl">
                         <thead><tr><th>Campaign</th><th>Brand</th><th>Impressions</th><th>Clicks</th><th>CTR</th></tr></thead>
@@ -309,7 +309,7 @@
                             {% if loop.index > 1 %}
                             <button onclick="makeKing({{ q.id }})" class="queue-btn" style="padding:2px 5px;font-size:0.5rem;color:var(--gold);border-color:rgba(234,179,8,0.3)" title="Make Shot Caller">👑</button>
                             {% endif %}
-                            <form action="/master/bar/{{ bar.id }}/queue/{{ q.id }}/remove" method="POST" style="display:inline" onsubmit="return confirm('Remove {{ q.nickname }} from queue?')">
+                            <form action="/master/bars/{{ bar.id }}/queue/{{ q.id }}/remove" method="POST" style="display:inline" onsubmit="return confirm('Remove {{ q.nickname }} from queue?')">
                                 <button type="submit" class="queue-btn remove" style="padding:2px 5px;font-size:0.5rem">✕</button>
                             </form>
                         </div>
@@ -319,7 +319,7 @@
                     <div style="text-align:center;padding:12px;color:var(--t3);font-size:0.7rem">Queue is empty</div>
                     {% endif %}
                     </div>
-                    <form action="/master/bar/{{ bar.id }}/queue/add" method="POST" style="margin-top:6px;display:flex;gap:4px">
+                    <form action="/master/bars/{{ bar.id }}/queue/add" method="POST" style="margin-top:6px;display:flex;gap:4px">
                         <input type="text" name="nickname" class="search" placeholder="Add player..." style="flex:1;padding:4px 8px;font-size:0.65rem" required>
                         <button type="submit" class="btn btn-p" style="padding:4px 8px;font-size:0.6rem">+ Add</button>
                     </form>
@@ -335,7 +335,7 @@
                             <div style="font-weight:600;font-size:0.75rem">{{ window.title or 'Ranked Period' }}</div>
                             <div style="font-size:0.6rem;color:var(--t3)">{{ window.start_datetime[:16] }} → {{ window.end_datetime[:16] }}</div>
                         </div>
-                        <form action="/master/bar/{{ bar.id }}/ranked-window/{{ window.id }}/delete" method="POST" style="display:inline" onsubmit="return confirm('Delete this ranked window?')">
+                        <form action="/master/bars/{{ bar.id }}/ranked-window/{{ window.id }}/delete" method="POST" style="display:inline" onsubmit="return confirm('Delete this ranked window?')">
                             <button type="submit" class="queue-btn remove">✕</button>
                         </form>
                     </div>
@@ -382,7 +382,7 @@
                             <div class="player-name"><a href="/master/player/{{ tm.id }}">{{ tm.nickname }}</a></div>
                             <div class="player-meta">{{ tm.games_at_bar or 0 }} games here · {{ tm.win_rate or 0 }}% win rate</div>
                         </div>
-                        <form action="/master/bar/{{ bar.id }}/tastemaker/{{ tm.id }}/remove" method="POST" style="display:inline" onsubmit="return confirm('Remove {{ tm.nickname }} as tastemaker?')">
+                        <form action="/master/bars/{{ bar.id }}/tastemaker/{{ tm.id }}/remove" method="POST" style="display:inline" onsubmit="return confirm('Remove {{ tm.nickname }} as tastemaker?')">
                             <button type="submit" class="queue-btn remove" style="padding:3px 6px;font-size:0.55rem">✕</button>
                         </form>
                     </div>
@@ -524,7 +524,7 @@
     <div class="modal-bg" id="editModal">
         <div class="modal" style="max-width:550px">
             <div class="modal-h"><span class="modal-t">Edit {{ bar.name }}</span><button class="modal-x" onclick="closeEditModal()">&times;</button></div>
-            <form action="/master/bar/{{ bar.id }}/edit" method="POST">
+            <form action="/master/bars/{{ bar.id }}/edit" method="POST">
                 <div class="modal-b" style="max-height:65vh;overflow-y:auto">
                     <div class="form-section-t">Basic Info</div>
                     <div class="form-g"><label class="form-l">Bar Name *</label><input type="text" name="name" class="form-c" required value="{{ bar.name }}"></div>
@@ -632,7 +632,7 @@
                     // Submit delete form
                     const form = document.createElement('form');
                     form.method = 'POST';
-                    form.action = '/master/bar/{{ bar.id }}/delete-permanent';
+                    form.action = '/master/bars/{{ bar.id }}/delete-permanent';
                     document.body.appendChild(form);
                     form.submit();
                 }
@@ -709,7 +709,7 @@
                                 ${roleLabel}
                                 <div style="display:flex;gap:3px;margin-left:6px">
                                     ${makeKingBtn}
-                                    <form action="/master/bar/{{ bar.id }}/queue/${q.id}/remove" method="POST" style="display:inline" onsubmit="return confirm('Remove ${q.nickname} from queue?')">
+                                    <form action="/master/bars/{{ bar.id }}/queue/${q.id}/remove" method="POST" style="display:inline" onsubmit="return confirm('Remove ${q.nickname} from queue?')">
                                         <button type="submit" class="queue-btn remove" style="padding:2px 5px;font-size:0.5rem">✕</button>
                                     </form>
                                 </div>
@@ -780,7 +780,7 @@
     <div class="modal-bg" id="rankedModal">
         <div class="modal" style="max-width:450px">
             <div class="modal-h"><span class="modal-t">🏆 Add Ranked Window</span><button class="modal-x" onclick="closeRankedModal()">&times;</button></div>
-            <form action="/master/bar/{{ bar.id }}/ranked-window" method="POST">
+            <form action="/master/bars/{{ bar.id }}/ranked-window" method="POST">
                 <div class="modal-b">
                     <div style="background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.2);border-radius:4px;padding:10px;margin-bottom:14px;font-size:0.7rem;color:var(--t2)">
                         <strong style="color:var(--purple)">ℹ️ Ranked Windows</strong><br>
@@ -805,7 +805,7 @@
     <div class="modal-bg" id="tastemakerModal">
         <div class="modal" style="max-width:450px">
             <div class="modal-h"><span class="modal-t">⭐ Add Tastemaker</span><button class="modal-x" onclick="closeTastemakerModal()">&times;</button></div>
-            <form action="/master/bar/{{ bar.id }}/tastemaker/add" method="POST">
+            <form action="/master/bars/{{ bar.id }}/tastemaker/add" method="POST">
                 <div class="modal-b">
                     <div style="background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.2);border-radius:4px;padding:10px;margin-bottom:14px;font-size:0.7rem;color:var(--t2)">
                         <strong style="color:var(--cyan)">⭐ Tastemakers</strong><br>

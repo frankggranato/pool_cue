@@ -134,7 +134,7 @@
 <script>
 function resetPassword(managerId, email) {
     document.getElementById('resetEmail').textContent = email;
-    document.getElementById('resetPasswordForm').action = '/master/bar/{{ bar.id }}/managers/' + managerId + '/reset-password';
+    document.getElementById('resetPasswordForm').action = '/master/bars/{{ bar.id }}/managers/' + managerId + '/reset-password';
     new bootstrap.Modal(document.getElementById('resetPasswordModal')).show();
 }
 </script>

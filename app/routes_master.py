@@ -1212,33 +1212,43 @@ def toggle_bar(bar_id):
     conn.close()
     return redirect(url_for('master.bars'))
 
-@master_bp.route('/bar/<int:bar_id>/edit', methods=['POST'])
+@master_bp.route('/bars/<int:bar_id>/edit', methods=['POST'])
 @admin_required
 def edit_bar(bar_id):
-    """Edit bar details."""
-    name = request.form.get('name')
-    phone = request.form.get('phone', '')
-    email = request.form.get('email', '')
-    address = request.form.get('address', '')
-    borough = request.form.get('borough', '')
-    neighborhood = request.form.get('neighborhood', '')
-    zip_code = request.form.get('zip', '')
-    table_count = request.form.get('tables', 2)
-    table_type = request.form.get('table_type', 'bar')
-    venue_type = request.form.get('venue_type', 'bar')
-    open_time = request.form.get('open_time', '16:00')
-    close_time = request.form.get('close_time', '02:00')
-    contact_name = request.form.get('contact_name', '')
-    contact_phone = request.form.get('contact_phone', '')
-    contact_email = request.form.get('contact_email', '')
-    website = request.form.get('website', '')
-    instagram = request.form.get('instagram', '')
-    google_review_url = request.form.get('google_review_url', '')
-    notes = request.form.get('notes', '')
-    is_active = 1 if request.form.get('is_active') else 0
-    
+    """Edit bar details. Preserves existing values for unprovided fields."""
     conn = get_db()
     cursor = conn.cursor()
+    
+    # Get existing bar data first
+    cursor.execute('SELECT * FROM bars WHERE id = ?', (bar_id,))
+    existing = cursor.fetchone()
+    if not existing:
+        conn.close()
+        flash('Bar not found', 'error')
+        return redirect(url_for('master.bars'))
+    existing = dict(existing)
+    
+    # Use provided values or fall back to existing
+    name = request.form.get('name') or existing.get('name')
+    phone = request.form.get('phone') if 'phone' in request.form else existing.get('phone', '')
+    email = request.form.get('email') if 'email' in request.form else existing.get('email', '')
+    address = request.form.get('address') if 'address' in request.form else existing.get('address', '')
+    borough = request.form.get('borough') if 'borough' in request.form else existing.get('borough', '')
+    neighborhood = request.form.get('neighborhood') if 'neighborhood' in request.form else existing.get('neighborhood', '')
+    zip_code = request.form.get('zip') if 'zip' in request.form else existing.get('zip_code', '')
+    table_count = request.form.get('tables') if 'tables' in request.form else existing.get('table_count', 1)
+    table_type = request.form.get('table_type') if 'table_type' in request.form else existing.get('table_type', 'bar')
+    venue_type = request.form.get('venue_type') if 'venue_type' in request.form else existing.get('venue_type', 'bar')
+    open_time = request.form.get('open_time') if 'open_time' in request.form else existing.get('open_time', '16:00')
+    close_time = request.form.get('close_time') if 'close_time' in request.form else existing.get('close_time', '02:00')
+    contact_name = request.form.get('contact_name') if 'contact_name' in request.form else existing.get('contact_name', '')
+    contact_phone = request.form.get('contact_phone') if 'contact_phone' in request.form else existing.get('contact_phone', '')
+    contact_email = request.form.get('contact_email') if 'contact_email' in request.form else existing.get('contact_email', '')
+    website = request.form.get('website') if 'website' in request.form else existing.get('website', '')
+    instagram = request.form.get('instagram') if 'instagram' in request.form else existing.get('instagram', '')
+    google_review_url = request.form.get('google_review_url') if 'google_review_url' in request.form else existing.get('google_review_url', '')
+    notes = request.form.get('notes') if 'notes' in request.form else existing.get('notes', '')
+    is_active = 1 if request.form.get('is_active') else (existing.get('is_active', 1) if 'is_active' not in request.form else 0)
     cursor.execute('''
         UPDATE bars SET 
             name = ?, phone = ?, email = ?, address = ?, borough = ?,
@@ -1259,6 +1269,10 @@ def edit_bar(bar_id):
     ensure_bar_tables(bar_id, int(table_count) if table_count else 1)
     
     flash(f'Updated bar: {name}', 'success')
+    
+    # Redirect to bars list if came from quick edit, otherwise bar detail
+    if request.form.get('quick_edit'):
+        return redirect(url_for('master.bars'))
     return redirect(url_for('master.bar_detail', bar_id=bar_id))
 
 
@@ -1580,7 +1594,7 @@ def send_user_reset(user_id):
     return redirect(url_for('master.user_detail', user_id=user_id))
 
 
-@master_bp.route('/bar/<int:bar_id>/delete-permanent', methods=['POST'])
+@master_bp.route('/bars/<int:bar_id>/delete-permanent', methods=['POST'])
 @admin_required
 def delete_bar_permanent(bar_id):
     """Permanently delete a bar and all associated data."""
@@ -1631,14 +1645,14 @@ def delete_bar_permanent(bar_id):
 # BAR MANAGER ACCOUNTS
 # ============================================================================
 
-@master_bp.route('/bar/<int:bar_id>/managers')
+@master_bp.route('/bars/<int:bar_id>/managers')
 @admin_required
 def bar_managers(bar_id):
     """Redirect to Users page filtered by venue."""
     return redirect(url_for('master.all_users', venue=bar_id))
 
 
-@master_bp.route('/bar/<int:bar_id>/managers/add', methods=['POST'])
+@master_bp.route('/bars/<int:bar_id>/managers/add', methods=['POST'])
 @admin_required
 def add_bar_manager(bar_id):
     """Deprecated - use Users page."""
@@ -1653,14 +1667,14 @@ def delete_bar_manager(manager_id):
     return redirect(url_for('master.all_users'))
 
 
-@master_bp.route('/bar/<int:bar_id>/managers/<int:manager_id>/toggle', methods=['POST'])
+@master_bp.route('/bars/<int:bar_id>/managers/<int:manager_id>/toggle', methods=['POST'])
 @admin_required
 def toggle_bar_manager(bar_id, manager_id):
     """Deprecated - use Users page."""
     return redirect(url_for('master.all_users'))
 
 
-@master_bp.route('/bar/<int:bar_id>/managers/<int:manager_id>/reset-password', methods=['POST'])
+@master_bp.route('/bars/<int:bar_id>/managers/<int:manager_id>/reset-password', methods=['POST'])
 @admin_required
 def reset_bar_manager_password(bar_id, manager_id):
     """Deprecated - use Users page."""
@@ -2574,7 +2588,7 @@ def brand_report_detail(brand_name):
     """Redirect to main analytics page."""
     return redirect(url_for('master.analytics'))
 
-@master_bp.route('/bar/<int:bar_id>')
+@master_bp.route('/bars/<int:bar_id>')
 @admin_required
 def bar_detail(bar_id):
     """Bar detail page with real stats from database."""
@@ -2987,7 +3001,7 @@ def bar_detail(bar_id):
                            tastemakers=tastemakers, home_bar_players=home_bar_players, active_page='bars')
 
 
-@master_bp.route('/bar/<int:bar_id>/ranked-window', methods=['POST'])
+@master_bp.route('/bars/<int:bar_id>/ranked-window', methods=['POST'])
 @admin_required
 def create_bar_ranked_window(bar_id):
     """Create a ranked window for a bar."""
@@ -3011,7 +3025,7 @@ def create_bar_ranked_window(bar_id):
     return redirect(url_for('master.bar_detail', bar_id=bar_id))
 
 
-@master_bp.route('/bar/<int:bar_id>/ranked-window/<int:window_id>/delete', methods=['POST'])
+@master_bp.route('/bars/<int:bar_id>/ranked-window/<int:window_id>/delete', methods=['POST'])
 @admin_required
 def delete_bar_ranked_window(bar_id, window_id):
     """Delete a ranked window."""
@@ -3025,7 +3039,7 @@ def delete_bar_ranked_window(bar_id, window_id):
     return redirect(url_for('master.bar_detail', bar_id=bar_id))
 
 
-@master_bp.route('/bar/<int:bar_id>/queue/add', methods=['POST'])
+@master_bp.route('/bars/<int:bar_id>/queue/add', methods=['POST'])
 @admin_required
 def bar_add_to_queue(bar_id):
     """Add a player to this bar's queue."""
@@ -3059,7 +3073,7 @@ def bar_add_to_queue(bar_id):
     return redirect(url_for('master.bar_detail', bar_id=bar_id))
 
 
-@master_bp.route('/bar/<int:bar_id>/queue/<int:queue_id>/remove', methods=['POST'])
+@master_bp.route('/bars/<int:bar_id>/queue/<int:queue_id>/remove', methods=['POST'])
 @admin_required
 def bar_remove_from_queue(bar_id, queue_id):
     """Remove a player from queue."""
@@ -3193,7 +3207,7 @@ def api_make_king(bar_id):
         return jsonify({'success': False, 'error': str(e)})
 
 
-@master_bp.route('/bar/<int:bar_id>/tastemaker/add', methods=['POST'])
+@master_bp.route('/bars/<int:bar_id>/tastemaker/add', methods=['POST'])
 @admin_required
 def add_tastemaker(bar_id):
     """Add a player as a tastemaker for this bar."""
@@ -3223,7 +3237,7 @@ def add_tastemaker(bar_id):
     return redirect(url_for('master.bar_detail', bar_id=bar_id))
 
 
-@master_bp.route('/bar/<int:bar_id>/tastemaker/<int:player_id>/remove', methods=['POST'])
+@master_bp.route('/bars/<int:bar_id>/tastemaker/<int:player_id>/remove', methods=['POST'])
 @admin_required
 def remove_tastemaker(bar_id, player_id):
     """Remove a tastemaker from this bar."""
@@ -3237,7 +3251,7 @@ def remove_tastemaker(bar_id, player_id):
     return redirect(url_for('master.bar_detail', bar_id=bar_id))
 
 
-@master_bp.route('/bar/<int:bar_id>/report')
+@master_bp.route('/bars/<int:bar_id>/report')
 @admin_required
 def bar_report(bar_id):
     """Bar performance report with real data."""

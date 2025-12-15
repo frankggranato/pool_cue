@@ -76,7 +76,7 @@
                     <tbody>
                     {% for bar in bars[:5] %}
                     <tr>
-                        <td><a href="/master/bar/{{ bar.id }}">{{ bar.name }}</a></td>
+                        <td><a href="/master/bars/{{ bar.id }}">{{ bar.name }}</a></td>
                         <td>{{ bar.player_count or 0 }}</td>
                         <td>{{ bar.queue_count or 0 }}</td>
                         <td><span class="badge {% if bar.is_active %}badge-green{% else %}badge-gray{% endif %}">{% if bar.is_active %}Active{% else %}Inactive{% endif %}</span></td>

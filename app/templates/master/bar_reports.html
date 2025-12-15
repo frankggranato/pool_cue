@@ -39,12 +39,12 @@
                 <tbody>
                 {% for report in reports %}
                 <tr>
-                    <td><a href="/master/bar/{{ report.bar_id }}">{{ report.bar_name }}</a></td>
+                    <td><a href="/master/bars/{{ report.bar_id }}">{{ report.bar_name }}</a></td>
                     <td>{{ report.period or 'Weekly' }}</td>
                     <td>{{ report.games or 0 }}</td>
                     <td style="color:var(--gold)">${{ report.revenue or 0 }}</td>
                     <td style="color:var(--t3)">{{ report.created_at or '-' }}</td>
-                    <td><a href="/master/bar/{{ report.bar_id }}/report/{{ report.id }}" class="btn">View</a></td>
+                    <td><a href="/master/bars/{{ report.bar_id }}/report/{{ report.id }}" class="btn">View</a></td>
                 </tr>
                 {% endfor %}
                 </tbody>

@@ -67,19 +67,19 @@
                 <div class="c-top">
                     <div>
                         <div class="c-name">{{ bar.name }}</div>
-                        <div class="c-addr">{{ bar.address or 'No address' }}</div>
+                        <div class="c-addr">{{ bar.address or 'No address' }}{% if bar.borough %} · {{ bar.borough }}{% endif %}</div>
                     </div>
                     <span class="badge {% if bar.is_active %}badge-green{% else %}badge-gray{% endif %}">{% if bar.is_active %}Active{% else %}Inactive{% endif %}</span>
                 </div>
                 <div class="stats">
-                    <div class="stat"><div class="stat-v">{{ bar.player_count or 0 }}</div><div class="stat-l">Players</div></div>
+                    <div class="stat"><div class="stat-v">{{ bar.table_count or 1 }}</div><div class="stat-l">Tables</div></div>
                     <div class="stat"><div class="stat-v">{{ bar.queue_count or 0 }}</div><div class="stat-l">In Queue</div></div>
-                    <div class="stat"><div class="stat-v">{{ bar.games_today or 0 }}</div><div class="stat-l">Games</div></div>
+                    <div class="stat"><div class="stat-v">{{ bar.games_today or 0 }}</div><div class="stat-l">Today</div></div>
                 </div>
                 <div class="c-actions">
-                    <a href="/master/bar/{{ bar.id }}" class="btn">View</a>
-                    <a href="/master/bar/{{ bar.id }}/managers" class="btn">👥 Managers</a>
-                    <a href="/app/board/{{ bar.id }}" class="btn" target="_blank">Board</a>
+                    <a href="/master/bars/{{ bar.id }}" class="btn">View</a>
+                    <button class="btn" onclick="openEditModal({{ bar.id }}, '{{ bar.name }}', '{{ bar.phone or '' }}', '{{ bar.address or '' }}', '{{ bar.borough or '' }}')">✏️ Edit</button>
+                    <a href="/app/board/{{ bar.id }}" class="btn" target="_blank">Board ↗</a>
                 </div>
             </div>
             {% endfor %}
@@ -183,6 +183,50 @@
         function openModal(){document.getElementById('modal').classList.add('show')}
         function closeModal(){document.getElementById('modal').classList.remove('show')}
         document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+        
+        // Quick edit modal
+        function openEditModal(barId, name, phone, address, borough) {
+            document.getElementById('editBarId').value = barId;
+            document.getElementById('editName').value = name;
+            document.getElementById('editPhone').value = phone;
+            document.getElementById('editAddress').value = address;
+            document.getElementById('editBorough').value = borough;
+            document.getElementById('editForm').action = '/master/bars/' + barId + '/edit';
+            document.getElementById('editModal').classList.add('show');
+        }
+        function closeEditModal(){document.getElementById('editModal').classList.remove('show')}
+        document.getElementById('editModal').addEventListener('click',e=>{if(e.target.id==='editModal')closeEditModal()});
     </script>
+    
+    <!-- Quick Edit Modal -->
+    <div class="modal-bg" id="editModal">
+        <div class="modal" style="max-width:400px">
+            <div class="modal-h"><span class="modal-t">Quick Edit Bar</span><button class="modal-x" onclick="closeEditModal()">&times;</button></div>
+            <form id="editForm" action="" method="POST">
+                <input type="hidden" id="editBarId" name="bar_id">
+                <input type="hidden" name="quick_edit" value="1">
+                <div class="modal-b">
+                    <div class="form-g"><label class="form-l">Bar Name *</label><input type="text" id="editName" name="name" class="form-c" required></div>
+                    <div class="form-g"><label class="form-l">Phone</label><input type="text" id="editPhone" name="phone" class="form-c"></div>
+                    <div class="form-g"><label class="form-l">Address</label><input type="text" id="editAddress" name="address" class="form-c"></div>
+                    <div class="form-g"><label class="form-l">Borough</label>
+                        <select id="editBorough" name="borough" class="form-c">
+                            <option value="">Select...</option>
+                            <option value="Brooklyn">Brooklyn</option>
+                            <option value="Manhattan">Manhattan</option>
+                            <option value="Queens">Queens</option>
+                            <option value="The Bronx">The Bronx</option>
+                            <option value="Staten Island">Staten Island</option>
+                        </select>
+                    </div>
+                    <div style="font-size:0.6rem;color:var(--t3);margin-top:8px">For full edit options, click View → Edit</div>
+                </div>
+                <div class="modal-f">
+                    <button type="button" class="btn" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn btn-p">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

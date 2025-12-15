@@ -129,7 +129,7 @@
                     </div>
                 </div>
                 <div class="c-body">
-                    <div class="c-row"><span class="c-row-l">Bar</span><span class="c-row-v"><a href="/master/bar/{{ event.bar_id }}">{{ event.bar_name or 'Unknown' }}</a></span></div>
+                    <div class="c-row"><span class="c-row-l">Bar</span><span class="c-row-v"><a href="/master/bars/{{ event.bar_id }}">{{ event.bar_name or 'Unknown' }}</a></span></div>
                     <div class="c-row"><span class="c-row-l">Date & Time</span><span class="c-row-v">{{ event.event_date }} {% if event.start_time %}· {{ event.start_time }}{% endif %}</span></div>
                     <div class="c-row"><span class="c-row-l">Type</span><span class="c-row-v">{% if event.format == 'tournament' %}Tournament ({{ event.elimination_type|default('single')|title }} Elim){% else %}{{ event.game_type|title if event.game_type else 'Open' }}{% endif %}</span></div>
                     {% if event.max_players %}

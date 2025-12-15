@@ -270,7 +270,7 @@
                     {% for bar in analytics.by_bar %}
                     <tr style="border-bottom:1px solid rgba(255,255,255,0.02)">
                         <td style="padding:10px 12px">
-                            <a href="/master/bar/{{ bar.bar_id }}" style="color:var(--gold);text-decoration:none">{{ bar.bar_name or 'Unknown' }}</a>
+                            <a href="/master/bars/{{ bar.bar_id }}" style="color:var(--gold);text-decoration:none">{{ bar.bar_name or 'Unknown' }}</a>
                         </td>
                         <td style="text-align:center;padding:10px 8px">{{ bar.total_invites }}</td>
                         <td style="text-align:center;padding:10px 8px;color:var(--blue)">{{ bar.sent }}</td>
@@ -324,7 +324,7 @@
                         <td style="padding:10px 12px;font-family:monospace">****{{ inv.phone_number[-4:] if inv.phone_number else '----' }}</td>
                         <td style="padding:10px 8px">
                             {% if inv.bar_id %}
-                            <a href="/master/bar/{{ inv.bar_id }}" style="color:var(--gold);text-decoration:none">{{ inv.bar_name or 'Unknown' }}</a>
+                            <a href="/master/bars/{{ inv.bar_id }}" style="color:var(--gold);text-decoration:none">{{ inv.bar_name or 'Unknown' }}</a>
                             {% else %}
                             <span style="color:var(--t3)">-</span>
                             {% endif %}
