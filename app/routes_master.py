@@ -541,8 +541,8 @@ def player_reset_password(player_id):
     conn = get_db()
     cursor = conn.cursor()
     
-    # Get player's account_id
-    cursor.execute('SELECT account_id, nickname FROM players WHERE id = ?', (player_id,))
+    # Get player info
+    cursor.execute('SELECT id, nickname, user_id, password_hash, email FROM players WHERE id = ?', (player_id,))
     player = cursor.fetchone()
     
     if not player:
@@ -551,21 +551,29 @@ def player_reset_password(player_id):
         return redirect(url_for('master.players'))
     
     player = dict(player)
-    account_id = player.get('account_id')
+    password_hash = generate_password_hash(new_password, method='scrypt')
     
-    if not account_id:
+    # If player has a linked user account, update users table
+    if player.get('user_id'):
+        cursor.execute('UPDATE users SET password_hash = ? WHERE id = ?', (password_hash, player['user_id']))
+        conn.commit()
         conn.close()
-        flash('Player does not have an account (guest player)', 'error')
+        flash(f'Password reset for {player["nickname"]} (staff account)', 'success')
         return redirect(url_for('master.player_detail', player_id=player_id))
     
-    # Update password in accounts table
-    password_hash = generate_password_hash(new_password, method='scrypt')
-    cursor.execute('UPDATE accounts SET password_hash = ? WHERE id = ?', (password_hash, account_id))
-    conn.commit()
-    conn.close()
+    # If player has email/password_hash, update players table directly
+    if player.get('email') or player.get('password_hash'):
+        cursor.execute('UPDATE players SET password_hash = ? WHERE id = ?', (password_hash, player_id))
+        conn.commit()
+        conn.close()
+        flash(f'Password reset for {player["nickname"]}', 'success')
+        return redirect(url_for('master.player_detail', player_id=player_id))
     
-    flash(f'Password reset for {player["nickname"]}', 'success')
+    # Guest player with no account
+    conn.close()
+    flash('Player does not have an account (guest player)', 'error')
     return redirect(url_for('master.player_detail', player_id=player_id))
+
 
 
 @master_bp.route('/leaderboard')
