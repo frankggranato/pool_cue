@@ -149,47 +149,7 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
         
-        # MASTER LOGIN - beta/beta bypasses authentication
-        if email == 'beta' and password == 'beta':
-            # Create or get beta marketer account
-            from .database import get_db
-            import secrets
-            conn = get_db()
-            cursor = conn.cursor()
-            
-            # Check if beta marketer account exists
-            cursor.execute('SELECT id, advertiser_id FROM marketer_accounts WHERE contact_email = ?', ('beta@poolcue.app',))
-            beta_account = cursor.fetchone()
-            
-            if not beta_account:
-                # First create an advertiser record
-                cursor.execute('''
-                    INSERT INTO advertisers (name, contact_name, contact_email, is_active, created_at)
-                    VALUES (?, ?, ?, ?, datetime('now'))
-                ''', ('Beta Test Advertiser', 'Beta Tester', 'beta@poolcue.app', 1))
-                advertiser_id = cursor.lastrowid
-                
-                # Then create the marketer account
-                session_token = secrets.token_urlsafe(32)
-                cursor.execute('''
-                    INSERT INTO marketer_accounts (business_name, contact_name, contact_email, password_hash, session_token, advertiser_id, is_active, is_verified, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-                ''', ('Beta Test Advertiser', 'Beta Tester', 'beta@poolcue.app', 'beta_bypass', session_token, advertiser_id, 1, 1))
-                marketer_id = cursor.lastrowid
-            else:
-                marketer_id = beta_account['id']
-                advertiser_id = beta_account['advertiser_id']
-                session_token = secrets.token_urlsafe(32)
-                cursor.execute('UPDATE marketer_accounts SET session_token = ? WHERE id = ?', (session_token, marketer_id))
-            
-            conn.commit()
-            conn.close()
-            
-            session['marketer_token'] = session_token
-            session['marketer_id'] = marketer_id
-            session['advertiser_id'] = advertiser_id
-            session['is_beta'] = True
-            return redirect(url_for('market.dashboard'))
+        # SECURITY: Beta login REMOVED - use real credentials only
         
         result = authenticate_marketer(email, password)
         

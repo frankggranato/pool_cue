@@ -209,8 +209,19 @@ def init_marketer_tables():
 # =============================================================================
 
 def hash_password(password):
-    """Simple password hashing. In production, use bcrypt."""
-    return hashlib.sha256(password.encode()).hexdigest()
+    """Secure password hashing using scrypt."""
+    from werkzeug.security import generate_password_hash
+    return generate_password_hash(password, method='scrypt')
+
+
+def verify_password(stored_hash, password):
+    """Verify password against stored hash (supports legacy SHA256 and new scrypt)."""
+    from werkzeug.security import check_password_hash
+    # Try scrypt first (new format)
+    if stored_hash.startswith('scrypt:'):
+        return check_password_hash(stored_hash, password)
+    # Fall back to legacy SHA256 for old accounts
+    return stored_hash == hashlib.sha256(password.encode()).hexdigest()
 
 
 def create_marketer_account(business_name, contact_name, contact_email, password, 
@@ -273,7 +284,7 @@ def authenticate_marketer(email, password):
         conn.close()
         return {'success': False, 'error': 'Invalid email or password'}
     
-    if account['password_hash'] != hash_password(password):
+    if not verify_password(account['password_hash'], password):
         conn.close()
         return {'success': False, 'error': 'Invalid email or password'}
     

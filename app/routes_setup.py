@@ -106,18 +106,8 @@ def admin_login():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        # SECURITY: Beta backdoor only works from localhost OR with env var
-        # This is your emergency access if you forget your password
-        allow_beta = os.environ.get('ALLOW_BETA_LOGIN', 'false').lower() == 'true'
-        is_localhost = request.remote_addr in ('127.0.0.1', '::1', 'localhost')
-        
-        if username == 'beta' and password == 'beta' and (allow_beta or is_localhost):
-            session['admin_logged_in'] = True
-            session['admin_id'] = 0
-            session['admin_username'] = 'BetaAdmin'
-            session['is_superadmin'] = True  # Beta has full access
-            session['is_beta'] = True
-            return redirect(url_for('master.dashboard'))
+        # SECURITY: Beta backdoor REMOVED - use master password only
+        # Login with admin / [master_password]
         
         conn = get_db()
         cursor = conn.cursor()

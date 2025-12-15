@@ -37,8 +37,8 @@ class Config:
     # CORE
     # ===================
     ENV: str = os.environ.get('FLASK_ENV', 'development')
-    DEBUG: bool = get_bool('FLASK_DEBUG', True)
-    SECRET_KEY: str = os.environ.get('SECRET_KEY', 'dev-insecure-key')
+    DEBUG: bool = get_bool('FLASK_DEBUG', False)  # Default to False for security
+    SECRET_KEY: str = os.environ.get('SECRET_KEY', '')  # Must be set in production
     HOST: str = os.environ.get('HOST', '0.0.0.0')
     PORT: int = get_int('PORT', 5002)
     
@@ -56,11 +56,6 @@ class Config:
     ENABLE_SMS_NOTIFICATIONS: bool = get_bool('ENABLE_SMS_NOTIFICATIONS', False)
     ENABLE_STRIPE_PAYMENTS: bool = get_bool('ENABLE_STRIPE_PAYMENTS', False)
     ENABLE_QUEUE_CONFIRMATION: bool = get_bool('ENABLE_QUEUE_CONFIRMATION', False)
-    
-    # ===================
-    # ACCESS CONTROL
-    # ===================
-    ALLOW_BETA_LOGIN: bool = get_bool('ALLOW_BETA_LOGIN', True)
     
     # ===================
     # EXTERNAL SERVICES
@@ -116,11 +111,8 @@ def validate_config():
     if config.is_production:
         warnings = []
         
-        if config.SECRET_KEY == 'dev-insecure-key':
-            warnings.append("SECRET_KEY is using default value!")
-        
-        if config.ALLOW_BETA_LOGIN:
-            warnings.append("ALLOW_BETA_LOGIN is enabled in production!")
+        if not config.SECRET_KEY:
+            warnings.append("SECRET_KEY is not set!")
         
         if config.DEBUG:
             warnings.append("DEBUG mode is enabled in production!")

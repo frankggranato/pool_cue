@@ -239,40 +239,8 @@ def login():
     email = request.form.get('email', '').strip().lower()
     password = request.form.get('password', '')
     
-    # SECURITY: Beta login only allowed in development mode
-    # Set ALLOW_BETA_LOGIN=true in environment to enable (NEVER in production!)
-    allow_beta = os.environ.get('ALLOW_BETA_LOGIN', 'true').lower() == 'true'
-    
-    if allow_beta and email == 'beta' and password == 'beta':
-        # Create or get the beta test account
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('SELECT id, nickname FROM players WHERE email = ?', ('beta@poolcue.app',))
-        beta_player = cursor.fetchone()
-        
-        if not beta_player:
-            # Create beta account
-            cursor.execute('''
-                INSERT INTO players (nickname, email, password_hash, created_at, is_active)
-                VALUES (?, ?, ?, datetime('now'), 1)
-            ''', ('BetaTester', 'beta@poolcue.app', hash_password('beta')))
-            beta_id = cursor.lastrowid
-            beta_nickname = 'BetaTester'
-        else:
-            beta_id = beta_player['id']
-            beta_nickname = beta_player['nickname']
-        
-        session_token = secrets.token_urlsafe(32)
-        cursor.execute('UPDATE players SET session_token = ? WHERE id = ?', (session_token, beta_id))
-        conn.commit()
-        conn.close()
-        
-        session['player_id'] = beta_id
-        session['player_nickname'] = beta_nickname
-        session['session_token'] = session_token
-        session['is_beta'] = True
-        
-        return redirect(url_for('player.home'))
+    # SECURITY: Beta login REMOVED - all logins must use real credentials
+    # Master admin can login with admin/[master_password] at /admin/login
     
     conn = get_db()
     cursor = conn.cursor()
