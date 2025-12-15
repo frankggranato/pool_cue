@@ -264,6 +264,66 @@
     </div>
     
     <script>
+        // =====================================================
+        // iOS App Deep Link Handler
+        // =====================================================
+        const barId = {{ bar.id }};
+        const tableId = {{ table.id if table else 'null' }};
+        const deepLinkURL = tableId 
+            ? `poolcue://q/${barId}/${tableId}` 
+            : `poolcue://q/${barId}`;
+        
+        // Check if iOS device
+        function isIOS() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        }
+        
+        // Show app banner on iOS
+        function showAppBanner() {
+            const banner = document.getElementById('appBanner');
+            if (banner) {
+                banner.classList.add('show');
+            }
+        }
+        
+        // Close app banner
+        function closeAppBanner() {
+            const banner = document.getElementById('appBanner');
+            if (banner) {
+                banner.classList.remove('show');
+                // Remember user dismissed it
+                sessionStorage.setItem('appBannerDismissed', 'true');
+            }
+        }
+        
+        // Try to open app automatically on iOS
+        function tryOpenApp() {
+            if (!isIOS()) return;
+            
+            // Don't auto-open if already dismissed
+            if (sessionStorage.getItem('appBannerDismissed')) {
+                showAppBanner();
+                return;
+            }
+            
+            // Try to open app
+            const start = Date.now();
+            window.location.href = deepLinkURL;
+            
+            // If still here after 1.5s, app isn't installed - show banner
+            setTimeout(function() {
+                if (Date.now() - start < 2000) {
+                    showAppBanner();
+                }
+            }, 1500);
+        }
+        
+        // Run on page load
+        if (isIOS()) {
+            // Show banner (auto-open can be aggressive, let user tap)
+            showAppBanner();
+        }
+        
         // Back button - go to previous page or player home
         function goBack() {
             if (document.referrer && document.referrer.includes(window.location.host)) {
