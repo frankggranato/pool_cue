@@ -300,7 +300,7 @@ def board_data():
         is_ranked, source = determine_match_ranked_status(effective_bar_id, king['id'])
         player_ranked = is_ranked and source == 'player'
     
-    return jsonify({
+    response = jsonify({
         'king': king,
         'challenger': challenger,
         'queue_list': queue_list,
@@ -317,6 +317,11 @@ def board_data():
         'bar_name': bar_name,
         'queue_count': len(queue)
     })
+    # Prevent caching so name changes show immediately
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @display_bp.route('/display')
 @display_bp.route('/')

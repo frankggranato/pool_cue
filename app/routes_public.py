@@ -171,7 +171,7 @@ def api_queue():
             'opponent_player_id': king.get('opponent_player_id')
         }
     
-    return jsonify({
+    response = jsonify({
         'queue': [{'id': q['id'], 'player_id': q.get('player_id'), 'nickname': q['nickname'], 
                    'partner_name': q.get('partner_name'), 'wins_on_table': q.get('wins_on_table', 0) or 0,
                    'position': i} for i, q in enumerate(queue, 1)],
@@ -181,6 +181,11 @@ def api_queue():
         'table_name': settings.get('table_name', 'Table 1'),
         'ranked': ranked_info
     })
+    # Prevent caching so name changes show immediately
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 
 @public_bp.route('/api/queue/join', methods=['POST'])
