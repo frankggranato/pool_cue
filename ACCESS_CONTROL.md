@@ -25,7 +25,7 @@
 ### If you forget your admin password:
 
 ```bash
-cd ~/Desktop/pool_queue_app
+cd ~/Desktop/PoolCue/backend
 python reset_admin.py
 ```
 

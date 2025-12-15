@@ -16,7 +16,7 @@ Queue management system for pool halls and bars. Players scan a QR code to join 
 
 ```bash
 # Clone/navigate to project
-cd ~/Desktop/pool_queue_app
+cd ~/Desktop/PoolCue/backend
 
 # Create virtual environment
 python3 -m venv venv
@@ -40,7 +40,7 @@ Visit:
 ## Project Structure
 
 ```
-pool_queue_app/
+PoolCue/backend/
 ├── app/
 │   ├── __init__.py
 │   ├── app.py              # Flask app factory

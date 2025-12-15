@@ -38,7 +38,7 @@ Run these manually before each release:
 
 ### 3. Automated Tests
 ```bash
-cd ~/Desktop/pool_queue_app
+cd ~/Desktop/PoolCue/backend
 pytest tests/ -v
 ```
 

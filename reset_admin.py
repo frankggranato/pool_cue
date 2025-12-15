@@ -169,7 +169,7 @@ def main():
     
     if not os.path.exists(DB_PATH):
         print(f"\n❌ Database not found at: {DB_PATH}")
-        print("   Make sure you're running this from the pool_queue_app folder.")
+        print("   Make sure you're running this from the PoolCue/backend folder.")
         sys.exit(1)
     
     while True:

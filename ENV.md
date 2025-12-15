@@ -68,7 +68,7 @@ app.secret_key = 'your-secret-key'  # Change for production!
 ## File Locations
 
 ```
-pool_queue_app/
+PoolCue/backend/
 ├── app/
 │   ├── db/
 │   │   └── pool_queue.db      # Main database
@@ -90,7 +90,7 @@ pool_queue_app/
 ./start_dev.command
 
 # Option 2: Command line
-cd pool_queue_app
+cd PoolCue/backend
 source venv/bin/activate
 python run.py
 ```
