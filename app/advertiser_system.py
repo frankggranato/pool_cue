@@ -399,7 +399,7 @@ def get_advertiser_details(advertiser_id):
             WHERE ac.advertiser_id = ?
         ''', (advertiser_id,))
         stats = cursor.fetchone()
-    except:
+    except Exception:
         # Fallback if tables don't match
         stats = {'impressions': 0, 'clicks': 0}
     

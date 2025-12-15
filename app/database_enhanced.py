@@ -584,7 +584,7 @@ def add_favorite(player_id, bar_id):
         cursor.execute('INSERT INTO user_favorites (player_id, bar_id) VALUES (?, ?)', (player_id, bar_id))
         conn.commit()
         log_activity(player_id, 'bar_favorite', bar_id=bar_id)
-    except:
+    except Exception:
         pass  # Already favorited
     conn.close()
 
@@ -833,7 +833,7 @@ def send_friend_request(player_id, friend_id):
         
         conn.commit()
         log_activity(player_id, 'friend_request', str(friend_id))
-    except:
+    except Exception:
         pass
     conn.close()
 
@@ -979,23 +979,23 @@ def init_tastemaker_tables():
     # Add tastemaker columns to players if not exists
     try:
         cursor.execute('''ALTER TABLE players ADD COLUMN is_tastemaker INTEGER DEFAULT 0''')
-    except:
+    except Exception:
         pass
     try:
         cursor.execute('''ALTER TABLE players ADD COLUMN tastemaker_since TEXT''')
-    except:
+    except Exception:
         pass
     try:
         cursor.execute('''ALTER TABLE players ADD COLUMN tastemaker_granted_by INTEGER''')
-    except:
+    except Exception:
         pass
     try:
         cursor.execute('''ALTER TABLE players ADD COLUMN tastemaker_slots_used INTEGER DEFAULT 0''')
-    except:
+    except Exception:
         pass
     try:
         cursor.execute('''ALTER TABLE players ADD COLUMN last_tastemaker_transfer TEXT''')
-    except:
+    except Exception:
         pass
     
     # Tastemaker transfer history
@@ -1218,5 +1218,5 @@ def get_all_tastemakers():
 # Initialize tastemaker tables on import
 try:
     init_tastemaker_tables()
-except:
+except Exception:
     pass

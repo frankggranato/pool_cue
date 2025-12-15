@@ -549,7 +549,7 @@ def get_master_stats():
     try:
         cursor.execute("SELECT COUNT(*) FROM campaigns WHERE status = 'active' AND end_date >= date('now')")
         stats['active_campaigns'] = cursor.fetchone()[0]
-    except:
+    except Exception:
         stats['active_campaigns'] = 0
     
     conn.close()

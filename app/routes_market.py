@@ -48,7 +48,7 @@ def advertise_landing():
         
         cursor.execute('SELECT COUNT(*) FROM players WHERE is_active = 1 OR is_active IS NULL')
         stats['players'] = cursor.fetchone()[0] or 0
-    except:
+    except Exception:
         pass
     finally:
         conn.close()
@@ -85,7 +85,7 @@ def marketer_required(f):
                 try:
                     from .marketer_system import init_marketer_tables
                     init_marketer_tables()
-                except:
+                except Exception:
                     pass
                 
                 # Check for existing demo account

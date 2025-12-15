@@ -32,7 +32,7 @@ def get_local_ip():
         ip = s.getsockname()[0]
         s.close()
         return ip
-    except:
+    except Exception:
         return "localhost"
 
 def get_join_url(bar_id=None, table_id=None, table_token=None):
@@ -87,7 +87,7 @@ def load_ads_config():
         try:
             with open(config_file, 'r') as f:
                 return json.load(f)
-        except:
+        except Exception:
             pass
     return {'disabled': {}}
 
@@ -150,7 +150,7 @@ def get_ads_for_board(bar_id=None):
                     target_bars = json.loads(target_bars_json)
                     target_bars = [str(b) for b in target_bars]
                     bar_match = str(bar_id) in target_bars
-                except:
+                except Exception:
                     bar_match = True
             
             # Check placement targeting (board placements)
@@ -160,7 +160,7 @@ def get_ads_for_board(bar_id=None):
                     target_placements = json.loads(target_placements_json)
                     board_placements = ['board_rotation', 'board_main', 'between_games', 'winner_screen', 'loser_screen', 'queue_idle', 'display']
                     placement_match = any(p in target_placements for p in board_placements) or len(target_placements) == 0
-                except:
+                except Exception:
                     placement_match = True
             
             if bar_match and placement_match and file_name:

@@ -90,7 +90,7 @@ def beta():
         s.connect(("8.8.8.8", 80))
         host = s.getsockname()[0]
         s.close()
-    except:
+    except Exception:
         host = "localhost"
     return render_template('auth/beta_invite.html', host=host)
 
@@ -117,7 +117,7 @@ def get_active_ad(placement):
             with open(config_file, 'r') as f:
                 config = json.load(f)
                 disabled = config.get('disabled', {}).get(placement, [])
-        except:
+        except Exception:
             pass
     
     # Get all image files
@@ -1106,7 +1106,7 @@ def api_table_rules():
             cursor.execute('UPDATE queue SET partner_name = NULL WHERE partner_name IS NOT NULL')
             conn.commit()
             conn.close()
-        except:
+        except Exception:
             pass
     
     # Update game rules

@@ -343,7 +343,7 @@ def is_setup_complete():
         cursor.execute("SELECT value FROM app_config WHERE key = 'setup_complete'")
         row = cursor.fetchone()
         return row and row[0] == '1'
-    except:
+    except Exception:
         return False
     finally:
         conn.close()

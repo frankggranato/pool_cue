@@ -3,6 +3,10 @@ Pool Queue App - Main Flask Application
 """
 from flask import Flask
 import os
+from .logging_config import setup_logging, get_logger
+
+# Initialize logger
+logger = get_logger('app')
 
 # Rate limiting setup (install with: pip install flask-limiter)
 try:
@@ -11,7 +15,7 @@ try:
     RATE_LIMITING_AVAILABLE = True
 except ImportError:
     RATE_LIMITING_AVAILABLE = False
-    print("WARNING: flask-limiter not installed. Rate limiting disabled.")
+    logger.warning("flask-limiter not installed. Rate limiting disabled.")
 
 # CSRF protection setup (install with: pip install flask-wtf)
 try:
@@ -19,7 +23,7 @@ try:
     CSRF_AVAILABLE = True
 except ImportError:
     CSRF_AVAILABLE = False
-    print("WARNING: flask-wtf not installed. CSRF protection disabled.")
+    logger.warning("flask-wtf not installed. CSRF protection disabled.")
 
 def create_app():
     app = Flask(__name__)
@@ -71,63 +75,63 @@ def create_app():
         from .database_player import init_player_db
         init_player_db()
     except Exception as e:
-        print(f"Player DB init: {e}")
+        logger.debug(f"Player DB init: {e}")
     
     # Initialize league system tables
     try:
         from .database_league import init_league_db
         init_league_db()
     except Exception as e:
-        print(f"League DB init: {e}")
+        logger.debug(f"League DB init: {e}")
     
     # Initialize extended tables (brands, tokens, surveys)
     try:
         from .database_extended import init_extended_db
         init_extended_db()
     except Exception as e:
-        print(f"Extended DB init: {e}")
+        logger.debug(f"Extended DB init: {e}")
     
     # Initialize enhanced data collection tables
     try:
         from .database_enhanced import init_enhanced_db
         init_enhanced_db()
     except Exception as e:
-        print(f"Enhanced DB init: {e}")
+        logger.debug(f"Enhanced DB init: {e}")
     
     # Initialize v2 protected database (marketing analytics + data protection)
     try:
         from .database_v2 import init_v2
         init_v2()
     except Exception as e:
-        print(f"Database v2 init: {e}")
+        logger.debug(f"Database v2 init: {e}")
     
     # Initialize social/token system
     try:
         from .database_social import init_social_db
         init_social_db()
     except Exception as e:
-        print(f"Social DB init: {e}")
+        logger.debug(f"Social DB init: {e}")
     
     # Initialize social & tokens system
     try:
         from .database_social import init_social_db
         init_social_db()
     except Exception as e:
-        print(f"Social DB init: {e}")
+        logger.debug(f"Social DB init: {e}")
     
     # Initialize ad events tracking table
     try:
         from .ad_events import init_ad_events_table
         init_ad_events_table()
     except Exception as e:
-        print(f"Ad events DB init: {e}")
+        logger.debug(f"Ad events DB init: {e}")
     
     # Initialize self-serve marketer system
     try:
         from .marketer_system import init_marketer_tables
         init_marketer_tables()
     except Exception as e:
-        print(f"Marketer DB init: {e}")
+        logger.debug(f"Marketer DB init: {e}")
     
     # Register blueprints
     from .routes_public import public_bp

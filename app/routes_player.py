@@ -54,7 +54,7 @@ def get_active_ad(placement='player'):
                     ad_filename=selected_ad,
                     player_id=player_id
                 )
-            except:
+            except Exception:
                 pass
             return selected_ad
     except Exception as e:
@@ -72,7 +72,7 @@ def get_active_ad(placement='player'):
             with open(config_file, 'r') as f:
                 config = json.load(f)
                 disabled = config.get('disabled', {}).get(placement, [])
-        except:
+        except Exception:
             pass
     
     extensions = ['*.jpg', '*.jpeg', '*.png', '*.gif', '*.webp', '*.JPG', '*.JPEG', '*.PNG']
@@ -1088,7 +1088,7 @@ def earn():
         if q['options_json']:
             try:
                 q['options'] = json.loads(q['options_json'])
-            except:
+            except Exception:
                 q['options'] = []
         else:
             q['options'] = []
@@ -1695,7 +1695,7 @@ def rsvp_pool_night(night_id):
             if event_date < date.today():
                 conn.close()
                 return jsonify({'success': False, 'error': 'This pool night has already passed'}), 400
-        except:
+        except Exception:
             pass  # If date parsing fails, allow the RSVP
         
         entry_fee = float(night['entry_fee']) if night['entry_fee'] else 0.00

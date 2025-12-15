@@ -36,7 +36,7 @@ def format_time_nyc(timestamp_str):
         # Convert to NYC time
         nyc_time = dt.astimezone(NYC_TZ)
         return nyc_time.strftime('%b %d, %I:%M %p')
-    except:
+    except Exception:
         return timestamp_str[:16] if timestamp_str else 'Recently'
 
 # NOTE: NYC_BOROUGHS and BOROUGH_NORMALIZE are now imported from location_service
@@ -102,7 +102,7 @@ def dashboard():
     try:
         cursor.execute("SELECT COUNT(*) FROM campaigns WHERE status = 'active' AND (end_date IS NULL OR end_date >= date('now', 'localtime'))")
         stats['active_campaigns'] = cursor.fetchone()[0] or 0
-    except:
+    except Exception:
         stats['active_campaigns'] = 0
     
     # Pending pool nights
@@ -110,7 +110,7 @@ def dashboard():
     try:
         cursor.execute("SELECT COUNT(*) FROM pool_nights WHERE status = 'pending'")
         stats['pending_nights'] = cursor.fetchone()[0] or 0
-    except:
+    except Exception:
         pass
     
     # Bars for dashboard - top 5 active bars with player and queue counts
@@ -225,7 +225,7 @@ def dashboard():
                 'text': f'<b>{r[1]}</b> won a game',
                 'time': format_time_nyc(r[2])
             })
-    except:
+    except Exception:
         pass
     
     # Weekly revenue (from POS data - last 7 days)
@@ -238,7 +238,7 @@ def dashboard():
         ''')
         row = cursor.fetchone()
         stats['weekly_revenue'] = round(row[0], 0) if row and row[0] else 0
-    except:
+    except Exception:
         pass
     
     # Avg session time (from game durations)
@@ -255,7 +255,7 @@ def dashboard():
         if row and row[0]:
             avg_mins = int(row[0] / 60)
             stats['avg_session'] = f'{avg_mins}m'
-    except:
+    except Exception:
         pass
     
     # Upcoming events
@@ -263,7 +263,7 @@ def dashboard():
     try:
         cursor.execute("SELECT COUNT(*) FROM pool_nights WHERE status = 'approved' AND event_date >= date('now')")
         stats['upcoming_events'] = cursor.fetchone()[0] or 0
-    except:
+    except Exception:
         pass
     
     # Pool nights for dashboard (real data)
@@ -294,7 +294,7 @@ def dashboard():
                 'bar_name': r[4] or 'Unknown Bar',
                 'icon': '🏆' if 'tournament' in (r[1] or '').lower() else '🎱'
             })
-    except:
+    except Exception:
         pass
     
     conn.close()
@@ -528,11 +528,11 @@ def player_delete_permanent(player_id):
                   'active_matches', 'player_reports', 'post_session_surveys']:
         try:
             cursor.execute(f'DELETE FROM {table} WHERE player_id = ?', (player_id,))
-        except:
+        except Exception:
             pass
         try:
             cursor.execute(f'DELETE FROM {table} WHERE reported_player_id = ?', (player_id,))
-        except:
+        except Exception:
             pass
     
     # Delete the player
@@ -1963,7 +1963,7 @@ def analytics():
     try:
         cursor.execute('SELECT COUNT(*) FROM survey_responses')
         a['survey_responses_total'] = cursor.fetchone()[0] or 0
-    except:
+    except Exception:
         a['survey_responses_total'] = 0
     
     # Avg spend per session from post_session_surveys
@@ -1972,7 +1972,7 @@ def analytics():
         cursor.execute('SELECT AVG(spend_amount) FROM post_session_surveys WHERE spend_amount IS NOT NULL AND spend_amount > 0')
         avg_spend = cursor.fetchone()[0]
         a['avg_spend_per_session'] = avg_spend or 0.0
-    except:
+    except Exception:
         pass
     
     # Avg spend per bar breakdown
@@ -1988,7 +1988,7 @@ def analytics():
         ''')
         for r in cursor.fetchall():
             a['avg_spend_per_bar'][r[0]] = round(r[1], 2) if r[1] else 0
-    except:
+    except Exception:
         pass
     
     # Demographics - gender breakdown from players table
@@ -2008,7 +2008,7 @@ def analytics():
                     a['gender_breakdown']['female'] = round(r[1] / total_gender * 100)
                 else:
                     a['gender_breakdown']['other'] += round(r[1] / total_gender * 100)
-    except:
+    except Exception:
         pass
     
     # Age distribution from birthday field (more accurate than age_range)
@@ -2163,7 +2163,7 @@ def analytics():
             LIMIT 4
         ''')
         a['neighborhoods'] = [{'name': r[0], 'count': r[1]} for r in cursor.fetchall()]
-    except:
+    except Exception:
         pass
     
     # ============================================
@@ -2251,7 +2251,7 @@ def analytics():
                 a['skill_distribution']['silver'] += 1
             else:
                 a['skill_distribution']['bronze'] += 1
-    except:
+    except Exception:
         pass
     
     # Activity heatmap - real game data by day of week and hour (converted to local time)
@@ -2278,7 +2278,7 @@ def analytics():
                 max_count = count
                 days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
                 a['peak_activity'] = {'day': days[day], 'hour': hour, 'count': count}
-    except:
+    except Exception:
         pass
     
     # Play frequency distribution from players table
@@ -2344,7 +2344,7 @@ def analytics():
         for i, r in enumerate(rows):
             a['games_per_week']['labels'].append(f'W{i+1}')
             a['games_per_week']['values'].append(r[1])
-    except:
+    except Exception:
         pass
     # Fill with zeros if no data
     if not a['games_per_week']['labels']:
@@ -2522,7 +2522,7 @@ def analytics():
                 AND created_at >= datetime('now', '-30 days')
             ''')
             a['cohorts']['big_spenders'] = cursor.fetchone()[0] or 0
-        except:
+        except Exception:
             pass
         
         # Hot Streakers - players with current win streak >= 4
@@ -2698,7 +2698,7 @@ def bar_detail(bar_id):
             summary['pos_checks_count'] = row['checks']
             summary['pos_total_revenue'] = round(row['revenue'], 2)
             summary['pos_avg_tab'] = round(row['avg_tab'], 2)
-    except:
+    except Exception:
         pass
     
     # Ad impressions and revenue (last 30 days)
@@ -2720,7 +2720,7 @@ def bar_detail(bar_id):
             summary['clicks'] = row['clicks'] or 0
             if summary['impressions'] > 0:
                 summary['ctr'] = round(summary['clicks'] / summary['impressions'] * 100, 1)
-    except:
+    except Exception:
         pass
     
     # Active campaigns for this bar
@@ -2750,7 +2750,7 @@ def bar_detail(bar_id):
                 'clicks': clicks,
                 'ctr': ctr
             })
-    except:
+    except Exception:
         pass
     
     # Top players at this bar
@@ -2776,7 +2776,7 @@ def bar_detail(bar_id):
                 'rating': row['rating'] or 1000,
                 'win_rate': win_rate
             })
-    except:
+    except Exception:
         pass
     
     # Recent games at this bar
@@ -2800,7 +2800,7 @@ def bar_detail(bar_id):
                 'winner': row['winner_name'] or 'Unknown',
                 'loser': row['loser_name'] or 'Unknown'
             })
-    except:
+    except Exception:
         pass
     
     # Player demographics at this bar
@@ -2818,7 +2818,7 @@ def bar_detail(bar_id):
                 summary['skill_distribution']['silver'] += 1
             else:
                 summary['skill_distribution']['bronze'] += 1
-    except:
+    except Exception:
         pass
     
     # Age distribution - calculated from birthday field (consistent with main analytics)
@@ -2853,7 +2853,7 @@ def bar_detail(bar_id):
             total = len(ages)
             for k in buckets:
                 summary['age_distribution'][k] = round(buckets[k] / total * 100) if total > 0 else 0
-    except:
+    except Exception:
         pass
     
     # Live queue for this bar
@@ -2877,7 +2877,7 @@ def bar_detail(bar_id):
                 'nickname': row['nickname'],
                 'created_at': row['created_at']
             })
-    except:
+    except Exception:
         pass
     
     # Recent activity feed (games + queue joins)
@@ -2900,7 +2900,7 @@ def bar_detail(bar_id):
                 'text': f"<b>{row['actor'] or 'Unknown'}</b> beat {row['target'] or 'Unknown'}",
                 'time': row['time'][:16] if row['time'] else ''
             })
-    except:
+    except Exception:
         pass
     
     # Weekly games data for charts (last 4 weeks)
@@ -2924,7 +2924,7 @@ def bar_detail(bar_id):
                 # W1 is oldest (3 weeks ago), W4 is current week
                 idx = 3 - weeks_ago
                 summary['weekly_games'][idx] = row['games']
-    except:
+    except Exception:
         pass
     
     # Weekly revenue data for charts (last 4 weeks from POS)
@@ -2946,7 +2946,7 @@ def bar_detail(bar_id):
             if 0 <= weeks_ago < 4:
                 idx = 3 - weeks_ago
                 summary['weekly_revenue'][idx] = round(row['revenue'], 0)
-    except:
+    except Exception:
         pass
     
     conn.close()
@@ -4408,7 +4408,7 @@ def advertiser_detail(advertiser_id):
         if row:
             total_impressions = row['impressions'] or 0
             total_clicks = row['clicks'] or 0
-    except:
+    except Exception:
         pass
     
     # Calculate CTR
@@ -4443,7 +4443,7 @@ def advertiser_detail(advertiser_id):
                 if row:
                     campaign['impressions'] = row['impressions'] or 0
                     campaign['clicks'] = row['clicks'] or 0
-            except:
+            except Exception:
                 pass
         
         # Calculate revenue (CPM of $8.50)
@@ -4979,12 +4979,12 @@ def edit_campaign(campaign_id):
     # Parse JSON fields
     try:
         campaign['target_bars_list'] = json.loads(campaign['target_bars']) if campaign.get('target_bars') else []
-    except:
+    except Exception:
         campaign['target_bars_list'] = []
     
     try:
         campaign['target_placements_list'] = json.loads(campaign['target_placements']) if campaign.get('target_placements') else []
-    except:
+    except Exception:
         campaign['target_placements_list'] = []
     
     from .ad_scheduling import PLACEMENT_INFO
@@ -5295,7 +5295,7 @@ def wipe_all_players():
         for table in tables_to_clear:
             try:
                 cursor.execute(f'DELETE FROM {table}')
-            except:
+            except Exception:
                 pass  # Table might not exist
         
         # Delete all players

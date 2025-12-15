@@ -19,7 +19,7 @@ def rate_limit_login(f):
         if limiter:
             try:
                 limiter.limit("5 per minute;20 per hour")(f)
-            except:
+            except Exception:
                 pass
         return f(*args, **kwargs)
     return decorated_function

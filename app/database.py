@@ -412,11 +412,11 @@ def init_db():
     # Using partial indexes to only enforce uniqueness when values are not null
     try:
         cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_players_email_unique ON players(email) WHERE email IS NOT NULL AND email != ""')
-    except:
+    except Exception:
         pass
     try:
         cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_players_phone_unique ON players(phone_number) WHERE phone_number IS NOT NULL AND phone_number != ""')
-    except:
+    except Exception:
         pass
 
     # Migrations
@@ -1207,7 +1207,7 @@ def get_pool_nights_summary(start_date=None, end_date=None, bar_id=None):
             pos_row = cursor.fetchone()
             if pos_row and pos_row['revenue'] > 0:
                 night['total_revenue'] = round(pos_row['revenue'], 2)
-    except:
+    except Exception:
         pass  # pos_checks table might not exist
     
     conn.close()

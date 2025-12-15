@@ -32,7 +32,7 @@ def load_ads_config():
         try:
             with open(config_file, 'r') as f:
                 return json.load(f)
-        except:
+        except Exception:
             pass
     return {'disabled': {}}
 
@@ -88,7 +88,7 @@ def dashboard():
     try:
         from .database_player import get_analytics_summary
         analytics = get_analytics_summary()
-    except:
+    except Exception:
         analytics = {
             'total_users': 0,
             'active_today': 0,
@@ -360,7 +360,7 @@ def api_stats():
     try:
         from .database_player import get_analytics_summary
         analytics = get_analytics_summary()
-    except:
+    except Exception:
         analytics = {}
     
     return jsonify({

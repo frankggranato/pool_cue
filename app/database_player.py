@@ -156,7 +156,7 @@ def init_player_db():
     ]:
         try:
             cursor.execute(sql)
-        except:
+        except Exception:
             pass
     
     conn.commit()
