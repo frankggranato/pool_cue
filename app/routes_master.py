@@ -1267,7 +1267,11 @@ def edit_bar(bar_id):
     instagram = request.form.get('instagram') if 'instagram' in request.form else existing.get('instagram', '')
     google_review_url = request.form.get('google_review_url') if 'google_review_url' in request.form else existing.get('google_review_url', '')
     notes = request.form.get('notes') if 'notes' in request.form else existing.get('notes', '')
-    is_active = 1 if request.form.get('is_active') else (existing.get('is_active', 1) if 'is_active' not in request.form else 0)
+    # Handle is_active checkbox: if is_active_present marker exists, use checkbox value; otherwise keep existing
+    if 'is_active_present' in request.form:
+        is_active = 1 if request.form.get('is_active') else 0
+    else:
+        is_active = existing.get('is_active', 1)
     cursor.execute('''
         UPDATE bars SET 
             name = ?, phone = ?, email = ?, address = ?, borough = ?,

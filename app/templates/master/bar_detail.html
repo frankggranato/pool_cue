@@ -597,6 +597,7 @@
                         <div class="form-g"><label class="form-l">Notes</label><textarea name="notes" class="form-c" rows="2">{{ bar.notes or '' }}</textarea></div>
                         <div class="form-g">
                             <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                                <input type="hidden" name="is_active_present" value="1">
                                 <input type="checkbox" name="is_active" value="1" {% if bar.is_active %}checked{% endif %}>
                                 <span class="form-l" style="margin:0">Bar is Active</span>
                             </label>
