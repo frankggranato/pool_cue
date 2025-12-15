@@ -396,7 +396,10 @@
         function softRefresh() {
             if (softRefreshPaused) return;
             
-            fetch(`/api/board-data?bar_id=${BAR_ID}`)
+            let url = `/api/board-data?bar_id=${BAR_ID}`;
+            if (TABLE_ID) url += `&table_id=${TABLE_ID}`;
+            
+            fetch(url)
                 .then(r => r.json())
                 .then(data => {
                     const container = document.getElementById('board-content');
@@ -495,7 +498,7 @@
                 fetch(endpoint, { 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ bar_id: BAR_ID })
+                    body: JSON.stringify({ bar_id: BAR_ID, table_id: TABLE_ID })
                 })
                     .then(r => r.json())
                     .then(data => {

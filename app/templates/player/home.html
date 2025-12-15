@@ -375,6 +375,38 @@
             container.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         }
+        
+        // Auto-refresh queue status every 5 seconds
+        let lastQueuePosition = {% if my_queue_info %}{{ my_queue_info.position }}{% else %}null{% endif %};
+        
+        async function checkQueueStatus() {
+            try {
+                const res = await fetch('/api/queue/my-status');
+                const data = await res.json();
+                
+                if (lastQueuePosition !== null && !data.in_queue) {
+                    // Was in queue, now not - got swiped off or left
+                    showToast('You are no longer in the queue', 'info');
+                    setTimeout(() => location.reload(), 1500);
+                    return;
+                }
+                
+                if (data.in_queue && data.position !== lastQueuePosition) {
+                    // Position changed - reload to update UI
+                    location.reload();
+                    return;
+                }
+                
+                lastQueuePosition = data.in_queue ? data.position : null;
+            } catch (e) {
+                console.error('Queue status check failed:', e);
+            }
+        }
+        
+        // Only poll if player was in queue
+        {% if my_queue_info %}
+        setInterval(checkQueueStatus, 5000);
+        {% endif %}
     </script>
 </body>
 </html>
