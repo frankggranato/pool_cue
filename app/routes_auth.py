@@ -24,7 +24,7 @@ def rate_limit_login(f):
         return f(*args, **kwargs)
     return decorated_function
 
-auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+auth_bp = Blueprint('auth', __name__, url_prefix='/player-auth')
 
 # =============================================================================
 # BETA MODE CONFIGURATION

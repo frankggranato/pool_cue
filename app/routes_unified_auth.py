@@ -22,7 +22,7 @@ unified_auth_bp = Blueprint('unified_auth', __name__, url_prefix='/auth')
 
 @unified_auth_bp.route('/login', methods=['GET', 'POST'])
 def unified_login():
-    """Single login for all user types."""
+    """Single login for all user types - staff (users table) AND players (players table)."""
     if 'user_id' in session:
         return redirect(url_for('unified_auth.portal'))
     
@@ -35,51 +35,75 @@ def unified_login():
         
         conn = get_db()
         cursor = conn.cursor()
+        
+        # First check users table (staff/admin accounts)
         cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
         user = cursor.fetchone()
         
-        if not user:
+        if user:
+            user = dict(user)
+            
+            # Check status
+            if user.get('status') == 'suspended':
+                conn.close()
+                return render_template('auth/unified_login.html', error='Account suspended. Contact support.')
+            
+            if not check_password_hash(user['password_hash'], password):
+                conn.close()
+                return render_template('auth/unified_login.html', error='Invalid email or password')
+            
+            # Update last login
+            cursor.execute('UPDATE users SET last_login = ? WHERE id = ?', (datetime.now().isoformat(), user['id']))
+            conn.commit()
+            
+            # Set session for staff user
+            session['user_id'] = user['id']
+            session['user_email'] = user['email']
+            session['user_name'] = user['name']
+            session['is_superadmin'] = user.get('is_superadmin', 0)
+            session['email_verified'] = user.get('email_verified', 0)
+            session.permanent = True
+            
+            # Link to player profile if exists
+            cursor.execute('SELECT id, nickname FROM players WHERE user_id = ?', (user['id'],))
+            player = cursor.fetchone()
+            if player:
+                session['player_id'] = player['id']
+                session['player_nickname'] = player['nickname']
             conn.close()
-            return render_template('auth/unified_login.html', error='Invalid email or password')
+            
+            # Log audit
+            log_audit(user['id'], 'login', user['id'], None, {'method': 'password'}, request.remote_addr)
+            
+            return redirect(url_for('unified_auth.portal'))
         
-        user = dict(user)
-        
-        # Check status
-        if user.get('status') == 'suspended':
-            conn.close()
-            return render_template('auth/unified_login.html', error='Account suspended. Contact support.')
-        
-        if not check_password_hash(user['password_hash'], password):
-            conn.close()
-            return render_template('auth/unified_login.html', error='Invalid email or password')
-        
-        # Update last login
-        cursor.execute('UPDATE users SET last_login = ? WHERE id = ?', (datetime.now().isoformat(), user['id']))
-        conn.commit()
-        conn.close()
-        
-        # Set session
-        session['user_id'] = user['id']
-        session['user_email'] = user['email']
-        session['user_name'] = user['name']
-        session['is_superadmin'] = user.get('is_superadmin', 0)
-        session['email_verified'] = user.get('email_verified', 0)
-        session.permanent = True
-        
-        # Link to player profile if exists
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('SELECT id, nickname FROM players WHERE user_id = ?', (user['id'],))
+        # If not in users table, check players table (player accounts)
+        cursor.execute('SELECT id, nickname, email, password_hash, is_active FROM players WHERE email = ?', (email,))
         player = cursor.fetchone()
+        
         if player:
+            player = dict(player)
+            
+            if not player.get('is_active', True):
+                conn.close()
+                return render_template('auth/unified_login.html', error='Account deactivated. Contact support.')
+            
+            if not player.get('password_hash') or not check_password_hash(player['password_hash'], password):
+                conn.close()
+                return render_template('auth/unified_login.html', error='Invalid email or password')
+            
+            # Set session for player (no user_id, just player_id)
             session['player_id'] = player['id']
             session['player_nickname'] = player['nickname']
+            session['player_email'] = player['email']
+            session.permanent = True
+            conn.close()
+            
+            # Redirect players to player home
+            return redirect(url_for('player.home'))
+        
         conn.close()
-        
-        # Log audit
-        log_audit(user['id'], 'login', user['id'], None, {'method': 'password'}, request.remote_addr)
-        
-        return redirect(url_for('unified_auth.portal'))
+        return render_template('auth/unified_login.html', error='Invalid email or password')
     
     return render_template('auth/unified_login.html')
 
