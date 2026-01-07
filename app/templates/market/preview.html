@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview {{ placement }} - Pool Cue Advertiser</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#09090b;--card:#0f0f12;--border:rgba(255,255,255,0.06);--t1:#f4f4f5;--t2:#a1a1aa;--t3:#52525b;--gold:#eab308;--green:#22c55e}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);font-size:12px}
+        .nav{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#0a0a0c;border-bottom:1px solid var(--border)}
+        .nav-logo{display:flex;align-items:center;gap:10px;font-weight:600}
+        .nav-links{display:flex;gap:20px}
+        .nav-links a{color:var(--t2);text-decoration:none;font-size:0.75rem}
+        .nav-links a:hover{color:var(--gold)}
+        .container{max-width:900px;margin:0 auto;padding:20px}
+        .back{display:inline-flex;align-items:center;gap:6px;color:var(--t3);text-decoration:none;font-size:0.7rem;margin-bottom:16px}
+        .back:hover{color:var(--gold)}
+        .header{margin-bottom:20px}
+        .header h1{font-size:1.1rem;font-weight:600;margin-bottom:4px}
+        .header-sub{font-size:0.75rem;color:var(--t3)}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:16px}
+        .card-title{font-size:0.7rem;font-weight:600;color:var(--t2);text-transform:uppercase;margin-bottom:12px}
+        .preview-frame{background:#000;border-radius:8px;padding:20px;min-height:300px;display:flex;align-items:center;justify-content:center}
+        .ad-slot{background:rgba(234,179,8,0.1);border:2px dashed var(--gold);border-radius:8px;padding:30px 50px;text-align:center}
+        .ad-slot-label{font-size:0.7rem;color:var(--gold);text-transform:uppercase;margin-bottom:8px}
+        .ad-slot-size{font-size:0.85rem;color:var(--t2)}
+        .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .info-item{padding:10px;background:rgba(0,0,0,0.3);border-radius:6px}
+        .info-label{font-size:0.6rem;color:var(--t3);text-transform:uppercase;margin-bottom:4px}
+        .info-value{font-size:0.85rem;color:var(--t1)}
+        .btn{padding:8px 16px;border-radius:5px;font-size:0.7rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--t2);text-decoration:none;display:inline-block}
+        .btn:hover{border-color:var(--gold);color:var(--gold)}
+        .btn-primary{background:var(--gold);border-color:var(--gold);color:#000}
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-logo"><span>🎱</span> Pool Cue Advertiser</div>
+        <div class="nav-links">
+            <a href="/market/dashboard">Dashboard</a>
+            <a href="/market/campaigns">Campaigns</a>
+            <a href="/market/billing">Billing</a>
+            <a href="/auth/logout">Logout</a>
+        </div>
+    </nav>
+    <div class="container">
+        <a href="/market/campaigns/new" class="back">← Back to Create Campaign</a>
+        <div class="header">
+            <h1>📺 Preview: {{ placement|title }}</h1>
+            <p class="header-sub">See how your ad will appear in this placement</p>
+        </div>
+        <div class="card">
+            <div class="card-title">Live Preview</div>
+            <div class="preview-frame">
+                <div class="ad-slot">
+                    <div class="ad-slot-label">Your Ad Here</div>
+                    <div class="ad-slot-size">{{ placement|title }} Placement</div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">Placement Details</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Placement Type</div>
+                    <div class="info-value">{{ placement|title }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Visibility</div>
+                    <div class="info-value">High</div>
+                </div>
+            </div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <a href="/market/campaigns/new" class="btn btn-primary">Create Campaign</a>
+            <a href="/market/dashboard" class="btn">Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>

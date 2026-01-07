@@ -135,12 +135,6 @@ def create_app():
     except Exception as e:
         logger.debug(f"Social DB init: {e}")
     
-    # Initialize social & tokens system
-    try:
-        from .database_social import init_social_db
-        init_social_db()
-    except Exception as e:
-        logger.debug(f"Social DB init: {e}")
     
     # Initialize ad events tracking table
     try:

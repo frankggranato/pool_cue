@@ -100,3 +100,5 @@ Thumbs.db
 # Distribution
 *.tar.gz
 *.zip
+*.db-shm
+*.db-wal
