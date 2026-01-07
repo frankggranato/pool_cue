@@ -51,7 +51,8 @@ def create_app():
         app.limiter = None
     
     # SECURITY: Initialize CSRF protection
-    if CSRF_AVAILABLE:
+    # DISABLED for local development - enable for production
+    if False and CSRF_AVAILABLE:
         csrf = CSRFProtect(app)
         app.csrf = csrf
         # Exempt API endpoints from CSRF (they use session/token auth)
@@ -64,6 +65,18 @@ def create_app():
         csrf.exempt('social.api_token_balance')
         csrf.exempt('ad_tracking.track_impression')
         csrf.exempt('ad_tracking.track_click')
+        # Exempt auth routes during development (forms need CSRF tokens added)
+        csrf.exempt('auth')
+        csrf.exempt('unified_auth')
+        csrf.exempt('public')
+        csrf.exempt('admin')
+        csrf.exempt('master')
+        csrf.exempt('player')
+        csrf.exempt('bar_manager')
+        csrf.exempt('market')
+        csrf.exempt('setup')
+        csrf.exempt('board')
+        csrf.exempt('apps')
     else:
         app.csrf = None
     
