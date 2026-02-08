@@ -293,15 +293,18 @@
             </div>
         </div>
         
-        <!-- GAME RESULT BUTTONS - DISABLED FOR NON-RANKED (removed for beta) -->
-        {% if false %}
-        <div style="display:flex; gap:12px; margin-bottom:20px;">
-            <button onclick="reportResult('king-wins')" style="flex:1; padding:18px; background:rgba(34,197,94,0.2); border:1px solid rgba(34,197,94,0.4); border-radius:12px; color:#22c55e; font-size:1rem; font-weight:600; cursor:pointer; font-family:inherit;">
-                {% if is_king %}I Won! 👑{% else %}{{ king.nickname }} Won{% endif %}
-            </button>
-            <button onclick="reportResult('challenger-wins')" style="flex:1; padding:18px; background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.4); border-radius:12px; color:#ef4444; font-size:1rem; font-weight:600; cursor:pointer; font-family:inherit;">
-                {% if is_challenger %}I Won! 🎉{% else %}{{ challenger.nickname }} Won{% endif %}
-            </button>
+        <!-- GAME RESULT BUTTONS - King marks who won -->
+        {% if is_king and challenger %}
+        <div style="margin-bottom:20px;">
+            <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; text-align:center;">Record Game Result</div>
+            <div style="display:flex; gap:12px;">
+                <button onclick="recordResult('king-wins')" style="flex:1; padding:18px; background:rgba(34,197,94,0.2); border:1px solid rgba(34,197,94,0.4); border-radius:12px; color:#22c55e; font-size:1rem; font-weight:600; cursor:pointer; font-family:inherit;">
+                    👑 I Won
+                </button>
+                <button onclick="recordResult('challenger-wins')" style="flex:1; padding:18px; background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.4); border-radius:12px; color:#ef4444; font-size:1rem; font-weight:600; cursor:pointer; font-family:inherit;">
+                    ⚔️ {{ challenger.nickname }} Won
+                </button>
+            </div>
         </div>
         {% endif %}
         
@@ -631,6 +634,33 @@
                     rule_type: document.getElementById('ruleType')?.value || 'bar_rules'
                 })
             });
+        }
+        
+        function recordResult(endpoint) {
+            const msg = endpoint === 'king-wins' 
+                ? 'Record your win? Challenger will leave the table.' 
+                : 'Challenger won? You\'ll leave the table.';
+            if (!confirm(msg)) return;
+            
+            fetch('/api/' + endpoint, { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bar_id: {{ entry.bar_id or 1 }} })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    if (endpoint === 'king-wins') {
+                        showToast('🏆 Win recorded!', 'success');
+                    } else {
+                        showToast('Game recorded. Next player is up!', 'success');
+                    }
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    showToast(data.error || 'Failed to record result', 'error');
+                }
+            })
+            .catch(() => showToast('Connection error', 'error'));
         }
         
         function reportResult(endpoint) {
