@@ -1,5 +1,4 @@
 """
-import sqlite3
 Database extensions for enhanced data collection and features
 - Bar addresses and Google review links
 - Category-based bar ratings
@@ -7,6 +6,7 @@ Database extensions for enhanced data collection and features
 - Player home bars
 - Activity tracking for analytics
 """
+import sqlite3
 from .database import get_db
 from datetime import datetime
 

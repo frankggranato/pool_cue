@@ -1,8 +1,8 @@
 """
-import sqlite3
 Database extensions for League System - Phase 1
 Ranked/Casual, ELO, Divisions, Seasons, Reports
 """
+import sqlite3
 from .database import get_db
 from datetime import datetime, date
 

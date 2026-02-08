@@ -580,7 +580,11 @@
         // Shot Caller Quick Actions
         function recordKingWin() {
             if (!confirm('Record your win? Challenger will be removed from the table.')) return;
-            fetch('/api/king-wins', { method: 'POST' })
+            fetch('/api/king-wins', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bar_id: barId })
+            })
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
@@ -595,7 +599,11 @@
         
         function recordChallengerWin() {
             if (!confirm('Challenger won? You will be removed from the table.')) return;
-            fetch('/api/challenger-wins', { method: 'POST' })
+            fetch('/api/challenger-wins', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bar_id: barId })
+            })
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
@@ -611,7 +619,11 @@
         
         function leaveTable() {
             if (!confirm('Leave the table? You\'ll lose your position.')) return;
-            fetch('/api/leave', { method: 'POST' })
+            fetch('/api/leave', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bar_id: barId })
+            })
                 .then(r => r.json())
                 .then(data => {
                     showToast('You\'ve left the table', 'info');

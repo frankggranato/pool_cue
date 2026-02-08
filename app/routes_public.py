@@ -270,61 +270,9 @@ def share():
 
 @public_bp.route('/join', methods=['GET'])
 def join():
-    """Display the join queue page with current queue status and ads."""
-    settings = get_settings()
-    rules = get_current_rules()  # Uses scheduled rules if active
-    queue = Queue.get_all()
-    game_type = rules.get('game_type', 'singles')
-    is_doubles = game_type == 'doubles'
-    is_scheduled = rules.get('is_scheduled', False)
-    
-    # Get ads from folder system
-    join_ad = get_active_ad('join')
-    shotcaller_ad = get_active_ad('shotcaller')
-    
-    # Check if user is logged in
-    logged_in_player = None
-    is_shot_caller = False
-    shot_caller_entry = None
-    ranked_status = None
-    
-    if 'player_id' in session:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('SELECT id, nickname, email FROM players WHERE id = ?', (session['player_id'],))
-        player = cursor.fetchone()
-        conn.close()
-        if player:
-            logged_in_player = dict(player)
-            # Check if this player is shot caller (position 1 in queue)
-            if queue and len(queue) > 0 and queue[0].get('player_id') == session['player_id']:
-                is_shot_caller = True
-                shot_caller_entry = queue[0]
-    
-    # Get ranked status for current bar
-    if queue:
-        bar_id = queue[0].get('bar_id', 1)
-    else:
-        bar_id = 1
-    
-    is_event_ranked, ranked_source, ranked_info = check_ranked_requirement(bar_id)
-    ranked_status = {
-        'is_event_ranked': is_event_ranked,
-        'ranked_source': ranked_source,
-        'ranked_info': ranked_info
-    }
-    
-    return render_template('public/join.html', settings=settings, rules=rules, 
-                          queue=queue, queue_count=len(queue), is_doubles=is_doubles,
-                          table_rules=game_type.capitalize(),
-                          join_ad=join_ad, shotcaller_ad=shotcaller_ad,
-                          bar_name=settings.get('bar_name', 'The Corner Pocket'),
-                          logged_in_player=logged_in_player,
-                          is_shot_caller=is_shot_caller,
-                          shot_caller_entry=shot_caller_entry,
-                          ranked_status=ranked_status,
-                          is_scheduled=is_scheduled,
-                          rule_type=rules.get('rule_type', 'bar_rules'))
+    """Redirect to the unified QR scan view for the appropriate bar."""
+    bar_id = request.args.get('bar_id', 1, type=int)
+    return redirect(url_for('public.qr_scan_view', bar_id=bar_id))
 
 @public_bp.route('/join', methods=['POST'])
 def join_post():
